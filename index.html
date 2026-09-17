@@ -1,0 +1,3159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Hunter — B2B Revenue Terminal</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,600&display=swap" rel="stylesheet" />
+  <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Global scrollbar suppression across all views and containers */
+    html, body, * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    ::-webkit-scrollbar, *::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+    ::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb,
+    ::-webkit-scrollbar-track, *::-webkit-scrollbar-track {
+      display: none !important;
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Static Premium Background Surface (Zero GPU Compositor Video Invalidation) -->
+  <div class="bg">
+    <div class="bg-static-canvas"></div>
+  </div>
+
+  <!-- Main Scrollable Page Container -->
+  <div class="page-container">
+    <!-- Sticky Header -->
+    <header class="header anim" style="--d: 0s">
+      <!-- LEFT: Brand with increased size & Client Hunter title case -->
+      <a href="#hero" class="brand-group" id="brand-link" aria-label="Client Hunter Home">
+        <div class="brand-icon" aria-hidden="true">
+          <img src="assets/logo.png" alt="Client Hunter Logo" class="brand-logo-img" />
+        </div>
+        <div class="brand-meta">
+          <div class="brand-title-row">
+            <span class="brand-name">Client Hunter</span>
+            <span class="badge-terminal">TERMINAL</span>
+          </div>
+          <span class="brand-subtitle">B2B REVENUE TERMINAL</span>
+        </div>
+      </a>
+
+      <!-- CENTER: Navigation Pill -->
+      <nav class="nav-pill desktop-nav" aria-label="Main navigation">
+        <a href="#dashboard" class="nav-link" data-tab="dashboard">Dashboard</a>
+        <a href="#find-leads" class="nav-link" data-tab="find-leads">Find Leads</a>
+        <a href="#saved-leads" class="nav-link with-badge" data-tab="saved-leads">
+          Saved Leads <span class="nav-badge" id="nav-saved-badge">60</span>
+        </a>
+        <a href="#favorites" class="nav-link" data-tab="favorites">Favorites</a>
+        <a href="#outreach" class="nav-link with-badge" data-tab="outreach">
+          Outreach <span class="nav-badge" id="nav-outreach-badge">3</span>
+        </a>
+        <a href="#followup" class="nav-link with-badge" data-tab="followup">
+          Follow-Up <span class="nav-badge" id="nav-followup-badge">0</span>
+        </a>
+        <a href="#history" class="nav-link" data-tab="history">History</a>
+        <a href="#settings" class="nav-link" data-tab="settings">Settings</a>
+      </nav>
+
+      <!-- RIGHT: Controls -->
+      <div class="header-right">
+        <!-- Radar Active Indicator -->
+        <div class="radar-status" title="Radar System Active">
+          <span class="radar-dot"></span>
+          <span class="radar-text">Radar Active</span>
+        </div>
+
+        <!-- Mobile Burger Menu Button -->
+        <button class="burger" aria-label="Open mobile navigation" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- VIEW CONTAINER 0: HERO & SECTIONS (00:02 → 00:10) -->
+    <main id="view-hero" class="view-panel hidden" style="display: none;">
+      <!-- VIEWPORT 1: Opening Hero Page (00:02 → 00:05) -->
+    <section class="hero-viewport" id="hero">
+      <div class="hero-inner">
+        <!-- AI Badge -->
+        <div class="ai-badge anim" style="--d: 0.1s">
+          <span class="ai-sparkle">✦</span>
+          <span>AI-Powered Lead Intelligence</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="headline">
+          <span class="headline-line anim" style="--d: 0.22s">Find businesses.</span>
+          <span class="headline-line anim" style="--d: 0.34s">
+            Turn them into <span class="headline-clients">clients.</span>
+          </span>
+        </h1>
+
+        <!-- Subhead Description -->
+        <p class="subhead anim" style="--d: 0.46s">
+          Discover high-opportunity leads, craft better outreach, and<br class="subhead-br" />
+          manage every conversation from one place.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="hero-actions anim" style="--d: 0.58s">
+          <a href="#discovery" class="btn-primary" id="find-leads-btn">
+            <i class="fa-solid fa-magnifying-glass btn-icon"></i>
+            <span>Find Leads</span>
+          </a>
+          <a href="#pipeline" class="btn-secondary" id="explore-dashboard-btn">
+            <i class="fa-solid fa-table-cells-large btn-icon"></i>
+            <span>Explore Dashboard</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom Status Bar + Scroll Indicator -->
+      <div class="hero-bottom anim" style="--d: 0.7s">
+        <a href="#discovery" class="scroll-chevron" aria-label="Scroll to Google Places Discovery">
+          <i class="fa-solid fa-chevron-down"></i>
+        </a>
+        <div class="bottom-stats-pill">
+          <span class="stat-item"><span class="stat-bullet">✦</span> <strong>60</strong> leads discovered</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-item"><span class="stat-bullet">✦</span> <strong>17</strong> high-opportunity prospects</span>
+          <span class="stat-separator">•</span>
+          <span class="stat-item"><span class="stat-bullet">✦</span> <strong>3</strong> outreach conversations</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEWPORT 2: Section 01 Google Places Discovery (00:05 → 00:07) -->
+    <section class="content-section" id="discovery">
+      <div class="section-badge">01 / GOOGLE PLACES DISCOVERY</div>
+      <h2 class="section-heading">Discover your next opportunity.</h2>
+      <p class="section-subhead">
+        Pinpoint underserved local businesses with verified contact numbers and<br />
+        high digital service demand.
+      </p>
+
+      <!-- Category Filter Pills -->
+      <div class="category-pills">
+        <button class="cat-pill active">Dental Clinics</button>
+        <button class="cat-pill">Gyms</button>
+        <button class="cat-pill">Real Estate</button>
+        <button class="cat-pill">Coaching</button>
+        <button class="cat-pill">Beauty Salons</button>
+        <button class="cat-pill">Contractors</button>
+        <button class="cat-pill">Interior Designers</button>
+        <button class="cat-pill">Restaurants</button>
+        <button class="cat-pill">Hotels</button>
+        <button class="cat-pill">Local Businesses</button>
+        <button class="cat-pill cat-custom">Custom <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+
+      <!-- Search Card Terminal -->
+      <div class="search-terminal-card">
+        <div class="search-param">
+          <span class="param-label">CATEGORY</span>
+          <div class="param-input-wrap">
+            <input type="text" class="param-input category-input" value="Dental Clinics" readonly />
+          </div>
+        </div>
+        <div class="search-divider"></div>
+        <div class="search-param">
+          <span class="param-label">LOCATION</span>
+          <div class="param-input-wrap location-wrap">
+            <i class="fa-solid fa-location-dot location-icon"></i>
+            <input type="text" class="param-input location-input" id="location-input" placeholder="Enter location" aria-label="Enter location" />
+          </div>
+        </div>
+        <div class="search-divider"></div>
+        <div class="search-param radius-param">
+          <span class="param-label">RADIUS</span>
+          <div class="param-input-wrap">
+            <input type="text" class="param-input radius-input" value="25 km" />
+          </div>
+        </div>
+        <button class="btn-launch" id="launch-discovery-btn">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Launch Discovery</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEWPORT 3: Section 02 Verified Lead Intelligence (00:07 → 00:08) -->
+    <section class="content-section" id="intelligence">
+      <div class="section-badge">02 / VERIFIED LEAD INTELLIGENCE</div>
+      <h2 class="section-heading">Know which leads are worth your time.</h2>
+      <p class="section-subhead">
+        Opportunity scoring based strictly on verified business data — zero<br />
+        fabricated statistics or hallucinations.
+      </p>
+
+      <!-- Verified Lead Card -->
+      <div class="lead-intelligence-card">
+        <div class="card-top-row">
+          <div>
+            <span class="card-category-tag">DENTAL CLINICS</span>
+            <h3 class="card-lead-name">MV dental clinic</h3>
+            <span class="card-lead-location">
+              <i class="fa-solid fa-location-dot"></i> Hyderabad, Telangana
+            </span>
+          </div>
+          <div class="score-badge">
+            <span class="score-label">OPPORTUNITY SCORE</span>
+            <div class="score-value-row">
+              <span class="score-number">100</span>
+              <svg viewBox="0 0 24 24" fill="none" class="score-sparkle" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L13.8 8.2L20 10L13.8 11.8L12 18L10.2 11.8L4 10L10.2 8.2L12 2Z" fill="#10b981"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-metrics-grid">
+          <div class="card-metric">
+            <span class="metric-label">WEBSITE STATUS</span>
+            <div class="metric-val status-not-found">
+              <span class="metric-dot red"></span> Not Found
+            </div>
+          </div>
+          <div class="card-metric">
+            <span class="metric-label">PHONE CONTACT</span>
+            <div class="metric-val status-available">
+              <span class="metric-dot green"></span> Available
+            </div>
+          </div>
+          <div class="card-metric">
+            <span class="metric-label">RECOMMENDED SERVICE</span>
+            <div class="metric-val text-green">Website</div>
+          </div>
+        </div>
+
+        <div class="card-insight-box">
+          <div class="insight-header">
+            <i class="fa-regular fa-circle-check"></i>
+            <span>VERIFIED AI OPPORTUNITY INSIGHT</span>
+          </div>
+          <p class="insight-body">
+            "This lead may be worth prioritizing because a website is not listed in the available business data."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEWPORT 4: Section 03 Pipeline Architecture (00:08 → 00:09) -->
+    <section class="content-section" id="pipeline">
+      <div class="section-badge">03 / PIPELINE ARCHITECTURE</div>
+      <h2 class="section-heading">Build your own client pipeline.</h2>
+      <p class="section-subhead">
+        From raw Google Places discovery to closed revenue with structured<br />
+        lifecycle stages.
+      </p>
+
+      <!-- 6 Stage Cards -->
+      <div class="pipeline-grid">
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <h4 class="pipeline-title">Found</h4>
+          <span class="pipeline-desc">Places Discovery</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-regular fa-user"></i></div>
+          <h4 class="pipeline-title">Saved</h4>
+          <span class="pipeline-desc">Local PG CRM</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-regular fa-star"></i></div>
+          <h4 class="pipeline-title">Favorite</h4>
+          <span class="pipeline-desc">Top Priority</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-solid fa-tower-broadcast"></i></div>
+          <h4 class="pipeline-title">Outreach</h4>
+          <span class="pipeline-desc">Prepared Pitch</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-solid fa-globe"></i></div>
+          <h4 class="pipeline-title">Conversation</h4>
+          <span class="pipeline-desc">WhatsApp Dialogue</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-icon"><i class="fa-regular fa-circle-check"></i></div>
+          <h4 class="pipeline-title">Client</h4>
+          <span class="pipeline-desc">Converted Deal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEWPORT 5: Section 04 Outreach Workspace (00:09 → 00:10) -->
+    <section class="content-section" id="outreach">
+      <div class="section-badge">04 / OUTREACH WORKSPACE</div>
+      <h2 class="section-heading">Turn leads into conversations.</h2>
+      <p class="section-subhead">
+        Craft tailored messages with Gemini or custom templates, open safe<br />
+        WhatsApp chats, and schedule up to 5 follow-up reminders.
+      </p>
+
+      <!-- Outreach Schedule Card -->
+      <div class="outreach-card">
+        <div class="outreach-header-row">
+          <span class="outreach-card-title">AUTOMATED FOLLOW-UP SCHEDULE (STOP ON REPLY)</span>
+          <a href="#outreach" class="outreach-link" id="hero-btn-open-outreach">Open Outreach Workspace <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="follow-up-steps">
+          <div class="follow-step">
+            <span class="step-title">Initial Message</span>
+            <span class="step-time">Day 0</span>
+          </div>
+          <div class="follow-step">
+            <span class="step-title">Follow-Up 1</span>
+            <span class="step-time">+3 Days</span>
+          </div>
+          <div class="follow-step">
+            <span class="step-title">Follow-Up 2</span>
+            <span class="step-time">+7 Days</span>
+          </div>
+          <div class="follow-step">
+            <span class="step-title">Follow-Up 3</span>
+            <span class="step-time">+12 Days</span>
+          </div>
+          <div class="follow-step">
+            <span class="step-title">Follow-Up 4</span>
+            <span class="step-time">+18 Days</span>
+          </div>
+          <div class="follow-step">
+            <span class="step-title">Follow-Up 5</span>
+            <span class="step-time">+25 Days (Final)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outreach Velocity Card -->
+      <div class="velocity-card">
+        <div class="velocity-info">
+          <span class="velocity-title">TODAY'S OUTREACH VELOCITY</span>
+          <div class="velocity-stat" id="hero-velocity-stat">
+            <strong>1 / 50</strong> sent
+          </div>
+          <span class="velocity-sub" id="hero-velocity-sub">49 outreaches remaining to hit daily goal.</span>
+        </div>
+        <div class="velocity-progress-wrap">
+          <div class="velocity-bar-track">
+            <div class="velocity-bar-fill" id="hero-velocity-bar-fill" style="width: 2%;"></div>
+          </div>
+          <span class="velocity-percent" id="hero-velocity-percent">2%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page Footer -->
+    <footer class="terminal-footer">
+      <div class="footer-left">
+        <span class="footer-brand">Client Hunter</span>
+        <span class="footer-copy">© 2026 B2B Revenue Terminal. All rights reserved.</span>
+      </div>
+      <div class="footer-right">
+        <a href="#hero" class="back-to-top"><i class="fa-solid fa-arrow-up"></i> Top</a>
+      </div>
+    </footer>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 1: FIND LEADS RADAR DISCOVERY (00:19 → 00:29)
+         ================================================== -->
+    <main id="view-find-leads" class="view-panel active-view">
+      <div class="find-viewport">
+        <!-- 1. FIND LEADS HEADER / INTRO (00:19 → 00:21) -->
+        <section class="find-header-section anim-dash" style="--d: 0.05s">
+          <div class="find-badge-discovery">
+            <span class="sparkle-teal">✦</span>
+            <span>Google Places Radar Discovery</span>
+          </div>
+          <h1 class="find-title">
+            Find Your Next <span class="serif-italic-accent">High-Ticket Client</span>
+          </h1>
+          <p class="find-subhead">
+            Choose your target region and industry niche. Pinpoint businesses with <span class="accent-no-website">NO website</span>, missing digital assets, or high-converting service opportunities.
+          </p>
+        </section>
+
+        <!-- 2. SEARCH PARAMETERS TERMINAL PANEL (00:21 → 00:29) -->
+        <section class="find-card anim-dash" style="--d: 0.12s">
+          <!-- Top Bar -->
+          <div class="find-card-bar">
+            <div class="card-bar-left">
+              <span class="radar-dot-icon">◎</span>
+              <span class="card-bar-title">CHOOSE LOCATION &amp; BUSINESS PARAMETERS</span>
+            </div>
+            <button type="button" id="btn-clear-selections" class="btn-clear-link">Clear selections</button>
+          </div>
+
+          <!-- Form Grid -->
+          <div class="find-form-grid">
+            <!-- 1. State / Union Territory -->
+            <div class="find-field">
+              <label id="label-find-select-state" class="find-label">
+                <i class="fa-solid fa-location-dot find-icon-green"></i>
+                <span>1. STATE OR UNION TERRITORY <span class="find-req">*</span></span>
+              </label>
+              <div class="custom-select-container" id="custom-select-state-container">
+                <button type="button" class="custom-select-trigger" id="custom-select-state-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="label-find-select-state custom-select-state-label">
+                  <span class="custom-select-label" id="custom-select-state-label">— Choose State or Union Territory —</span>
+                  <i class="fa-solid fa-chevron-down custom-select-chevron"></i>
+                </button>
+                <div class="custom-select-panel hidden" id="custom-select-state-panel" role="listbox">
+                  <div class="custom-select-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass custom-select-search-icon"></i>
+                    <input type="text" class="custom-select-search-input" id="custom-select-state-search" placeholder="Search state or UT..." autocomplete="off" />
+                    <button type="button" class="custom-select-search-clear hidden" id="custom-select-state-clear" aria-label="Clear search">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="custom-select-options-list" id="custom-select-state-options" tabindex="-1">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                  <div class="custom-select-empty hidden" id="custom-select-state-empty">
+                    No matching state or UT found
+                  </div>
+                </div>
+                <input type="hidden" id="find-select-state" name="state" value="" />
+              </div>
+            </div>
+
+            <!-- 2. City / District -->
+            <div class="find-field">
+              <div class="find-label-row">
+                <label id="label-find-select-city" class="find-label">
+                  <i class="fa-solid fa-building find-icon-green"></i>
+                  <span>2. CITY OR DISTRICT <span class="find-req">*</span></span>
+                </label>
+                <span id="find-city-counter-badge" class="city-badge-counter hidden">0 cities</span>
+              </div>
+              <div class="custom-select-container disabled" id="custom-select-city-container">
+                <button type="button" class="custom-select-trigger" id="custom-select-city-trigger" disabled aria-haspopup="listbox" aria-expanded="false" aria-labelledby="label-find-select-city custom-select-city-label">
+                  <span class="custom-select-label" id="custom-select-city-label">— First Select a State/UT Above —</span>
+                  <i class="fa-solid fa-chevron-down custom-select-chevron"></i>
+                </button>
+                <div class="custom-select-panel hidden" id="custom-select-city-panel" role="listbox">
+                  <div class="custom-select-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass custom-select-search-icon"></i>
+                    <input type="text" class="custom-select-search-input" id="custom-select-city-search" placeholder="Search city or district..." autocomplete="off" />
+                    <button type="button" class="custom-select-search-clear hidden" id="custom-select-city-clear" aria-label="Clear search">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="custom-select-options-list" id="custom-select-city-options" tabindex="-1">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                  <div class="custom-select-empty hidden" id="custom-select-city-empty">
+                    No matching city or district found
+                  </div>
+                </div>
+                <input type="hidden" id="find-select-city" name="city" value="" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Business Category / Quick-Select Niches -->
+          <div class="quick-niches-block">
+            <div class="find-label quick-niches-title">
+              <i class="fa-solid fa-layer-group find-icon-green"></i>
+              <span>3. BUSINESS CATEGORY <span class="find-req">*</span></span>
+            </div>
+            <span class="quick-niches-label">QUICK-SELECT NICHES:</span>
+            <div class="quick-niches-grid" id="quick-niches-container">
+              <!-- Populated dynamically via JS -->
+            </div>
+            <!-- Hidden input maintaining backward compatibility -->
+            <input type="hidden" id="find-select-category" name="category" value="" />
+          </div>
+
+          <!-- 4. Custom Keyword -->
+          <div class="find-field keyword-control-block">
+            <label for="find-input-keyword" class="find-label">
+              <i class="fa-solid fa-magnifying-glass find-icon-green"></i>
+              <span>4. CUSTOM KEYWORD <span class="find-opt">(OPTIONAL)</span></span>
+            </label>
+            <div class="find-input-wrap">
+              <input type="text" id="find-input-keyword" class="find-input" placeholder="e.g. luxury, 24/7, implant, unisex, premium..." />
+            </div>
+          </div>
+
+          <!-- 5. Search Radius -->
+          <div class="radius-control-block">
+            <div class="radius-header">
+              <div class="radius-active-label">
+                <span>5. SEARCH RADIUS:</span>
+                <span id="radius-val-display" class="radius-bold-green">25 KM</span>
+              </div>
+              <div class="radius-chips-row">
+                <span class="radius-hint-text">Google Places Text Search Radius Bias</span>
+                <button type="button" class="radius-chip-btn" data-radius="10">10km</button>
+                <button type="button" class="radius-chip-btn active" data-radius="25">25km</button>
+                <button type="button" class="radius-chip-btn" data-radius="50">50km</button>
+                <button type="button" class="radius-chip-btn" data-radius="100">100km</button>
+                <button type="button" class="radius-chip-btn" data-radius="200">♾ State Wide</button>
+              </div>
+            </div>
+            <div class="slider-wrapper">
+              <input type="range" id="radius-slider-input" min="1" max="100" value="25" class="custom-radius-slider" />
+            </div>
+          </div>
+
+          <!-- Target Summary & Bottom Action -->
+          <div class="find-card-footer">
+            <div class="target-summary-box">
+              <span>Target:</span>
+              <strong id="target-summary-cat-text" class="target-cat-highlight">Dental Clinics</strong>
+              <span>in</span>
+              <strong id="target-summary-loc-text" class="target-loc-highlight">Hyderabad, Telangana</strong>
+            </div>
+            <div class="find-btn-container">
+              <div id="find-inline-validation" class="find-validation-bubble hidden">Select required parameters</div>
+              <button type="button" id="btn-find-leads-execute" class="btn-find-leads-submit" disabled>
+                <span class="btn-sparkle-glyph">✦</span>
+                <span>FIND LEADS</span>
+                <i class="fa-solid fa-chevron-right btn-chevron-glyph"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Subtle Helper Notice -->
+        <div class="find-helper-line">
+          <p class="helper-text-main">
+            <i class="fa-regular fa-circle-check"></i> Searches Google Maps businesses and removes previously discovered leads automatically.
+          </p>
+          <p class="helper-text-sub">
+            Only real businesses returned by connected location APIs are stored.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 2: SAVED LEADS RADAR TERMINAL (00:29 → 00:36)
+         ================================================== -->
+    <main id="view-saved-leads" class="view-panel hidden" style="display: none;">
+      <div class="saved-viewport">
+        <!-- 1. Header (00:29 → 00:31) -->
+        <section class="saved-header-section anim-dash" style="--d: 0.05s">
+          <div class="saved-header-left">
+            <h1 class="saved-header-title">Saved Leads</h1>
+            <p class="saved-header-sub">Your verified prospect database ready for freelance client outreach</p>
+          </div>
+          <div class="saved-header-right">
+            <button type="button" id="btn-export-leads-csv" class="btn-saved-outline">
+              <i class="fa-solid fa-arrow-down-to-bracket"></i>
+              <span>Export Leads</span>
+            </button>
+            <button type="button" id="btn-goto-find-leads" class="btn-saved-primary">
+              <span class="btn-sparkle-glyph">✦</span>
+              <span>Find More Leads</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. Lead Filters Card (00:31 → 00:33) -->
+        <section class="saved-filter-card anim-dash" style="--d: 0.1s">
+          <div class="saved-filter-top">
+            <div class="filter-badge-box">
+              <span class="filter-flask-icon"><i class="fa-solid fa-filter"></i></span>
+              <span class="filter-flask-text">Lead Filters</span>
+              <span id="saved-total-pill-count" class="filter-count-pill">60 Leads</span>
+            </div>
+            <button type="button" id="btn-reload-saved-table" class="btn-refresh-icon" title="Reload leads from database">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+
+          <!-- Controls Grid -->
+          <div class="saved-filter-controls">
+            <!-- Search -->
+            <div class="search-field-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-ico"></i>
+              <input type="text" id="saved-search-box" placeholder="Search business..." />
+            </div>
+
+            <!-- Website Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-website">
+                <option value="All">Website: All</option>
+                <option value="YES">Has Website</option>
+                <option value="NO">No Website</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-status">
+                <option value="All">Status: All</option>
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-category">
+                <option value="All">Category: All</option>
+              </select>
+            </div>
+
+            <!-- State Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-state">
+                <option value="All">State: All</option>
+              </select>
+            </div>
+
+
+            <!-- Checkbox: Phone -->
+            <label class="filter-chk-item">
+              <input type="checkbox" id="saved-check-phone" />
+              <span class="filter-chk-box"></span>
+              <span class="filter-chk-text">📞 Phone</span>
+            </label>
+          </div>
+
+          <!-- Pagination & Count Row -->
+          <div class="saved-filter-bottom">
+            <div id="saved-showing-indicator" class="showing-indicator-text">
+              Showing 1 to 25 of 60 leads
+            </div>
+            <div class="saved-paging-right">
+              <div class="rows-select-wrap">
+                <span class="rows-lbl">Rows:</span>
+                <select id="saved-rows-choice" class="rows-select-input">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="paging-btns-wrap">
+                <button type="button" id="btn-saved-page-prev" class="btn-page-nav" disabled>
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div id="saved-page-nums-list" class="page-nums-container">
+                  <button type="button" class="btn-page-num active">1</button>
+                </div>
+                <button type="button" id="btn-saved-page-next" class="btn-page-nav">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Saved Leads Table (00:33 → 00:36) -->
+        <section class="saved-table-card anim-dash" style="--d: 0.15s">
+          <!-- Saved Leads Action Bar -->
+          <div class="saved-leads-action-bar" id="saved-leads-action-bar">
+            <div class="saved-action-bar-left">
+              <span class="saved-action-bar-info" id="saved-action-bar-info">Select leads to perform bulk actions</span>
+              <button type="button" class="btn-saved-deselect hidden" id="btn-saved-deselect-all">Deselect all</button>
+            </div>
+            <div class="saved-action-bar-right hidden" id="saved-action-bar-buttons">
+              <button type="button" id="btn-saved-action-move-outreach" class="btn-action-move-outreach">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Move to Outreach</span>
+              </button>
+              <button type="button" id="btn-saved-action-delete" class="btn-action-delete">
+                <i class="fa-regular fa-trash-can"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-scroll-wrap">
+            <table class="saved-data-table">
+              <thead>
+                <tr>
+                  <th class="col-th-chk">
+                    <label class="cell-chk-label">
+                      <input type="checkbox" id="saved-select-all" title="Select all leads on this page" />
+                      <span class="cell-chk-custom"></span>
+                    </label>
+                  </th>
+                  <th class="col-th-web">WEBSITE</th>
+                  <th class="col-th-name">BUSINESS NAME</th>
+                  <th class="col-th-contact">CONTACT NUMBER</th>
+                  <th class="col-th-email">EMAIL</th>
+                  <th class="col-th-google">GOOGLE LINK</th>
+                  <th class="col-th-status">STATUS</th>
+                  <th class="col-th-actions">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="saved-leads-tbody">
+                <!-- Dynamically populated rows via JS -->
+              </tbody>
+            </table>
+
+            <!-- Empty State Display -->
+            <div id="saved-table-empty" class="saved-empty-view hidden">
+              <div class="empty-icon-shield"><i class="fa-solid fa-database"></i></div>
+              <h3 class="empty-view-title">Your saved leads will appear here.</h3>
+              <p class="empty-view-desc">Run a search to discover your first prospects.</p>
+              <button type="button" id="btn-empty-find-more" class="btn-saved-primary">
+                <span class="btn-sparkle-glyph">✦</span>
+                <span>Find Leads</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER: FAVORITE LEADS TERMINAL
+         ================================================== -->
+    <main id="view-favorites" class="view-panel hidden" style="display: none;">
+      <div class="saved-viewport">
+        <!-- 1. Header -->
+        <section class="saved-header-section anim-dash" style="--d: 0.05s">
+          <div class="saved-header-left">
+            <h1 class="saved-header-title">Favorite Leads</h1>
+            <p class="saved-header-sub">Your prioritized prospects ready for freelance client outreach</p>
+          </div>
+          <div class="saved-header-right">
+            <button type="button" id="btn-export-favs-csv" class="btn-saved-outline">
+              <i class="fa-solid fa-arrow-down-to-bracket"></i>
+              <span>Export Favorites</span>
+            </button>
+            <button type="button" id="btn-fav-goto-find-leads" class="btn-saved-primary">
+              <span class="btn-sparkle-glyph">✦</span>
+              <span>Find More Leads</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. Favorite Filters Card -->
+        <section class="saved-filter-card anim-dash" style="--d: 0.1s">
+          <div class="saved-filter-top">
+            <div class="filter-badge-box">
+              <span class="filter-flask-icon" style="color: #fbbf24;"><i class="fa-solid fa-star"></i></span>
+              <span class="filter-flask-text">Favorite Filters</span>
+              <span id="fav-total-pill-count" class="filter-count-pill">0 Favorites</span>
+            </div>
+            <button type="button" id="btn-reload-fav-table" class="btn-refresh-icon" title="Refresh favorite leads">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+
+          <!-- Controls Grid -->
+          <div class="saved-filter-controls">
+            <!-- Search -->
+            <div class="search-field-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-ico"></i>
+              <input type="text" id="fav-search-box" placeholder="Search favorite businesses..." />
+            </div>
+
+            <!-- Website Filter -->
+            <div class="select-filter-box">
+              <select id="fav-filter-website">
+                <option value="All">Website: All</option>
+                <option value="YES">Has Website</option>
+                <option value="NO">No Website</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="select-filter-box">
+              <select id="fav-filter-status">
+                <option value="All">Status: All</option>
+                <option value="New">New</option>
+                <option value="Not Contacted">Not Contacted</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Replied">Replied</option>
+                <option value="Follow-Up Due">Follow-Up Due</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="select-filter-box">
+              <select id="fav-filter-category">
+                <option value="All">Category: All</option>
+              </select>
+            </div>
+
+            <!-- State Filter -->
+            <div class="select-filter-box">
+              <select id="fav-filter-state">
+                <option value="All">State: All</option>
+              </select>
+            </div>
+
+            <!-- Favorite Indicator (always active) -->
+            <label class="filter-chk-item filter-favs-locked" title="Showing only favorite leads">
+              <input type="checkbox" id="fav-check-indicator" checked disabled />
+              <span class="filter-chk-box"></span>
+              <span class="filter-chk-text" style="color: #fbbf24; font-weight: 600;">★ Favorites</span>
+            </label>
+
+            <!-- Phone Filter -->
+            <div class="select-filter-box">
+              <select id="fav-filter-phone">
+                <option value="All">☎ Phone: All</option>
+                <option value="YES">Has Phone</option>
+                <option value="NO">No Phone</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pagination & Count Row -->
+          <div class="saved-filter-bottom">
+            <div id="fav-showing-indicator" class="showing-indicator-text">
+              Showing 0 favorite leads
+            </div>
+            <div class="saved-paging-right">
+              <div class="rows-select-wrap">
+                <span class="rows-lbl">Rows:</span>
+                <select id="fav-rows-choice" class="rows-select-input">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="paging-btns-wrap">
+                <button type="button" id="btn-fav-page-prev" class="btn-page-nav" disabled>
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div id="fav-page-nums-list" class="page-nums-container">
+                  <button type="button" class="btn-page-num active">1</button>
+                </div>
+                <button type="button" id="btn-fav-page-next" class="btn-page-nav">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Favorite Leads Table -->
+        <section class="saved-table-card anim-dash" style="--d: 0.15s">
+          <div class="table-scroll-wrap">
+            <table class="saved-data-table">
+              <thead>
+                <tr>
+                  <th class="col-th-chk">
+                    <label class="cell-chk-label">
+                      <input type="checkbox" id="fav-select-all" title="Select all favorites on this page" />
+                      <span class="cell-chk-custom"></span>
+                    </label>
+                  </th>
+                  <th class="col-th-web">WEBSITE</th>
+                  <th class="col-th-name">BUSINESS NAME</th>
+                  <th class="col-th-contact">CONTACT NUMBER</th>
+                  <th class="col-th-email">EMAIL</th>
+                  <th class="col-th-google">GOOGLE LINK</th>
+                  <th class="col-th-status">STATUS</th>
+                  <th class="col-th-actions">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="fav-leads-tbody">
+                <!-- Dynamically populated rows via JS -->
+              </tbody>
+            </table>
+
+            <!-- Empty State Display -->
+            <div id="fav-table-empty" class="saved-empty-view hidden">
+              <div class="empty-icon-shield" style="color: #fbbf24;"><i class="fa-solid fa-star"></i></div>
+              <h3 class="empty-view-title">Your favorite leads will appear here.</h3>
+              <p class="empty-view-desc">Star high-priority prospects from Saved Leads to build your personal outreach queue.</p>
+              <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;">
+                <button type="button" id="btn-fav-empty-find" class="btn-saved-primary">
+                  <span class="btn-sparkle-glyph">✦</span>
+                  <span>Find Leads</span>
+                </button>
+                <button type="button" id="btn-fav-empty-saved" class="btn-saved-outline">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <span>Browse Saved Leads</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 2B: OUTREACH TERMINAL (00:40 → 00:43)
+         ================================================== -->
+    <main id="view-outreach" class="view-panel hidden" style="display: none;">
+      <div class="outreach-viewport">
+        <!-- 1. OUTREACH HEADER -->
+        <section class="outreach-header-section anim-dash" style="--d: 0.05s">
+          <div class="outreach-header-left">
+            <div class="dash-terminal-badge">
+              <span class="status-dot-green"></span>
+              <span>B2B REVENUE TERMINAL</span>
+            </div>
+            <h1 class="dash-greeting-title">
+              Outreach <span class="dash-serif-name">Workspace</span>
+            </h1>
+            <p class="dash-greeting-sub">
+              Turn prospects into high-ticket client conversations with safe WhatsApp outreach.
+            </p>
+          </div>
+          <div class="outreach-header-right">
+            <div class="outreach-subnav-pill">
+              <div class="btn-outreach-tab active" id="tab-outreach-ready">
+                <span>Outreach Leads</span> <span class="tab-count-pill" id="outreach-ready-count">0</span>
+              </div>
+            </div>
+            <button type="button" class="btn-outreach-refresh" id="btn-outreach-refresh" title="Refresh Outreach Data">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. TODAY'S OUTREACH TARGET BANNER -->
+        <section class="outreach-target-banner anim-dash" style="--d: 0.1s">
+          <div class="target-banner-inner">
+            <div class="target-left-group">
+              <div class="target-icon-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00DF81" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+              </div>
+              <div class="target-meta">
+                <div class="target-title-line">
+                  <span class="target-label">TODAY'S OUTREACH</span>
+                  <span class="target-score" id="today-target-score">0 / 50</span>
+                  <span class="target-pct" id="today-target-pct">(0%)</span>
+                </div>
+                <div class="target-sub-line">
+                  <span class="target-sent" id="today-sent-text">✓ 0 SENT</span>
+                  <span class="target-sep">•</span>
+                  <span class="target-remaining" id="today-remaining-text">→ 50 REMAINING</span>
+                  <span class="target-max" id="today-max-text">(TARGET: 50)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="target-progress-wrapper">
+              <div class="target-progress-track">
+                <div class="target-progress-fill" id="target-progress-fill" style="width: 0%;"></div>
+                <div class="target-progress-dot" id="target-progress-dot" style="left: 0%;"></div>
+              </div>
+            </div>
+
+            <div class="target-right-group">
+              <button type="button" id="btn-open-target-modal" class="btn-edit-target">
+                <span>Edit Target</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 7 METRIC CARDS ROW -->
+        <section class="outreach-metrics-grid anim-dash" style="--d: 0.15s">
+          <div class="outreach-metric-card active-metric">
+            <span class="metric-lbl">TOTAL OUTREACH</span>
+            <span class="metric-val" id="metric-total-outreach">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">NOT CONTACTED</span>
+            <span class="metric-val" id="metric-not-contacted">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">AWAITING REPLY</span>
+            <span class="metric-val" id="metric-awaiting-reply">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">FOLLOW-UPS DUE</span>
+            <span class="metric-val val-warn" id="metric-followups-due">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">REPLIED</span>
+            <span class="metric-val val-success" id="metric-replied">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">COMPLETED (5/5)</span>
+            <span class="metric-val val-info" id="metric-completed">0</span>
+          </div>
+          <div class="outreach-metric-card">
+            <span class="metric-lbl">STOPPED</span>
+            <span class="metric-val val-danger" id="metric-stopped">0</span>
+          </div>
+        </section>
+
+        <!-- 4. MAIN 2-COLUMN SPLIT WORKSPACE -->
+        <section class="outreach-workspace-grid anim-dash" style="--d: 0.2s">
+          <!-- LEFT COLUMN: Lead Queue -->
+          <div class="outreach-queue-column">
+            <!-- Filter Controls Bar -->
+            <div class="outreach-filter-bar">
+              <div class="outreach-search-wrap">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="outreach-search-input" placeholder="Search business, phone, city..." />
+                <button type="button" id="btn-outreach-search-clear" class="search-clear-btn hidden" aria-label="Clear Search">✕</button>
+              </div>
+
+              <div class="outreach-select-wrap">
+                <select id="outreach-category-filter">
+                  <option value="ALL">All Categories</option>
+                </select>
+              </div>
+
+              <div class="outreach-select-wrap">
+                <select id="outreach-site-filter">
+                  <option value="ALL">All Sites</option>
+                  <option value="NO">No Website (Prime)</option>
+                  <option value="YES">Has Website</option>
+                </select>
+              </div>
+
+              <button type="button" id="btn-outreach-select-all" class="btn-outreach-selectall">
+                <i class="fa-regular fa-square-check"></i>
+                <span>Select All</span>
+              </button>
+
+              <button type="button" id="btn-outreach-send-batch" class="btn-outreach-send-batch disabled" disabled>
+                <i class="fa-regular fa-paper-plane"></i>
+                <span>Send Message</span>
+              </button>
+              <button type="button" id="btn-outreach-delete-batch" class="btn-outreach-delete disabled" disabled>
+                <i class="fa-regular fa-trash-can"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+
+            <!-- Lead Cards List -->
+            <div class="outreach-cards-container" id="outreach-cards-container">
+              <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Empty State Container -->
+            <div id="outreach-empty-state" class="outreach-empty-card hidden">
+              <div class="outreach-empty-icon">✓</div>
+              <h4 class="outreach-empty-title" id="outreach-empty-title">You're all caught up.</h4>
+              <p class="outreach-empty-desc" id="outreach-empty-desc">New saved leads will appear here when they're ready for outreach.</p>
+              <button type="button" class="btn-saved-primary" id="btn-outreach-goto-saved">
+                <span class="btn-sparkle-glyph">✦</span>
+                <span>View Saved Leads</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: CONVERSATION WORKSPACE -->
+          <div class="outreach-workspace-column">
+            <div class="conversation-workspace-panel" id="conversation-workspace-panel">
+              <!-- Header -->
+              <div class="workspace-header">
+                <div class="workspace-title-group">
+                  <i class="fa-regular fa-comment-dots workspace-bubble-icon"></i>
+                  <h3 class="workspace-title">CONVERSATION WORKSPACE</h3>
+                </div>
+                <div class="workspace-id-badge" id="ws-lead-source-id">ID: --</div>
+              </div>
+
+              <!-- Selected Lead Details Card -->
+              <div class="workspace-lead-card" id="ws-lead-card">
+                <div class="ws-lead-top">
+                  <div class="ws-lead-name-group">
+                    <h2 class="ws-business-name" id="ws-business-name">Select a Lead</h2>
+                    <div class="ws-category-text" id="ws-category">--</div>
+                  </div>
+                  <div class="ws-score-pill" id="ws-score-pill">
+                    <span class="fire-icon">🔥</span>
+                    <span id="ws-score-text">--/100</span>
+                  </div>
+                </div>
+
+                <div class="ws-details-grid">
+                  <div class="ws-detail-item">
+                    <span class="ws-dt-lbl">Phone:</span>
+                    <span class="ws-dt-val" id="ws-phone">--</span>
+                  </div>
+                  <div class="ws-detail-item">
+                    <span class="ws-dt-lbl">Email:</span>
+                    <span class="ws-dt-val text-muted" id="ws-email">N/A</span>
+                  </div>
+                  <div class="ws-detail-item">
+                    <span class="ws-dt-lbl">Website:</span>
+                    <span class="ws-dt-val" id="ws-website">--</span>
+                  </div>
+                  <div class="ws-detail-item">
+                    <span class="ws-dt-lbl">Location:</span>
+                    <span class="ws-dt-val" id="ws-location">--</span>
+                  </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="ws-quick-actions">
+                  <button type="button" class="ws-btn-action" id="ws-btn-favorite" title="Toggle Favorite">
+                    <i class="fa-regular fa-star"></i>
+                    <span>Favorite</span>
+                  </button>
+                  <button type="button" class="ws-btn-action" id="ws-btn-view-lead" title="View Lead Profile">
+                    <i class="fa-regular fa-eye"></i>
+                    <span>View Lead</span>
+                  </button>
+                  <button type="button" class="ws-btn-action" id="ws-btn-gmaps" title="Open in Google Maps">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Google Maps</span>
+                  </button>
+                  <button type="button" class="ws-btn-action ws-btn-danger" id="ws-btn-remove" title="Remove Lead">
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Status Selector Row -->
+              <div class="ws-status-section">
+                <div class="ws-status-header">
+                  <span class="ws-status-lbl">OUTREACH STATUS:</span>
+                  <span class="ws-status-pill-val" id="ws-status-pill-val">Not Contacted</span>
+                </div>
+                <select class="ws-status-dropdown" id="ws-status-select">
+                  <option value="Not Contacted">Not Contacted</option>
+                  <option value="Follow-Up">Follow-Up</option>
+                  <option value="Replied">Replied</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Stopped">Stopped</option>
+                </select>
+              </div>
+
+              <!-- Primary Action: Neon Emerald Send Button -->
+              <div class="ws-primary-action-wrap">
+                <button type="button" class="btn-outreach-send-primary" id="btn-ws-open-composer">
+                  <i class="fa-regular fa-paper-plane"></i>
+                  <span id="btn-ws-send-label">Send Message (Open Outreach Dialog)</span>
+                </button>
+              </div>
+
+              <!-- Secondary Actions -->
+              <div class="ws-secondary-actions">
+                <button type="button" class="btn-ws-sub btn-ws-replied" id="btn-ws-mark-replied" title="Mark conversation as Replied">
+                  <i class="fa-regular fa-circle-check"></i>
+                  <span>Mark as Replied</span>
+                </button>
+                <button type="button" class="btn-ws-sub btn-ws-stop" id="btn-ws-stop-followup" title="Halt follow-ups for this lead">
+                  <i class="fa-regular fa-circle-stop"></i>
+                  <span>Stop Follow-Ups</span>
+                </button>
+              </div>
+
+              <!-- Message History Section -->
+              <div class="ws-history-section">
+                <div class="ws-history-header">
+                  <span class="ws-history-title">MESSAGE HISTORY (<span id="ws-msg-count">0</span>)</span>
+                  <button type="button" class="btn-ws-history-view" id="btn-ws-history-toggle">Detailed View</button>
+                </div>
+                <div class="ws-history-body" id="ws-history-body">
+                  <div class="ws-history-empty" id="ws-history-empty">
+                    <p class="ws-empty-heading">No messages recorded yet</p>
+                    <p class="ws-empty-sub">Click "Send Message" above to prepare and track outreach to this business.</p>
+                  </div>
+                  <div class="ws-history-list hidden" id="ws-history-list"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 2B-2: FOLLOW-UP TRACKING (DEDICATED)
+         ================================================== -->
+    <main id="view-followup" class="view-panel hidden" style="display: none;">
+      <div class="followup-viewport">
+        <!-- 1. FOLLOW-UP HEADER -->
+        <section class="followup-header-section anim-dash" style="--d: 0.05s">
+          <div class="followup-header-left">
+            <div class="dash-terminal-badge">
+              <span class="status-dot-green"></span>
+              <span>FOLLOW-UP INTELLIGENCE</span>
+            </div>
+            <h1 class="dash-greeting-title">
+              Follow-Up <span class="dash-serif-name">System</span>
+            </h1>
+            <p class="dash-greeting-sub">
+              Scheduled outreach pipeline anchored to Day 0. Send follow-ups only when due.
+            </p>
+          </div>
+          <div class="followup-header-right">
+            <button type="button" class="btn-outreach-refresh" id="btn-followup-refresh" title="Refresh Follow-Up Data">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- 1B. "TODAY" REMINDER BANNER -->
+        <div id="fu-today-reminder-banner" class="fu-today-banner anim-dash" style="--d: 0.08s">
+          <i class="fa-solid fa-circle-check text-emerald"></i>
+          <span id="fu-today-reminder-text">Loading today's follow-up schedule...</span>
+        </div>
+
+        <!-- 2. DYNAMIC COUNTERS DASHBOARD ROW (5 CARDS) -->
+        <section class="fu-metrics-grid anim-dash" style="--d: 0.1s">
+          <div class="fu-metric-card highlight-due" id="card-fu-due-today">
+            <span class="fu-metric-lbl">DUE TODAY</span>
+            <span class="fu-metric-val val-emerald" id="fu-counter-due-today">0</span>
+          </div>
+          <div class="fu-metric-card highlight-upcoming" id="card-fu-upcoming">
+            <span class="fu-metric-lbl">UPCOMING</span>
+            <span class="fu-metric-val val-muted" id="fu-counter-upcoming">0</span>
+          </div>
+          <div class="fu-metric-card highlight-overdue" id="card-fu-overdue">
+            <span class="fu-metric-lbl">OVERDUE</span>
+            <span class="fu-metric-val val-danger" id="fu-counter-overdue">0</span>
+          </div>
+          <div class="fu-metric-card" id="card-fu-completed">
+            <span class="fu-metric-lbl">COMPLETED</span>
+            <span class="fu-metric-val val-info" id="fu-counter-completed">0</span>
+          </div>
+          <div class="fu-metric-card" id="card-fu-active">
+            <span class="fu-metric-lbl">TOTAL ACTIVE</span>
+            <span class="fu-metric-val" id="fu-counter-active">0</span>
+          </div>
+        </section>
+
+        <!-- 3. CONTROLS, SEARCH, STAGE & TAB PILLS -->
+        <section class="fu-controls-bar anim-dash" style="--d: 0.15s">
+          <div class="fu-search-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="followup-search-input" placeholder="Search business, phone, city, category..." />
+            <button type="button" id="btn-followup-search-clear" class="search-clear-btn hidden" aria-label="Clear Search">✕</button>
+          </div>
+
+          <!-- Tab Navigation Pills -->
+          <div class="fu-tabs-pill">
+            <button type="button" class="fu-tab-btn active" data-fu-tab="all">
+              <span>All</span> <span class="fu-pill-count" id="fu-tab-all-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="due-today">
+              <span>Due Today</span> <span class="fu-pill-count" id="fu-tab-duetoday-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="overdue">
+              <span>Overdue</span> <span class="fu-pill-count" id="fu-tab-overdue-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="upcoming">
+              <span>Upcoming</span> <span class="fu-pill-count" id="fu-tab-upcoming-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="completed">
+              <span>Completed</span> <span class="fu-pill-count" id="fu-tab-completed-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="replies">
+              <span>Replied</span> <span class="fu-pill-count" id="fu-tab-replies-count">0</span>
+            </button>
+          </div>
+
+          <!-- Stage Sub-Filter Dropdown -->
+          <div class="fu-stage-filter-wrap">
+            <select id="fu-stage-filter" class="fu-select" title="Filter by Follow-Up Stage">
+              <option value="ALL">All Stages</option>
+              <option value="1">Follow-Up #1 (Day 2)</option>
+              <option value="2">Follow-Up #2 (Day 4)</option>
+              <option value="3">Follow-Up #3 (Day 7)</option>
+              <option value="4">Follow-Up #4 (Day 10)</option>
+              <option value="5">Follow-Up #5 (Day 14)</option>
+            </select>
+          </div>
+
+          <!-- Sub-Filter for Replies tab (Shown when Replies tab is active) -->
+          <div class="fu-reply-filter-wrap hidden" id="fu-reply-filter-wrap">
+            <select id="fu-reply-status-filter" class="fu-select" title="Filter by Reply Outcome">
+              <option value="ALL">All Replies</option>
+              <option value="INTERESTED">Interested</option>
+              <option value="NOT_INTERESTED">Not Interested</option>
+              <option value="OTHER">Other / General</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- 4. FOLLOW-UP CARDS / ROWS CONTAINER -->
+        <div id="followup-cards-container" class="followup-cards-list anim-dash" style="--d: 0.2s">
+          <!-- Dynamically populated follow-up cards -->
+        </div>
+
+
+        <!-- EMPTY STATE -->
+        <div id="followup-empty-state" class="followup-empty-card hidden">
+          <div class="fu-empty-icon">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h3 class="fu-empty-title" id="fu-empty-title">No Follow-Ups In This View</h3>
+          <p class="fu-empty-desc" id="fu-empty-desc">When leads receive their Main Message on the Outreach page, scheduled follow-ups will appear here.</p>
+          <button type="button" id="btn-fu-goto-outreach" class="btn-fu-goto-outreach">
+            <i class="fa-regular fa-paper-plane"></i>
+            <span>Go to Outreach Leads</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 2: DASHBOARD COMMAND CENTER (00:12 → 00:18)
+         ================================================== -->
+    <main id="view-dashboard" class="view-panel hidden" style="display: none;">
+      <div class="dash-viewport">
+        <!-- 1. DASHBOARD HERO / GREETING -->
+        <section class="dash-greeting-section anim-dash" style="--d: 0.05s">
+          <div class="dash-greeting-left">
+            <div class="dash-terminal-badge">
+              <span class="status-dot-green"></span>
+              <span>B2B REVENUE TERMINAL</span>
+            </div>
+            <h1 class="dash-greeting-title">
+              Good morning, <span class="dash-serif-name">Namrata Gauri</span>
+            </h1>
+            <p class="dash-greeting-sub">
+              Command center overview — prospects, pipeline velocity, and active conversations.
+            </p>
+          </div>
+          <div class="dash-greeting-right">
+            <button type="button" class="btn-dash-primary" id="dash-find-leads-btn">
+              <span class="sparkle-teal">✦</span>
+              <span>Find New Leads</span>
+            </button>
+            <button type="button" class="btn-dash-secondary" id="dash-outreach-btn">
+              <span class="dash-dot-icon">◎</span>
+              <span>Outreach Terminal</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. DASHBOARD SUMMARY CARDS (ROW OF 6) -->
+        <section class="dash-cards-section">
+          <!-- Card 1: Today's Outreach -->
+          <div class="dash-card anim-dash" id="dash-card-outreach" style="--d: 0.1s; cursor: pointer;">
+            <span class="dash-card-title">Today's Outreach</span>
+            <div class="dash-card-value" id="dash-card-outreach-val">1 / 50</div>
+            <div class="dash-card-bottom accent-green">
+              <span id="dash-card-outreach-sub">2% done</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+
+          <!-- Card 2: New Leads -->
+          <div class="dash-card anim-dash" id="dash-card-saved" style="--d: 0.15s; cursor: pointer;">
+            <span class="dash-card-title">New Leads</span>
+            <div class="dash-card-value" id="dash-card-saved-val">60 leads</div>
+            <div class="dash-card-bottom">
+              <span>Pipeline queue</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+
+          <!-- Card 3: Favorites -->
+          <div class="dash-card anim-dash" id="dash-card-favorites" style="--d: 0.2s; cursor: pointer;">
+            <span class="dash-card-title">Favorites</span>
+            <div class="dash-card-value" id="dash-card-favorites-val">0 starred</div>
+            <div class="dash-card-bottom">
+              <span>Priority queue</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+
+          <!-- Card 4: Follow-Ups Due -->
+          <div class="dash-card anim-dash" id="dash-card-followups" style="--d: 0.25s; cursor: pointer;">
+            <span class="dash-card-title">Follow-Ups Due</span>
+            <div class="dash-card-value" id="dash-card-followups-val">0 prospects</div>
+            <div class="dash-card-bottom">
+              <span>Review due</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+
+          <!-- Card 5: Replies & Warm -->
+          <div class="dash-card anim-dash" id="dash-card-replies" style="--d: 0.3s; cursor: pointer;">
+            <span class="dash-card-title">Replies & Warm</span>
+            <div class="dash-card-value" id="dash-card-replies-val">0 engaged</div>
+            <div class="dash-card-bottom">
+              <span>Active chats</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+
+          <!-- Card 6: No Website (Pink/Red Accent) -->
+          <div class="dash-card card-warning-accent anim-dash" id="dash-card-nowebsite" style="--d: 0.35s; cursor: pointer;">
+            <span class="dash-card-title">No Website</span>
+            <div class="dash-card-value" id="dash-card-nowebsite-val">17 targets</div>
+            <div class="dash-card-bottom accent-pink">
+              <span>Prime pitch</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. LOWER DASHBOARD AREA (2 PANELS SIDE-BY-SIDE) -->
+        <section class="dash-lower-section">
+          <!-- LEFT PANEL: TODAY'S OUTREACH -->
+          <div class="dash-panel panel-outreach anim-dash" style="--d: 0.4s">
+            <div class="panel-header-row">
+              <div class="panel-title-block">
+                <h2 class="panel-title">TODAY'S OUTREACH</h2>
+                <p class="panel-subtitle">Target persists across sessions. Only confirmed sent messages count.</p>
+              </div>
+            </div>
+
+            <!-- Main progress display -->
+            <div class="outreach-progress-display">
+              <div class="progress-big-val" id="dash-big-val">1 / 50</div>
+              <div class="progress-complete-col">
+                <span class="progress-percent-val" id="dash-percent-val">2%</span>
+                <span class="progress-complete-label">COMPLETE</span>
+              </div>
+            </div>
+
+            <!-- Glowing thin horizontal progress bar -->
+            <div class="dash-progress-track">
+              <div class="dash-progress-fill" id="dash-progress-fill" style="width: 2%;"></div>
+            </div>
+
+            <!-- Three smaller metric blocks -->
+            <div class="dash-metrics-triplet">
+              <div class="metric-triplet-box">
+                <span class="triplet-tag">SENT</span>
+                <span class="triplet-val text-green" id="dash-triplet-sent">
+                  <i class="fa-solid fa-check"></i> 1 SENT
+                </span>
+              </div>
+              <div class="metric-triplet-box">
+                <span class="triplet-tag">REMAINING</span>
+                <span class="triplet-val" id="dash-triplet-remaining">→ 49 LEFT</span>
+              </div>
+              <div class="metric-triplet-box">
+                <span class="triplet-tag">TARGET</span>
+                <span class="triplet-val" id="dash-triplet-target">50 / DAY</span>
+              </div>
+            </div>
+
+            <!-- Bottom Outreach Prompt Banner -->
+            <div class="outreach-footer-banner">
+              <span class="footer-pitch-prompt">Ready to send WhatsApp pitches?</span>
+              <button type="button" class="btn-outreach-queue" id="dash-btn-open-outreach-queue">
+                <span>Open Outreach Queue</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL: AI SALES TERMINAL -->
+          <div class="dash-panel panel-ai-sales anim-dash" style="--d: 0.45s">
+            <div class="panel-header-row">
+              <div class="panel-title-block">
+                <h2 class="panel-title">
+                  <span class="sparkle-teal">✦</span> AI SALES TERMINAL
+                </h2>
+                <p class="panel-subtitle">Real-time pipeline analysis from live database records</p>
+              </div>
+            </div>
+
+            <div class="insights-container">
+              <!-- GREEN INSIGHT -->
+              <div class="insight-row insight-green">
+                <span class="insight-dot-icon">◎</span>
+                <span class="insight-text" id="dash-insight-target">You've completed 2% of today's outreach target (1/50).</span>
+              </div>
+
+              <!-- PINK INSIGHT -->
+              <div class="insight-row insight-pink">
+                <span class="insight-dot-icon">◎</span>
+                <span class="insight-text" id="dash-insight-noweb">Identified 17 local businesses without a website — prime web development conversion targets.</span>
+              </div>
+            <div class="ai-panel-bottom-row">
+              <span class="ground-truth-text">
+                <i class="fa-regular fa-circle-check text-green"></i> Ground truth data (0% hallucination)
+              </span>
+              <a href="#find-leads" class="search-leads-link" id="dash-link-search-leads">
+                Search leads <i class="fa-solid fa-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. OUTREACH PERFORMANCE HISTORY -->
+        <section class="dash-history-card anim-dash" style="--d: 0.5s">
+          <div class="dash-section-header-row">
+            <div class="dash-section-title-wrap">
+              <h2 class="dash-section-title">
+                <i class="fa-solid fa-arrow-trend-up text-green"></i>
+                <span>OUTREACH PERFORMANCE HISTORY</span>
+              </h2>
+            </div>
+            <span class="dash-section-sub-right">Derived strictly from confirmed sent logs</span>
+          </div>
+
+          <div class="history-metrics-grid">
+            <!-- Box 1: TODAY -->
+            <div class="history-metric-box">
+              <span class="hist-label">TODAY</span>
+              <div class="hist-val">1 <span class="hist-sub">/ 50</span></div>
+            </div>
+
+            <!-- Box 2: YESTERDAY -->
+            <div class="history-metric-box">
+              <span class="hist-label">YESTERDAY</span>
+              <div class="hist-val">42 <span class="hist-sub">/ 50</span></div>
+            </div>
+
+            <!-- Box 3: 7-DAY AVG -->
+            <div class="history-metric-box">
+              <span class="hist-label">7-DAY AVG</span>
+              <div class="hist-val text-green">22/day</div>
+            </div>
+
+            <!-- Box 4: BEST DAY -->
+            <div class="history-metric-box">
+              <span class="hist-label">BEST DAY</span>
+              <div class="hist-val text-green">84</div>
+            </div>
+
+            <!-- Box 5: TOTAL SENT -->
+            <div class="history-metric-box">
+              <span class="hist-label">TOTAL SENT</span>
+              <div class="hist-val">1</div>
+            </div>
+
+            <!-- Box 6: REPLIES -->
+            <div class="history-metric-box">
+              <span class="hist-label">REPLIES</span>
+              <div class="hist-val">0</div>
+            </div>
+
+            <!-- Box 7: REPLY RATE -->
+            <div class="history-metric-box">
+              <span class="hist-label">REPLY RATE</span>
+              <div class="hist-val text-green">0%</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. HIGH-OPPORTUNITY PROSPECTS WAITING -->
+        <section class="dash-prospects-card anim-dash" style="--d: 0.55s">
+          <div class="dash-section-header-row">
+            <div class="dash-section-title-wrap">
+              <h2 class="dash-section-title">
+                <i class="fa-solid fa-ribbon text-green"></i>
+                <span>HIGH-OPPORTUNITY PROSPECTS WAITING</span>
+              </h2>
+              <p class="dash-section-subtitle">Ranked by AI Opportunity Score and missing digital assets</p>
+            </div>
+            <a href="#saved-leads" class="view-all-link" id="dash-view-all-leads">View All (60) <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Table Container -->
+          <div class="prospects-table-wrap">
+            <table class="prospects-table">
+              <thead>
+                <tr>
+                  <th>BUSINESS NAME</th>
+                  <th>CATEGORY</th>
+                  <th>WEBSITE</th>
+                  <th>OPPORTUNITY SCORE</th>
+                  <th>RECOMMENDED SERVICE</th>
+                  <th class="text-right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Row 1: MV dental clinic -->
+                <tr>
+                  <td>
+                    <div class="biz-name-cell">
+                      <span class="biz-name">MV dental clinic</span>
+                      <span class="biz-location">Hyderabad, Telangana</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-category">Dental Clinics</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-missing-web">Missing Website</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-score">100 • HIGH</span>
+                  </td>
+                  <td>
+                    <span class="service-name">Website</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <button class="btn-table-outreach">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span>Outreach</span>
+                      </button>
+                      <button class="btn-table-pitch">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Pitch</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 2: Life Kare dental hospital vanasthalipuram -->
+                <tr>
+                  <td>
+                    <div class="biz-name-cell">
+                      <span class="biz-name">Life Kare dental hospital vanasthalipuram</span>
+                      <span class="biz-location">Hyderabad, Telangana</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-category">Dental Clinics</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-missing-web">Missing Website</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-score">100 • HIGH</span>
+                  </td>
+                  <td>
+                    <span class="service-name">Website</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <button class="btn-table-outreach">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span>Outreach</span>
+                      </button>
+                      <button class="btn-table-pitch">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Pitch</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 3: Dr. Vineeth's Bright Smiles Dental Clinic -->
+                <tr>
+                  <td>
+                    <div class="biz-name-cell">
+                      <span class="biz-name">Dr. Vineeth's Bright Smiles Dental Clinic</span>
+                      <span class="biz-location">Hyderabad, Telangana</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-category">Dental Clinics</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-missing-web">Missing Website</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-score">100 • HIGH</span>
+                  </td>
+                  <td>
+                    <span class="service-name">Website</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <button class="btn-table-outreach">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span>Outreach</span>
+                      </button>
+                      <button class="btn-table-pitch">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Pitch</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 4: Dr Bharath's Dental clinic -->
+                <tr>
+                  <td>
+                    <div class="biz-name-cell">
+                      <span class="biz-name">Dr Bharath's Dental clinic</span>
+                      <span class="biz-location">Hyderabad, Telangana</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-category">Dental Clinics</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-missing-web">Missing Website</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-score">100 • HIGH</span>
+                  </td>
+                  <td>
+                    <span class="service-name">Website</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <button class="btn-table-outreach">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span>Outreach</span>
+                      </button>
+                      <button class="btn-table-pitch">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Pitch</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 5: Srigadha Dental hospital -->
+                <tr>
+                  <td>
+                    <div class="biz-name-cell">
+                      <span class="biz-name">Srigadha Dental hospital</span>
+                      <span class="biz-location">Hyderabad, Telangana</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-category">Dental Clinics</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-missing-web">Missing Website</span>
+                  </td>
+                  <td>
+                    <span class="tag-pill tag-score">100 • HIGH</span>
+                  </td>
+                  <td>
+                    <span class="service-name">Website</span>
+                  </td>
+                  <td class="text-right">
+                    <div class="action-btn-group">
+                      <button class="btn-table-outreach">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span>Outreach</span>
+                      </button>
+                      <button class="btn-table-pitch">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Pitch</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER: HISTORY (VIDEO 00:46 → 00:47)
+         ================================================== -->
+    <main id="view-history" class="view-panel hidden" style="display: none;">
+      <div class="history-viewport">
+        <!-- TOP HEADER PANEL -->
+        <section class="history-header-panel anim-dash" style="--d: 0.1s">
+          <div class="history-header-left">
+            <div class="history-icon-box">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="history-title-wrap">
+              <h1 class="history-panel-title">Search History &amp; Past Scans</h1>
+              <p class="history-panel-sub">Re-run previous market queries or delete past search logs</p>
+            </div>
+          </div>
+
+          <div class="history-header-right">
+            <div class="history-count-badge">
+              <span id="history-total-count">0</span> searches recorded
+            </div>
+            <button type="button" id="btn-history-select-all" class="btn-history-select-all" title="Toggle Select All">
+              <i class="fa-regular fa-square-check" id="icon-history-select-all"></i>
+              <span id="text-history-select-all">Select All</span>
+            </button>
+            <button type="button" id="btn-history-delete-all" class="btn-history-delete-all" title="Delete History Records">
+              <i class="fa-regular fa-trash-can"></i>
+              <span id="text-history-delete-all">Delete All</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- SEARCH HISTORY CARDS CONTAINER -->
+        <div id="history-cards-container" class="history-cards-list anim-dash" style="--d: 0.18s">
+          <!-- Dynamically populated history cards -->
+        </div>
+
+        <!-- EMPTY STATE (shown when no records) -->
+        <div id="history-empty-state" class="history-empty-card hidden">
+          <div class="history-empty-icon">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <h3 class="history-empty-title">No Search History Recorded</h3>
+          <p class="history-empty-desc">Past lead discovery queries and market scans will be tracked here for instant re-running.</p>
+          <button type="button" id="btn-history-goto-find" class="btn-history-goto-find">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Run New Search</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ==================================================
+         VIEW CONTAINER 7: SETTINGS & WORKSPACE PREFERENCES
+         ================================================== -->
+    <main id="view-settings" class="view-panel hidden settings-view" style="display: none;">
+      <!-- Settings Header Banner -->
+      <div class="settings-header anim" style="--d: 0.05s">
+        <div class="settings-title-row">
+          <div class="settings-header-left">
+            <div class="dash-terminal-badge">
+              <span class="status-dot-green"></span>
+              <span>B2B REVENUE TERMINAL</span>
+            </div>
+            <h1 class="dash-greeting-title">
+              Workspace <span class="dash-serif-name">Settings</span>
+            </h1>
+            <p class="dash-greeting-sub">
+              Manage your agency profile, service offerings, outreach message templates, and AI parameters.
+            </p>
+          </div>
+          <button type="button" id="btn-save-all-settings" class="btn-settings-save-all">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save All Changes</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings 2-Column Terminal Layout -->
+      <div class="settings-layout">
+        <!-- Left Sidebar Navigation (10 Tabs) -->
+        <aside class="settings-sidebar anim" style="--d: 0.1s" aria-label="Settings Navigation">
+          <button type="button" class="settings-tab-btn active" data-settings-tab="profile" id="tab-btn-profile">
+            <i class="fa-solid fa-user tab-icon"></i>
+            <span class="tab-label">My Details</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="services" id="tab-btn-services">
+            <i class="fa-solid fa-briefcase tab-icon"></i>
+            <span class="tab-label">My Services</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="templates" id="tab-btn-templates">
+            <i class="fa-solid fa-file-lines tab-icon"></i>
+            <span class="tab-label">Custom Message Templates</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="target" id="tab-btn-target">
+            <i class="fa-solid fa-bullseye tab-icon"></i>
+            <span class="tab-label">Daily Outreach Target</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="ai" id="tab-btn-ai">
+            <i class="fa-solid fa-wand-magic-sparkles tab-icon"></i>
+            <span class="tab-label">AI Preferences</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="api" id="tab-btn-api">
+            <i class="fa-solid fa-shield-halved tab-icon"></i>
+            <span class="tab-label">API Configuration</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="whatsapp" id="tab-btn-whatsapp">
+            <i class="fa-brands fa-whatsapp tab-icon"></i>
+            <span class="tab-label">WhatsApp Preferences</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="appearance" id="tab-btn-appearance">
+            <i class="fa-solid fa-palette tab-icon"></i>
+            <span class="tab-label">Appearance</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="data" id="tab-btn-data">
+            <i class="fa-solid fa-database tab-icon"></i>
+            <span class="tab-label">Data & Export</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+        </aside>
+
+        <!-- Right Content Panels Card -->
+        <section class="settings-content-card anim" style="--d: 0.15s">
+          <!-- TAB 1: MY DETAILS -->
+          <div id="panel-settings-profile" class="settings-panel active">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-user"></i>
+                  <span>My Details</span>
+                </h2>
+                <p class="settings-panel-desc">Your identity details automatically resolve into Gemini outreach pitches and message templates.</p>
+              </div>
+            </div>
+
+            <div class="settings-form-grid">
+              <div class="settings-group">
+                <label class="settings-label" for="set-fullname">Full Name</label>
+                <input type="text" id="set-fullname" class="settings-input" placeholder="e.g. Akshay" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-company">Company / Brand Name</label>
+                <input type="text" id="set-company" class="settings-input" placeholder="e.g. Nexora Labs" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-phone">Phone Number</label>
+                <input type="text" id="set-phone" class="settings-input" placeholder="e.g. +91 98765 43210" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-email">Email Address</label>
+                <input type="email" id="set-email" class="settings-input" placeholder="e.g. contact@nexoralabs.com" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-portfolio">Portfolio URL</label>
+                <input type="url" id="set-portfolio" class="settings-input" placeholder="https://nexoralabs.com/portfolio" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-website">Website URL</label>
+                <input type="url" id="set-website" class="settings-input" placeholder="https://nexoralabs.com" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-city">City</label>
+                <input type="text" id="set-city" class="settings-input" placeholder="e.g. Vijayawada" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-state">State</label>
+                <input type="text" id="set-state" class="settings-input" placeholder="e.g. Andhra Pradesh" />
+              </div>
+              <div class="settings-group full-width">
+                <label class="settings-label" for="set-bio">Professional Description / Value Proposition</label>
+                <textarea id="set-bio" class="settings-textarea" placeholder="Full-stack AI automation & modern web consultant."></textarea>
+              </div>
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-profile" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Changes</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 2: MY SERVICES -->
+          <div id="panel-settings-services" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-briefcase"></i>
+                  <span>My Services</span>
+                </h2>
+                <p class="settings-panel-desc">Gemini AI recommendations and templates use your enabled services when pitching prospects.</p>
+              </div>
+            </div>
+
+            <div class="services-toggle-list" id="set-services-container">
+              <!-- Rendered via JS -->
+            </div>
+
+            <div class="settings-card" style="margin-top: 10px;">
+              <label class="settings-label">Add Custom Service Offering</label>
+              <div class="add-service-box">
+                <input type="text" id="input-custom-service" class="settings-input" placeholder="e.g. WhatsApp Inbound Funnels, CRM Migration..." />
+                <button type="button" id="btn-add-custom-service" class="btn-settings-save" style="white-space: nowrap;">
+                  <i class="fa-solid fa-plus"></i> Add Service
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-services" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Services</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 3: CUSTOM MESSAGE TEMPLATES -->
+          <div id="panel-settings-templates" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-file-lines"></i>
+                  <span>Custom Message Templates</span>
+                </h2>
+                <p class="settings-panel-desc">Pre-made pitch templates with real-time variable replacement and live previews.</p>
+              </div>
+              <button type="button" id="btn-open-new-template" class="btn-settings-save">
+                <i class="fa-solid fa-plus"></i> Create Template
+              </button>
+            </div>
+
+            <div class="templates-manager-grid">
+              <!-- Left: Templates Column with Priority Header -->
+              <div class="templates-col-left">
+                <div class="templates-priority-header">
+                  <span class="templates-priority-title">Priority Order (<span id="tpl-count-badge">11</span>)</span>
+                  <span class="templates-priority-hint"><i class="fa-solid fa-circle-info" style="font-size: 10px; margin-right: 3px;"></i>Drag to prioritize</span>
+                </div>
+                <div class="templates-list-pane" id="set-templates-list">
+                  <!-- Populated dynamically via JS -->
+                </div>
+              </div>
+
+              <!-- Right: Live Variable Preview -->
+              <div class="template-preview-card">
+                <div class="preview-top-bar">
+                  <span class="preview-pill-label">
+                    <i class="fa-regular fa-eye"></i> Live Variable Preview
+                  </span>
+                  <div class="preview-actions">
+                    <button type="button" id="btn-preview-set-default" class="preview-action-btn">Set Default</button>
+                    <span>•</span>
+                    <button type="button" id="btn-preview-edit" class="preview-action-btn" style="color: #34d399;">Edit</button>
+                    <span>•</span>
+                    <button type="button" id="btn-preview-duplicate" class="preview-action-btn">Duplicate</button>
+                    <span>•</span>
+                    <button type="button" id="btn-preview-delete" class="preview-action-btn danger">Delete</button>
+                  </div>
+                </div>
+
+                <div class="preview-sample-lead">
+                  <span>Previewing with sample lead: <strong id="preview-sample-lead-name">Sri Krishna Dental Hospital</strong> (Vijayawada)</span>
+                  <span class="badge-variables-clean">Zero raw variables</span>
+                </div>
+
+                <div class="preview-message-box" id="preview-rendered-message">
+                  <!-- Live Preview Text -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: DAILY OUTREACH TARGET -->
+          <div id="panel-settings-target" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-bullseye"></i>
+                  <span>Daily Outreach Target</span>
+                </h2>
+                <p class="settings-panel-desc">Set daily sent quotas to maintain high outbound velocity without burning out.</p>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <label class="settings-label" for="set-daily-target-input">Daily Outreach Target (Messages / Day)</label>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <input type="number" id="set-daily-target-input" class="settings-input" style="width: 130px; font-size: 18px; font-weight: 700;" min="1" max="500" value="50" />
+                <span style="font-size: 14px; color: #94a3b8;">messages per calendar day</span>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <label class="service-toggle-left" style="cursor: pointer;">
+                <input type="checkbox" id="chk-set-show-progress" class="custom-checkbox" checked />
+                <span class="service-name">Show Daily Outreach Target progress bar on Dashboard</span>
+              </label>
+              <label class="service-toggle-left" style="cursor: pointer; margin-top: 10px;">
+                <input type="checkbox" id="chk-set-milestones" class="custom-checkbox" checked />
+                <span class="service-name">Enable outreach milestone notifications</span>
+              </label>
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-target" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Target Settings</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 5: AI PREFERENCES -->
+          <div id="panel-settings-ai" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>AI Preferences</span>
+                </h2>
+                <p class="settings-panel-desc">Tune Gemini AI tone, focus services, and evaluation criteria.</p>
+              </div>
+            </div>
+
+            <!-- Gemini Server Model Banner Card -->
+            <div class="settings-card accent-border">
+              <div class="settings-card-header">
+                <div>
+                  <div class="settings-card-title" style="color: #34d399;">Gemini Model Configuration</div>
+                  <div class="settings-card-sub">Configured server-side model: <strong>gemini-3.8-flash</strong></div>
+                </div>
+                <span class="badge-pill-active">ACTIVE</span>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div class="settings-card-title" style="margin-bottom: 2px;">Default Message Crafting Preferences</div>
+              <p class="settings-card-sub" style="margin-bottom: 12px;">Pre-populates the AI Writing Studio controls in the Prepare Outreach dialog.</p>
+
+              <div class="settings-form-grid">
+                <div class="settings-group">
+                  <label class="settings-label" for="set-ai-tone">Default Tone</label>
+                  <select id="set-ai-tone" class="settings-select">
+                    <option value="Friendly">Friendly</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Simple">Simple</option>
+                    <option value="Confident">Confident</option>
+                    <option value="Consultative">Consultative</option>
+                    <option value="Short & Direct">Short & Direct</option>
+                    <option value="High-Conversion">High-Conversion</option>
+                  </select>
+                </div>
+                <div class="settings-group">
+                  <label class="settings-label" for="set-ai-length">Default Length</label>
+                  <select id="set-ai-length" class="settings-select">
+                    <option value="Short (60–100 words)">Short (60–100 words)</option>
+                    <option value="Medium (100–150 words)">Medium (100–150 words)</option>
+                    <option value="Detailed (150–220 words)">Detailed (150–220 words)</option>
+                  </select>
+                </div>
+                <div class="settings-group">
+                  <label class="settings-label" for="set-ai-approach">Default Approach</label>
+                  <select id="set-ai-approach" class="settings-select">
+                    <option value="Value First">Value First</option>
+                    <option value="Problem Solver">Problem Solver</option>
+                    <option value="Direct Pitch">Direct Pitch</option>
+                    <option value="Quick Curiosity">Quick Curiosity</option>
+                  </select>
+                </div>
+                <div class="settings-group">
+                  <label class="settings-label" for="set-ai-cta">Default CTA</label>
+                  <select id="set-ai-cta" class="settings-select">
+                    <option value="Friendly Question">Friendly Question</option>
+                    <option value="Free Audit Offer">Free Audit Offer</option>
+                    <option value="Quick Call Request">Quick Call Request</option>
+                    <option value="Portfolio Review">Portfolio Review</option>
+                  </select>
+                </div>
+                <div class="settings-group full-width">
+                  <label class="settings-label" for="set-ai-personalization">Default Personalization</label>
+                  <select id="set-ai-personalization" class="settings-select">
+                    <option value="High (Uses verified business name, category, location, and website status)">High (Uses verified business name, category, location, and website status)</option>
+                    <option value="Standard">Standard (Business name & location)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div class="settings-group full-width">
+                <label class="settings-label" for="set-ai-focus">Service Focus Priority</label>
+                <select id="set-ai-focus" class="settings-select">
+                  <option value="Website Development">Website Development</option>
+                  <option value="AI Voice Calling Agents">AI Voice Calling Agents</option>
+                  <option value="AI Automation">AI Automation</option>
+                  <option value="AI Chatbots">AI Chatbots</option>
+                  <option value="Custom Software">Custom Software</option>
+                  <option value="SEO & Local Ranking">SEO & Local Ranking</option>
+                </select>
+              </div>
+              <label class="service-toggle-left" style="cursor: pointer; margin-top: 8px;">
+                <input type="checkbox" id="chk-set-auto-vectors" class="custom-checkbox" checked />
+                <span class="service-name">Automatically analyze all 5 revenue vectors when generating message suggestions</span>
+              </label>
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-ai" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save AI Preferences</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 7: API CONFIGURATION -->
+          <div id="panel-settings-api" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-shield-halved"></i>
+                  <span>API Configuration & Security</span>
+                </h2>
+                <p class="settings-panel-desc">Credentials remain private on the server side in .env.local. Zero keys leaked to browser.</p>
+              </div>
+              <button type="button" id="btn-test-connections" class="btn-settings-save">
+                <i class="fa-solid fa-rotate"></i> Test Connections
+              </button>
+            </div>
+
+            <div class="system-status-grid" id="api-status-cards-container">
+              <div class="status-metric-card">
+                <div class="status-metric-title">
+                  <span>Google Places API</span>
+                  <span class="badge-pill-active" id="status-badge-places">Active</span>
+                </div>
+                <p class="status-metric-desc" id="status-desc-places">Powers accurate local discovery across India via Google Places (New).</p>
+              </div>
+              <div class="status-metric-card">
+                <div class="status-metric-title">
+                  <span>Google Gemini AI</span>
+                  <span class="badge-pill-active" id="status-badge-gemini">Active</span>
+                </div>
+                <p class="status-metric-desc" id="status-desc-gemini">Resilient multi-model engine with zero-hallucination guarantees.</p>
+              </div>
+              <div class="status-metric-card">
+                <div class="status-metric-title">
+                  <span>Storage Engine</span>
+                  <span class="badge-pill-active" id="status-badge-storage" style="background: rgba(16, 185, 129, 0.2);">Persistent Disk + Memory</span>
+                </div>
+                <p class="status-metric-desc" id="status-desc-storage">Resilient offline JSON persistence with optional Supabase / PostgreSQL sync.</p>
+              </div>
+            </div>
+
+            <div id="connection-test-feedback" style="display: none; padding: 12px 16px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 13px;">
+              <i class="fa-solid fa-circle-check"></i> Live Connection verified! All systems operational.
+            </div>
+          </div>
+
+          <!-- TAB 8: WHATSAPP PREFERENCES -->
+          <div id="panel-settings-whatsapp" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-brands fa-whatsapp" style="color: #25d366;"></i>
+                  <span>WhatsApp Preferences & Safe Click-to-Chat</span>
+                </h2>
+                <p class="settings-panel-desc">100% compliant external click-to-chat architecture. Zero account bans, scraping, or automation.</p>
+              </div>
+            </div>
+
+            <div class="settings-form-grid">
+              <div class="settings-group">
+                <label class="settings-label" for="set-wa-country">Default International Country Code</label>
+                <input type="text" id="set-wa-country" class="settings-input" placeholder="+91 9959983437" />
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-wa-launch-mode">WhatsApp Launch Mode</label>
+                <select id="set-wa-launch-mode" class="settings-select">
+                  <option value="desktop">WhatsApp Desktop / Native Protocol (whatsapp://)</option>
+                  <option value="web">WhatsApp Web (https://wa.me/)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-notice-box">
+              <strong>Safe Outreach Notice:</strong> Client Hunter never uses unauthorized headless browsers or scraping tools. All outreach relies on the official <code>https://wa.me/</code> protocol or native desktop URI so your personal or business WhatsApp number remains 100% safe.
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-whatsapp" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save WhatsApp Preferences</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 9: APPEARANCE -->
+          <div id="panel-settings-appearance" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-palette"></i>
+                  <span>Appearance & Interface Theme</span>
+                </h2>
+                <p class="settings-panel-desc">Dark graphite / near-black aesthetic with emerald, mint, warm gold, and amber accents.</p>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div class="settings-card-title">Interactive 3D Grid Background</div>
+                  <p class="settings-card-sub">Renders subtle particle constellations behind panels without degrading performance.</p>
+                </div>
+                <input type="checkbox" id="chk-set-interactive-bg" class="custom-checkbox" checked />
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <label class="settings-label" for="set-layout-density">Layout Density</label>
+              <select id="set-layout-density" class="settings-select">
+                <option value="comfortable">Comfortable (Recommended for high readability)</option>
+                <option value="compact">Compact (Maximum leads per screen)</option>
+              </select>
+            </div>
+
+            <div class="settings-action-row">
+              <button type="button" id="btn-save-appearance" class="btn-settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Appearance</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 10: DATA & EXPORT -->
+          <div id="panel-settings-data" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <h2 class="settings-panel-title">
+                  <i class="fa-solid fa-database"></i>
+                  <span>Data & Complete System Backup</span>
+                </h2>
+                <p class="settings-panel-desc">Export or restore your full CRM state, outreach logs, message templates, and settings.</p>
+              </div>
+            </div>
+
+            <div class="settings-form-grid">
+              <div class="settings-card" style="height: 100%; justify-content: space-between;">
+                <div>
+                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 16px; margin-bottom: 12px;">
+                    <i class="fa-solid fa-download"></i>
+                  </div>
+                  <div class="settings-card-title">Full JSON Backup</div>
+                  <p class="settings-card-sub" style="margin-top: 4px;">Download a complete portable snapshot of your templates, user profile, message histories, and outreach configurations.</p>
+                </div>
+                <button type="button" id="btn-download-backup" class="btn-settings-save" style="align-self: flex-start; margin-top: 16px;">
+                  <i class="fa-solid fa-download"></i> Download JSON Backup
+                </button>
+              </div>
+
+              <div class="settings-card" style="height: 100%; justify-content: space-between;">
+                <div>
+                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 16px; margin-bottom: 12px;">
+                    <i class="fa-solid fa-database"></i>
+                  </div>
+                  <div class="settings-card-title">Database State</div>
+                  <p class="settings-card-sub" style="margin-top: 4px;">All lead searches, favorites, templates, and sent messages persist continuously to data/ on your computer.</p>
+                  <div style="margin-top: 12px; font-size: 12px; color: #94a3b8; line-height: 1.8;">
+                    <div><span style="color: #34d399;">✓</span> Leads Store: <code>data/leads_store.json</code></div>
+                    <div><span style="color: #34d399;">✓</span> Outreach Store: <code>data/outreach_state.json</code></div>
+                    <div><span style="color: #34d399;">✓</span> Searches: <code>data/searches_store.json</code></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- DANGER ZONE (BOTTOM SECTION) -->
+      <section class="settings-danger-zone anim" style="--d: 0.25s">
+        <div class="danger-zone-card">
+          <div class="danger-zone-info">
+            <div class="danger-zone-badge">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>DANGER ZONE</span>
+            </div>
+            <h3 class="danger-zone-title">Reset Lead Data</h3>
+            <p class="danger-zone-desc">Remove all saved leads, favorites, outreach records, follow-ups, and message history from Client Hunter.</p>
+          </div>
+          <div class="danger-zone-action">
+            <button type="button" id="btn-open-reset-leads-modal" class="btn-danger-reset">
+              <i class="fa-solid fa-trash-can"></i>
+              <span>Reset All Lead Data</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================================================
+       TEMPLATE CREATION / EDITING MODAL
+       ================================================== -->
+  <div id="modal-template-editor" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-template-editor-window">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
+        <h3 id="modal-template-title" style="margin: 0; font-size: 17px; color: #fff;">Create Message Template</h3>
+        <button type="button" id="btn-close-template-modal" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <div class="settings-group">
+        <label class="settings-label" for="input-tpl-name">Template Name</label>
+        <input type="text" id="input-tpl-name" class="settings-input" placeholder="e.g. AI Automation Outreach" />
+      </div>
+      <div class="settings-group">
+        <label class="settings-label" for="select-tpl-type">Category / Type</label>
+        <select id="select-tpl-type" class="settings-select">
+          <option value="Website Outreach">Website Outreach</option>
+          <option value="Voice Agent Outreach">Voice Agent Outreach</option>
+          <option value="AI Voice Agent Outreach">AI Voice Agent Outreach</option>
+          <option value="AI Automation Outreach">AI Automation Outreach</option>
+          <option value="AI Chatbot Outreach">AI Chatbot Outreach</option>
+          <option value="General Introduction Outreach">General Introduction Outreach</option>
+          <option value="Custom Outreach">Custom Outreach</option>
+          <option value="Follow-Up">Follow-Up</option>
+          <option value="Initial Outreach">Initial Outreach</option>
+        </select>
+      </div>
+      <div class="settings-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="settings-label">Message Content</label>
+          <span style="font-size: 11px; color: #94a3b8;">Click to insert:</span>
+        </div>
+        <div class="variable-chips-row">
+          <button type="button" class="var-chip-btn" data-var="{businessName}">{businessName}</button>
+          <button type="button" class="var-chip-btn" data-var="{category}">{category}</button>
+          <button type="button" class="var-chip-btn" data-var="{city}">{city}</button>
+          <button type="button" class="var-chip-btn" data-var="{my_name}">{my_name}</button>
+          <button type="button" class="var-chip-btn" data-var="{my_company}">{my_company}</button>
+          <button type="button" class="var-chip-btn" data-var="{portfolio_url}">{portfolio_url}</button>
+        </div>
+        <textarea id="textarea-tpl-content" class="settings-textarea" style="min-height: 130px; margin-top: 6px;"></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px;">
+        <button type="button" id="btn-cancel-template-edit" class="btn-settings-outline">Cancel</button>
+        <button type="button" id="btn-save-template-edit" class="btn-settings-save">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Sheet Menu & Overlay -->
+  <div class="mobile-menu-overlay hidden" aria-hidden="true"></div>
+  <nav class="mobile-menu hidden" id="mobile-menu" aria-label="Mobile navigation">
+    <div class="mobile-menu-header">
+      <span class="mobile-menu-title">TERMINAL NAVIGATION</span>
+      <div class="radar-status mobile-radar">
+        <span class="radar-dot"></span>
+        <span>Radar Active</span>
+      </div>
+    </div>
+    <a href="#dashboard" class="mobile-nav-link" data-tab="dashboard">Dashboard</a>
+    <a href="#find-leads" class="mobile-nav-link" data-tab="find-leads">Find Leads</a>
+    <a href="#saved-leads" class="mobile-nav-link with-badge" data-tab="saved-leads">
+      Saved Leads <span class="nav-badge" id="mobile-nav-saved-badge">60</span>
+    </a>
+    <a href="#favorites" class="mobile-nav-link" data-tab="favorites">Favorites</a>
+    <a href="#outreach" class="mobile-nav-link with-badge" data-tab="outreach">
+      Outreach <span class="nav-badge" id="mobile-nav-outreach-badge">3</span>
+    </a>
+    <a href="#followup" class="mobile-nav-link with-badge" data-tab="followup">
+      Follow-Up <span class="nav-badge" id="mobile-nav-followup-badge">0</span>
+    </a>
+    <a href="#history" class="mobile-nav-link" data-tab="history">History</a>
+    <a href="#settings" class="mobile-nav-link" data-tab="settings">Settings</a>
+    <div class="mobile-profile-section">
+      <div class="user-avatar">NM</div>
+      <div class="mobile-user-info">
+        <span class="user-name">Namrata Gauri</span>
+        <span class="mobile-user-role">Revenue Terminal</span>
+      </div>
+    </div>
+  </nav>
+  <!-- ==================================================
+       FIND LEADS PROCESS POPUP MODAL (SECTION 3)
+       ================================================== -->
+  <div id="modal-find-process" class="process-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="process-modal-window">
+      <!-- Modal Header -->
+      <div class="process-modal-header">
+        <div class="process-title-group">
+          <span class="process-radar-ping"></span>
+          <span class="process-terminal-heading">LEAD INTELLIGENCE ENGINE</span>
+        </div>
+        <button type="button" id="btn-process-modal-close" class="process-close-btn" aria-label="Close process window">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Process Status Banner -->
+      <div class="process-status-banner">
+        <div class="process-active-state">
+          <span class="pulse-beacon"></span>
+          <span id="process-headline-text">Searching local businesses</span>
+        </div>
+        <div class="process-tags-row">
+          <span id="process-tag-city" class="proc-pill">Hyderabad</span>
+          <span id="process-tag-cat" class="proc-pill">Dental Clinics</span>
+          <span id="process-tag-radius" class="proc-pill">25 km</span>
+        </div>
+      </div>
+
+      <!-- Real-time Step Log -->
+      <div class="process-stages-box" id="process-stages-container">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Process Numbers Banner -->
+      <div class="process-metrics-row">
+        <div class="proc-metric-col">
+          <span class="proc-val" id="proc-metric-discovered">0</span>
+          <span class="proc-lbl">Discovered</span>
+        </div>
+        <div class="proc-metric-col">
+          <span class="proc-val" id="proc-metric-duplicates">0</span>
+          <span class="proc-lbl">Duplicates Removed</span>
+        </div>
+        <div class="proc-metric-col proc-green">
+          <span class="proc-val" id="proc-metric-new">0</span>
+          <span class="proc-lbl">New Leads</span>
+        </div>
+      </div>
+
+      <!-- Save Leads Action -->
+      <div class="process-action-area">
+        <button type="button" id="btn-save-discovered-leads" class="btn-save-leads-primary" disabled>
+          <span class="sparkle-teal">✦</span>
+          <span id="btn-save-leads-label">Save Leads</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       LEAD DETAIL MODAL
+       ================================================== -->
+  <div id="modal-lead-details" class="detail-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="detail-modal-window">
+      <div class="detail-modal-header">
+        <div>
+          <span id="detail-category-badge" class="detail-cat-pill">Dental Clinics</span>
+          <h2 id="detail-business-name" class="detail-biz-title">Business Name</h2>
+        </div>
+        <button type="button" id="btn-close-lead-detail" class="detail-close-btn" aria-label="Close detail modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="detail-modal-body">
+        <div class="detail-score-box">
+          <div class="score-pill-large">
+            <span class="score-lbl">OPPORTUNITY SCORE</span>
+            <span id="detail-score-num" class="score-val">100</span>
+            <span id="detail-score-lvl" class="score-lvl">HIGH</span>
+          </div>
+          <div class="score-reasons-list" id="detail-reasons-list"></div>
+        </div>
+
+        <div class="detail-info-grid">
+          <div class="detail-info-row">
+            <span class="info-label"><i class="fa-solid fa-location-dot"></i> Address:</span>
+            <span id="detail-address-text" class="info-val">Address here</span>
+          </div>
+          <div class="detail-info-row">
+            <span class="info-label"><i class="fa-solid fa-phone"></i> Phone:</span>
+            <span id="detail-phone-text" class="info-val">Phone here</span>
+          </div>
+          <div class="detail-info-row">
+            <span class="info-label"><i class="fa-solid fa-globe"></i> Website:</span>
+            <span id="detail-website-text" class="info-val">Website here</span>
+          </div>
+          <div class="detail-info-row">
+            <span class="info-label"><i class="fa-solid fa-star"></i> Rating &amp; Reviews:</span>
+            <span id="detail-rating-text" class="info-val">4.8 ★ (120 reviews)</span>
+          </div>
+        </div>
+
+        <!-- AI Digital Growth Audit Card -->
+        <div class="detail-ai-audit-card" id="detail-ai-audit-card">
+          <div class="ai-audit-header">
+            <div class="ai-audit-title-tag">
+              <span class="sparkle-ai">✨</span>
+              <span>GEMINI AI GROWTH &amp; REVENUE AUDIT</span>
+            </div>
+            <button type="button" id="btn-generate-ai-audit" class="btn-run-audit">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span id="btn-audit-text">Generate Audit</span>
+            </button>
+          </div>
+          <div id="detail-ai-audit-content" class="ai-audit-body-text">
+            Click &quot;Generate Audit&quot; for an instant AI teardown of revenue leaks, missing digital assets, and high-ticket pitch angles.
+          </div>
+        </div>
+      </div>
+      <div class="detail-modal-footer">
+        <a id="detail-maps-link" href="#" target="_blank" class="btn-detail-secondary">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>View in Google Maps</span>
+        </a>
+        <a id="detail-web-link" href="#" target="_blank" class="btn-detail-secondary">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Visit Website</span>
+        </a>
+        <button type="button" id="btn-detail-outreach" class="btn-detail-primary">
+          <i class="fa-regular fa-paper-plane"></i>
+          <span>Start Outreach</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       MOVE TO OUTREACH CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-move-outreach-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window">
+      <div class="confirm-icon-primary" style="width: 48px; height: 48px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 16px;">
+        <i class="fa-solid fa-paper-plane"></i>
+      </div>
+      <h3 id="confirm-move-outreach-title" class="confirm-title">Move to Outreach?</h3>
+      <p id="confirm-move-outreach-desc" class="confirm-desc">You are about to move 0 selected leads to your Outreach queue.</p>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-move-outreach" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-confirm-move-outreach" class="btn-saved-primary" style="padding: 10px 20px; font-weight: 600;">Move to Outreach</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       DELETE CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-delete-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window">
+      <div class="confirm-icon-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 id="confirm-delete-title" class="confirm-title">Delete Lead?</h3>
+      <p id="confirm-delete-desc" class="confirm-desc">Are you sure you want to delete this lead? This action cannot be undone.</p>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-delete" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-perform-delete" class="btn-confirm-danger">Delete Leads</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       RESET ALL LEAD DATA CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-reset-leads-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window" style="max-width: 500px;">
+      <div class="confirm-icon-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 id="confirm-reset-title" class="confirm-title">Reset All Lead Data?</h3>
+      <p id="confirm-reset-desc" class="confirm-desc">
+        This will permanently remove all saved leads and their associated data, including favorites, outreach status, follow-ups, message history, and completed outreach records.
+      </p>
+      <div class="confirm-notice-preserve" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px 14px; margin: 12px 0 16px; font-size: 13px; color: #a7f3d0; text-align: left;">
+        <i class="fa-solid fa-circle-check" style="margin-right: 6px; color: #34d399;"></i>
+        <span>Search History, Settings, and API configuration will <strong>NOT</strong> be deleted.</span>
+      </div>
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label for="input-confirm-reset" style="display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
+          Type <span style="color: #f43f5e; font-family: monospace; font-size: 13px; letter-spacing: 1px; font-weight: 700;">RESET</span> to continue:
+        </label>
+        <input type="text" id="input-confirm-reset" class="settings-input" placeholder="Type RESET" autocomplete="off" style="border-color: rgba(244, 63, 94, 0.4); text-align: center; font-family: monospace; font-weight: 700; letter-spacing: 2px;" />
+      </div>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-reset-leads" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-perform-reset-leads" class="btn-confirm-danger btn-reset-disabled" disabled>Yes, Reset Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       REMOVE FROM FAVORITES CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-unfav-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window">
+      <div class="confirm-icon-danger" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">
+        <i class="fa-solid fa-star-half-stroke"></i>
+      </div>
+      <h3 id="confirm-unfav-title" class="confirm-title">Remove from Favorites?</h3>
+      <p id="confirm-unfav-desc" class="confirm-desc">These leads will be removed from your Favorites list. They will still remain available in Saved Leads.</p>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-unfav" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-perform-unfav" class="btn-confirm-danger" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: #fbbf24;">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       OUTREACH MESSAGE COMPOSER MODAL
+       ================================================== -->
+  <!-- ==================================================
+       OUTREACH MESSAGE COMPOSER MODAL (REDESIGNED)
+       ================================================== -->
+  <div id="modal-outreach-composer" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="composer-modal-window">
+      
+      <!-- 1. Modal Header -->
+      <div class="composer-modal-header">
+        <div class="composer-header-left">
+          <div class="composer-header-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </div>
+          <div class="composer-title-group">
+            <h3 class="composer-modal-title">Send Message</h3>
+            <p class="composer-modal-subtitle">Turn this prospect into a conversation</p>
+          </div>
+        </div>
+
+        <div class="composer-header-right">
+          <!-- Queue Progress Indicator (Clean) -->
+          <div id="composer-queue-tracker" class="composer-queue-pill hidden">
+            <span class="queue-pill-label">Queue</span>
+            <span class="queue-pill-step"><strong id="queue-current-step">1</strong> of <strong id="queue-total-step">5</strong></span>
+            <button type="button" id="btn-queue-skip" class="btn-queue-mini" title="Skip this lead">Skip</button>
+            <button type="button" id="btn-queue-stop" class="btn-queue-mini stop" title="Stop queue">Stop</button>
+          </div>
+          <button type="button" id="btn-composer-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+        </div>
+      </div>
+
+      <!-- Composer Active Lead Form State -->
+      <div id="composer-main-content" class="composer-main-content">
+        <!-- 2. Single Unified Lead Information Card -->
+        <div class="composer-lead-card" id="composer-lead-card">
+          <!-- Col 1: Avatar + Name + Category + Location -->
+          <div class="lead-card-col col-primary">
+            <div class="lead-avatar-icon" id="lead-avatar-icon">
+              <i class="fa-solid fa-tooth"></i>
+            </div>
+            <div class="lead-primary-meta">
+              <div class="lead-name-row">
+                <h4 class="lead-biz-name" id="composer-lead-biz-name">Smile Care Dental Clinic</h4>
+              </div>
+              <div class="lead-badges-row">
+                <span class="lead-cat-pill" id="composer-lead-category">Dental Clinic</span>
+              </div>
+              <div class="lead-loc-row" id="composer-lead-location">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>Koti, Hyderabad, Telangana</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 2: Phone + Website + Website Status -->
+          <div class="lead-card-col col-contact">
+            <div class="lead-meta-item" id="lead-meta-phone-row">
+              <i class="fa-solid fa-phone"></i>
+              <span id="composer-lead-phone">+91 98765 43210</span>
+            </div>
+            <div class="lead-meta-item" id="lead-meta-web-row">
+              <i class="fa-solid fa-globe"></i>
+              <a href="#" target="_blank" rel="noopener" id="composer-lead-website" class="lead-web-link">https://smilecare.in</a>
+            </div>
+            <div class="lead-meta-item" id="lead-meta-status-row">
+              <span class="lead-meta-label"><i class="fa-solid fa-globe"></i> Website:</span>
+              <span class="lead-status-pill available" id="composer-lead-webstatus">Available</span>
+            </div>
+          </div>
+
+          <!-- Col 3: Opportunity Score -->
+          <div class="lead-card-col col-score">
+            <span class="score-card-title">Opportunity Score</span>
+            <div class="score-pill-badge" id="composer-lead-score-badge">
+              <i class="fa-regular fa-star"></i>
+              <strong id="composer-lead-score">82/100</strong>
+            </div>
+            <div class="score-reason-text" id="composer-lead-score-reason">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>No website + high reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Message Mode Tabs -->
+        <div class="composer-mode-tabs">
+          <button type="button" class="composer-tab-btn active" id="tab-composer-ai">
+            <span class="sparkle-icon">✦</span>
+            <span>AI Generate</span>
+          </button>
+          <button type="button" class="composer-tab-btn" id="tab-composer-template">
+            <i class="fa-regular fa-file-lines"></i>
+            <span>Use Template</span>
+          </button>
+          <button type="button" class="composer-tab-btn" id="tab-composer-custom">
+            <i class="fa-solid fa-pen"></i>
+            <span>Custom Message</span>
+          </button>
+        </div>
+
+        <!-- Template Selector Chips (Shown when 'Use Template' is active) -->
+        <div class="composer-tpl-shelf hidden" id="composer-tpl-shelf">
+          <div class="composer-tpl-chips-scroll" id="composer-tpl-chips">
+            <!-- Populated dynamically from settings.templates -->
+          </div>
+          <select id="composer-tpl-select" class="composer-select hidden"></select>
+        </div>
+
+        <!-- 4. Message Editor -->
+        <div class="composer-editor-wrap">
+          <div class="editor-header">
+            <label for="composer-message-text" class="editor-title">Your Message</label>
+            <span class="editor-chars" id="composer-char-count">0 / 1000</span>
+          </div>
+          <textarea id="composer-message-text" class="composer-textarea" rows="6" placeholder="Type or generate your outreach message here..."></textarea>
+        </div>
+
+        <!-- Notification Warning for Invalid Phone -->
+        <div id="composer-phone-warning" class="composer-warning hidden">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>This lead does not have a valid phone number for WhatsApp outreach.</span>
+        </div>
+
+        <!-- 5. Message Options (Compact Controls) -->
+        <div class="composer-options-row" id="composer-ai-options">
+          <div class="opt-control-group">
+            <label class="opt-label"><i class="fa-regular fa-face-smile"></i> Tone</label>
+            <select id="composer-tone-select" class="opt-select">
+              <option value="Professional" selected>Professional</option>
+              <option value="Friendly">Friendly</option>
+              <option value="Casual">Casual</option>
+              <option value="Simple">Simple</option>
+              <option value="Confident">Confident</option>
+              <option value="Consultative">Consultative</option>
+              <option value="Short & Direct">Short & Direct</option>
+              <option value="High-Conversion">High-Conversion</option>
+            </select>
+          </div>
+
+          <div class="opt-control-group">
+            <label class="opt-label"><i class="fa-solid fa-bars"></i> Length</label>
+            <select id="composer-opt-length" class="opt-select">
+              <option value="Short">Short</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Detailed">Detailed</option>
+            </select>
+          </div>
+
+          <div class="opt-control-group">
+            <label class="opt-label"><i class="fa-solid fa-crosshairs"></i> Approach</label>
+            <select id="composer-opt-approach" class="opt-select">
+              <option value="Value First" selected>Value First</option>
+              <option value="Direct Offer">Direct Offer</option>
+              <option value="Problem-Agitate">Problem-Agitate</option>
+              <option value="Question-Based">Question-Based</option>
+            </select>
+          </div>
+
+          <div class="opt-control-group">
+            <label class="opt-label"><i class="fa-solid fa-link"></i> CTA</label>
+            <select id="composer-opt-cta" class="opt-select">
+              <option value="Book a Call" selected>Book a Call</option>
+              <option value="Quick Chat">Quick Chat</option>
+              <option value="Send Demo">Send Demo</option>
+              <option value="Free Audit">Free Audit</option>
+            </select>
+          </div>
+
+          <div class="opt-control-group">
+            <label class="opt-label"><i class="fa-regular fa-user"></i> Personalization</label>
+            <select id="composer-opt-personalization" class="opt-select">
+              <option value="High" selected>High</option>
+              <option value="Standard">Standard</option>
+              <option value="Minimal">Minimal</option>
+            </select>
+          </div>
+
+          <button type="button" id="btn-composer-craft" class="btn-craft-message" title="Generate tailored message with AI">
+            <span class="sparkle-icon">✦</span>
+            <span>Craft Message</span>
+          </button>
+        </div>
+
+        <!-- 6. Bottom Action Bar -->
+        <div class="composer-footer-bar">
+          <div class="footer-left">
+            <button type="button" id="btn-composer-regenerate" class="btn-footer-secondary" title="Re-generate pitch">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span>Regenerate</span>
+            </button>
+            <button type="button" id="btn-composer-use-template" class="btn-footer-secondary" title="Load custom message template">
+              <i class="fa-regular fa-file-lines"></i>
+              <span>Use Template</span>
+            </button>
+          </div>
+          <div class="footer-right">
+            <button type="button" id="btn-composer-cancel" class="btn-footer-cancel">Cancel</button>
+            <button type="button" id="btn-composer-open-wa" class="btn-footer-whatsapp">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Open WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. In-Modal Confirmation State (Triggered strictly AFTER Open WhatsApp) -->
+      <div id="composer-confirm-block" class="composer-confirm-block hidden">
+        <div class="confirm-prompt-card">
+          <div class="confirm-prompt-icon">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <h3 class="confirm-prompt-title">Did you send the message?</h3>
+          <p class="confirm-prompt-desc">
+            WhatsApp was opened with your message. Please confirm whether you actually sent it.
+          </p>
+
+          <div class="confirm-lead-preview">
+            <div class="confirm-lead-name" id="confirm-lead-name">Smile Care Dental Clinic</div>
+            <div class="confirm-message-snippet" id="confirm-lead-message">Hi! I noticed your dental clinic...</div>
+          </div>
+
+          <div class="confirm-prompt-actions">
+            <button type="button" id="btn-confirm-sent-yes" class="btn-confirm-sent-yes">
+              <i class="fa-solid fa-check"></i>
+              <span>Yes, Message Sent</span>
+            </button>
+            <button type="button" id="btn-confirm-sent-no" class="btn-confirm-sent-no">
+              <i class="fa-solid fa-xmark"></i>
+              <span>No, Not Sent</span>
+            </button>
+            <button type="button" id="btn-confirm-not-on-wa" class="btn-confirm-not-on-wa" title="This number is not on WhatsApp — delete lead from outreach">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Not on WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Queue Completion State -->
+      <div id="composer-queue-complete" class="composer-queue-complete hidden">
+        <div class="queue-complete-card">
+          <div class="queue-complete-icon">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h3 class="queue-complete-title">Outreach Complete</h3>
+          <p class="queue-complete-sub" id="queue-complete-summary">5 of 5 leads processed</p>
+          <div class="queue-complete-stats" id="queue-complete-stats">
+            <!-- Dynamically populated -->
+          </div>
+          <div class="queue-complete-actions">
+            <button type="button" id="btn-queue-done" class="btn-queue-done">
+              <i class="fa-solid fa-check"></i>
+              <span>Done</span>
+            </button>
+            <button type="button" id="btn-queue-view-outreach" class="btn-queue-view-outreach">
+              <i class="fa-regular fa-paper-plane"></i>
+              <span>View Outreach</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+  <!-- ==================================================
+       DEDICATED FOLLOW-UP SEND MODAL
+       ================================================== -->
+  <div id="modal-followup-composer" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="fu-modal-window">
+      <!-- Modal Header -->
+      <div class="fu-modal-header">
+        <div class="fu-modal-header-left">
+          <div class="fu-stage-pill" id="fu-modal-stage-pill">Follow-Up #1</div>
+          <div class="fu-modal-title-wrap">
+            <h3 class="fu-modal-title" id="fu-modal-title">Gentle Nudge</h3>
+            <span class="fu-modal-bizname" id="fu-modal-bizname">Business Name</span>
+          </div>
+        </div>
+        <button type="button" id="btn-fu-modal-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+      </div>
+
+      <!-- Context Sub-Bar -->
+      <div class="fu-modal-context-bar">
+        <div class="fu-context-item">
+          <span class="fu-context-lbl">LAST MESSAGE SENT</span>
+          <span class="fu-context-val" id="fu-modal-last-date">16-09-2026</span>
+        </div>
+        <div class="fu-context-item">
+          <span class="fu-context-lbl">CURRENT STAGE</span>
+          <span class="fu-context-val" id="fu-modal-stage-day">Day 2</span>
+        </div>
+        <div class="fu-context-item">
+          <span class="fu-context-lbl">PHONE NUMBER</span>
+          <span class="fu-context-val" id="fu-modal-phone">+91 98765 43210</span>
+        </div>
+      </div>
+
+      <!-- Main Modal Content (Textarea & Controls) -->
+      <div id="fu-composer-main-content" class="fu-modal-body">
+        <div class="fu-msg-wrap">
+          <div class="fu-msg-header">
+            <span class="fu-msg-lbl">CURRENT STAGE MESSAGE TEMPLATE</span>
+            <span class="fu-char-count" id="fu-modal-char-count">0 / 1000</span>
+          </div>
+          <textarea id="fu-modal-message-text" class="fu-textarea" rows="6" placeholder="Follow-up message text..."></textarea>
+          <div id="fu-modal-missing-template-warning" class="fu-template-warn hidden">
+            <span><i class="fa-solid fa-triangle-exclamation"></i> Follow-Up template is not configured in Settings.</span>
+            <button type="button" class="btn-warn-settings" id="btn-fu-open-settings">Open Settings</button>
+          </div>
+        </div>
+
+        <div class="fu-modal-actions-row">
+          <div class="fu-actions-left">
+            <button type="button" class="btn-fu-modal-cancel" id="btn-fu-modal-cancel">Cancel</button>
+            <button type="button" class="btn-fu-modal-regen" id="btn-fu-modal-regen">
+              <i class="fa-solid fa-rotate"></i>
+              <span>Regenerate (AI)</span>
+            </button>
+            <button type="button" class="btn-fu-modal-copy" id="btn-fu-modal-copy">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copy Message</span>
+            </button>
+          </div>
+          <div class="fu-actions-right">
+            <button type="button" class="btn-fu-modal-wa" id="btn-fu-modal-wa">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>Open WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent Confirmation Block (Shown after Open WhatsApp is clicked) -->
+      <div id="fu-composer-confirm-block" class="fu-confirm-block hidden">
+        <div class="fu-confirm-icon-wrap">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <h4 class="fu-confirm-title">Did you send this message successfully?</h4>
+        <p class="fu-confirm-subtitle">Opening WhatsApp does not verify message delivery. Confirm below to advance the schedule.</p>
+        <div class="fu-confirm-preview">
+          <div class="fu-confirm-biz" id="fu-confirm-biz-name">Business Name</div>
+          <div class="fu-confirm-text" id="fu-confirm-msg-text">...</div>
+        </div>
+        <div class="fu-confirm-buttons">
+          <button type="button" class="btn-fu-confirm-yes" id="btn-fu-confirm-yes">
+            <i class="fa-solid fa-check"></i>
+            <span>YES — Message Sent</span>
+          </button>
+          <button type="button" class="btn-fu-confirm-no" id="btn-fu-confirm-no">
+            <i class="fa-solid fa-xmark"></i>
+            <span>NO — Not Sent</span>
+          </button>
+          <button type="button" class="btn-confirm-not-on-wa" id="btn-fu-confirm-not-wa" title="This number is not on WhatsApp — delete lead from outreach">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Not on WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       LEAD REPLY OUTCOME MODAL
+       ================================================== -->
+  <div id="modal-lead-reply" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="reply-modal-window">
+      <div class="reply-modal-header">
+        <div class="reply-header-left">
+          <div class="reply-header-icon">
+            <i class="fa-solid fa-reply"></i>
+          </div>
+          <div class="reply-title-group">
+            <h3 class="reply-modal-title">Lead Reply</h3>
+            <p class="reply-modal-subtitle">Record the prospect's response to stop automatic follow-ups</p>
+          </div>
+        </div>
+        <button type="button" id="btn-reply-modal-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="reply-modal-body">
+        <div class="reply-lead-preview">
+          <h4 class="reply-lead-name" id="reply-lead-biz-name">Business Name</h4>
+          <p class="reply-lead-meta" id="reply-lead-meta">Last Message: Main Message • Sent: 10-09-2026</p>
+        </div>
+
+        <p class="reply-question-prompt">How did they respond?</p>
+
+        <div class="reply-choice-grid">
+          <button type="button" class="btn-reply-choice interested" id="btn-reply-opt-interested">
+            <div class="choice-icon"><i class="fa-solid fa-thumbs-up"></i></div>
+            <div class="choice-text">
+              <strong>Interested</strong>
+              <span>Prospect responded positively or wants to chat/call</span>
+            </div>
+          </button>
+
+          <button type="button" class="btn-reply-choice not-interested" id="btn-reply-opt-not-interested">
+            <div class="choice-icon"><i class="fa-solid fa-thumbs-down"></i></div>
+            <div class="choice-text">
+              <strong>Not Interested</strong>
+              <span>Prospect declined, not a priority, or asked to stop</span>
+            </div>
+          </button>
+
+          <button type="button" class="btn-reply-choice other-reply" id="btn-reply-opt-other">
+            <div class="choice-icon"><i class="fa-solid fa-comment-dots"></i></div>
+            <div class="choice-text">
+              <strong>Other / General Reply</strong>
+              <span>Prospect sent questions or general reply. Halts automated follow-ups</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="reply-modal-footer">
+        <button type="button" id="btn-reply-modal-cancel" class="btn-footer-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       EDIT DAILY OUTREACH TARGET MODAL
+       ================================================== -->
+  <div id="modal-target-edit" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window" style="max-width: 420px;">
+      <div class="confirm-icon-danger" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
+        <i class="fa-solid fa-bullseye"></i>
+      </div>
+      <h3 class="confirm-title">Set Daily Outreach Target</h3>
+      <p class="confirm-desc">Define your target number of confirmed first outreach messages per day.</p>
+      <div style="margin: 18px 0; text-align: left;">
+        <label for="input-daily-target" style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Daily Target (Pitches/Day)</label>
+        <input type="number" id="input-daily-target" min="1" max="500" value="50" style="width: 100%; padding: 10px 14px; background: rgba(15, 20, 25, 0.8); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; color: #fff; font-size: 15px; outline: none;" />
+      </div>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-target-edit" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-save-target-edit" class="btn-saved-primary" style="padding: 10px 20px;">Save Target</button>
+      </div>
+    </div>
+  </div>
+  </div> <!-- /.page-container -->
+
+  <!-- ==================================================
+       FLOATING BULK ACTIONS BAR (ONLY FOR SAVED LEADS)
+       ================================================== -->
+  <div id="saved-bulk-bar" class="bulk-action-bar hidden">
+    <div class="bulk-bar-inner">
+      <span id="saved-bulk-count-text" class="bulk-count-text">0 leads selected</span>
+      <div class="bulk-buttons-group">
+        <button type="button" id="btn-bulk-outreach" class="btn-bulk-send">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Move to Outreach</span>
+        </button>
+        <button type="button" id="btn-bulk-delete" class="btn-bulk-trash">
+          <i class="fa-regular fa-trash-can"></i>
+          <span>Delete</span>
+        </button>
+        <button type="button" id="btn-bulk-dismiss" class="btn-bulk-clear">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       FLOATING BULK ACTIONS BAR (ONLY FOR FAVORITES)
+       ================================================== -->
+  <div id="fav-bulk-bar" class="bulk-action-bar hidden">
+    <div class="bulk-bar-inner">
+      <span id="fav-bulk-count-text" class="bulk-count-text">0 favorites selected</span>
+      <div class="bulk-buttons-group">
+        <button type="button" id="btn-fav-bulk-unfav" class="btn-bulk-unfav" title="Remove from favorites (keeps in Saved Leads)">
+          <i class="fa-solid fa-star-half-stroke"></i>
+          <span>Remove from Favorites</span>
+        </button>
+        <button type="button" id="btn-fav-bulk-outreach" class="btn-bulk-send">
+          <i class="fa-regular fa-paper-plane"></i>
+          <span>Send Message</span>
+        </button>
+        <button type="button" id="btn-fav-bulk-delete" class="btn-bulk-trash">
+          <i class="fa-regular fa-trash-can"></i>
+          <span>Delete</span>
+        </button>
+        <button type="button" id="btn-fav-bulk-dismiss" class="btn-bulk-clear">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       TOAST NOTIFICATIONS CONTAINER
+       ================================================== -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>

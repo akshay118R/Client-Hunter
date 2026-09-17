@@ -1,0 +1,89 @@
+{
+  "name": "clienthunter",
+  "version": "2.0.0",
+  "description": "Client Hunter Desktop Application - AI-Powered Client Acquisition System",
+  "main": "electron/main.js",
+  "author": "Client Hunter",
+  "scripts": {
+    "start": "node server.js",
+    "desktop:dev": "electron .",
+    "desktop:build": "electron-builder --win --dir",
+    "desktop:dist": "electron-builder --win",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "clienthunter",
+    "leads",
+    "outreach",
+    "desktop",
+    "crm"
+  ],
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "electron": "^44.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.clienthunter.app",
+    "productName": "Client Hunter",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!scratch/**/*",
+      "!**/*.log",
+      "!.git/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      },
+      {
+        "from": "data",
+        "to": "data"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Client Hunter",
+      "artifactName": "${productName}-Setup.${ext}",
+      "uninstallDisplayName": "Client Hunter"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable.${ext}"
+    }
+  }
+}

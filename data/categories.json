@@ -1,0 +1,576 @@
+{
+  "categories": {
+    "Dental Clinics": {
+      "icon": "tooth",
+      "synonyms": [
+        "dental clinics",
+        "dentists",
+        "dental hospital",
+        "dental care clinic",
+        "dental center"
+      ]
+    },
+    "Hospitals": {
+      "icon": "hospital",
+      "synonyms": [
+        "hospitals",
+        "multispeciality hospital",
+        "super speciality hospital",
+        "medical center"
+      ]
+    },
+    "Doctors / Clinics": {
+      "icon": "user-doctor",
+      "synonyms": [
+        "doctors clinic",
+        "polyclinic",
+        "physician clinic",
+        "consultant clinic"
+      ]
+    },
+    "Gym / Fitness Centers": {
+      "icon": "dumbbell",
+      "synonyms": [
+        "gyms",
+        "fitness center",
+        "fitness club",
+        "gymnasium",
+        "crossfit studio"
+      ]
+    },
+    "Beauty Salons": {
+      "icon": "scissors",
+      "synonyms": [
+        "beauty salons",
+        "hair salon",
+        "beauty parlour",
+        "styling salon",
+        "unisex salon"
+      ]
+    },
+    "Spas": {
+      "icon": "spa",
+      "synonyms": [
+        "day spa",
+        "wellness spa",
+        "ayurvedic spa",
+        "massage center"
+      ]
+    },
+    "Real Estate Agencies": {
+      "icon": "building",
+      "synonyms": [
+        "real estate agencies",
+        "property consultants",
+        "real estate brokers",
+        "property dealers"
+      ]
+    },
+    "Real Estate Developers": {
+      "icon": "city",
+      "synonyms": [
+        "real estate developers",
+        "builders and developers",
+        "property developers"
+      ]
+    },
+    "Coaching Institutes": {
+      "icon": "graduation-cap",
+      "synonyms": [
+        "coaching institutes",
+        "tuition classes",
+        "entrance exam coaching",
+        "study center"
+      ]
+    },
+    "Schools": {
+      "icon": "school",
+      "synonyms": [
+        "schools",
+        "international school",
+        "public school",
+        "high school"
+      ]
+    },
+    "Colleges": {
+      "icon": "building-columns",
+      "synonyms": [
+        "colleges",
+        "degree college",
+        "engineering college",
+        "management institute"
+      ]
+    },
+    "Training Institutes": {
+      "icon": "chalkboard-user",
+      "synonyms": [
+        "training institutes",
+        "skill development center",
+        "professional training academy"
+      ]
+    },
+    "Restaurants": {
+      "icon": "utensils",
+      "synonyms": [
+        "restaurants",
+        "fine dining restaurant",
+        "family restaurant",
+        "bistros"
+      ]
+    },
+    "Cafes": {
+      "icon": "mug-saucer",
+      "synonyms": [
+        "cafes",
+        "coffee shop",
+        "artisan cafe",
+        "tea cafe"
+      ]
+    },
+    "Hotels": {
+      "icon": "hotel",
+      "synonyms": [
+        "hotels",
+        "boutique hotel",
+        "luxury hotel",
+        "resort"
+      ]
+    },
+    "Travel Agencies": {
+      "icon": "plane",
+      "synonyms": [
+        "travel agencies",
+        "tour operators",
+        "travel consultants",
+        "holiday planners"
+      ]
+    },
+    "Car Dealers": {
+      "icon": "car",
+      "synonyms": [
+        "car dealers",
+        "car showroom",
+        "pre-owned cars showroom",
+        "auto dealership"
+      ]
+    },
+    "Bike Dealers": {
+      "icon": "motorcycle",
+      "synonyms": [
+        "two wheeler showroom",
+        "bike showroom",
+        "motorcycle dealers"
+      ]
+    },
+    "Automobile Workshops": {
+      "icon": "wrench",
+      "synonyms": [
+        "car service center",
+        "auto repair shop",
+        "car garage",
+        "car detailing studio"
+      ]
+    },
+    "Interior Designers": {
+      "icon": "couch",
+      "synonyms": [
+        "interior designers",
+        "interior architects",
+        "home interior studio",
+        "office interior designer"
+      ]
+    },
+    "Architects": {
+      "icon": "compass-drafting",
+      "synonyms": [
+        "architects",
+        "architectural firms",
+        "building designers"
+      ]
+    },
+    "Contractors": {
+      "icon": "hard-hat",
+      "synonyms": [
+        "civil contractors",
+        "building contractors",
+        "general contractors"
+      ]
+    },
+    "Construction Companies": {
+      "icon": "trowel-bricks",
+      "synonyms": [
+        "construction companies",
+        "infrastructure developers",
+        "building construction firm"
+      ]
+    },
+    "Digital Marketing Agencies": {
+      "icon": "chart-line",
+      "synonyms": [
+        "digital marketing agencies",
+        "seo agency",
+        "social media marketing agency",
+        "advertising firm"
+      ]
+    },
+    "IT Companies": {
+      "icon": "laptop-code",
+      "synonyms": [
+        "it companies",
+        "it solutions provider",
+        "tech consultancy",
+        "it services"
+      ]
+    },
+    "Software Companies": {
+      "icon": "code",
+      "synonyms": [
+        "software development companies",
+        "saas companies",
+        "software agencies"
+      ]
+    },
+    "Accounting Firms": {
+      "icon": "calculator",
+      "synonyms": [
+        "accounting firms",
+        "bookkeeping services",
+        "tax consultants"
+      ]
+    },
+    "Law Firms": {
+      "icon": "scale-balanced",
+      "synonyms": [
+        "law firms",
+        "advocates",
+        "legal consultants",
+        "corporate lawyers"
+      ]
+    },
+    "Insurance Agencies": {
+      "icon": "shield-halved",
+      "synonyms": [
+        "insurance agencies",
+        "general insurance advisors",
+        "life insurance agents"
+      ]
+    },
+    "Financial Advisors": {
+      "icon": "coins",
+      "synonyms": [
+        "financial advisors",
+        "wealth management firm",
+        "investment consultants"
+      ]
+    },
+    "CA / Chartered Accountants": {
+      "icon": "file-invoice-dollar",
+      "synonyms": [
+        "chartered accountants",
+        "ca firms",
+        "auditors and ca"
+      ]
+    },
+    "Event Management Companies": {
+      "icon": "calendar-check",
+      "synonyms": [
+        "event management companies",
+        "event planners",
+        "corporate event organizers"
+      ]
+    },
+    "Photography Studios": {
+      "icon": "camera",
+      "synonyms": [
+        "photography studios",
+        "portrait photographers",
+        "commercial photography studio"
+      ]
+    },
+    "Wedding Planners": {
+      "icon": "ring",
+      "synonyms": [
+        "wedding planners",
+        "wedding decorators",
+        "marriage event coordinators"
+      ]
+    },
+    "Furniture Stores": {
+      "icon": "chair",
+      "synonyms": [
+        "furniture stores",
+        "modular furniture showroom",
+        "home furniture retail"
+      ]
+    },
+    "Home Decor": {
+      "icon": "paint-roller",
+      "synonyms": [
+        "home decor stores",
+        "furnishings showroom",
+        "interior decor shop"
+      ]
+    },
+    "Electronics Stores": {
+      "icon": "tv",
+      "synonyms": [
+        "electronics stores",
+        "consumer electronics showroom",
+        "appliances retail"
+      ]
+    },
+    "Mobile Phone Stores": {
+      "icon": "mobile-screen-button",
+      "synonyms": [
+        "mobile phone shops",
+        "smartphone showroom",
+        "mobile retail store"
+      ]
+    },
+    "Jewellery Stores": {
+      "icon": "gem",
+      "synonyms": [
+        "jewellery showrooms",
+        "gold and diamond jewellery",
+        "jewellers"
+      ]
+    },
+    "Fashion Stores": {
+      "icon": "shirt",
+      "synonyms": [
+        "fashion boutiques",
+        "clothing stores",
+        "designer wear showroom"
+      ]
+    },
+    "Garment Shops": {
+      "icon": "bag-shopping",
+      "synonyms": [
+        "garment shops",
+        "apparel retail",
+        "textiles store"
+      ]
+    },
+    "Pet Clinics": {
+      "icon": "paw",
+      "synonyms": [
+        "pet clinics",
+        "veterinary hospitals",
+        "pet healthcare center"
+      ]
+    },
+    "Veterinary Clinics": {
+      "icon": "stethoscope",
+      "synonyms": [
+        "veterinary clinics",
+        "vet surgeons",
+        "animal care hospital"
+      ]
+    },
+    "Pharmacies": {
+      "icon": "prescription-bottle-medical",
+      "synonyms": [
+        "pharmacies",
+        "medical stores",
+        "chemist shops"
+      ]
+    },
+    "Diagnostic Centers": {
+      "icon": "vial",
+      "synonyms": [
+        "diagnostic centers",
+        "pathology labs",
+        "scan and diagnostic imaging"
+      ]
+    },
+    "Physiotherapy Centers": {
+      "icon": "person-walking",
+      "synonyms": [
+        "physiotherapy centers",
+        "physiotherapy clinics",
+        "rehabilitation clinics"
+      ]
+    },
+    "Yoga Studios": {
+      "icon": "peace",
+      "synonyms": [
+        "yoga studios",
+        "yoga training centers",
+        "wellness yoga ashram"
+      ]
+    },
+    "Dance Studios": {
+      "icon": "music",
+      "synonyms": [
+        "dance academies",
+        "dance classes",
+        "choreography studios"
+      ]
+    },
+    "Music Schools": {
+      "icon": "guitar",
+      "synonyms": [
+        "music academies",
+        "instrument training schools",
+        "vocal music classes"
+      ]
+    },
+    "Preschools": {
+      "icon": "shapes",
+      "synonyms": [
+        "preschools",
+        "playschools",
+        "early childhood learning centers"
+      ]
+    },
+    "Day Care Centers": {
+      "icon": "baby",
+      "synonyms": [
+        "day care centers",
+        "childcare facilities",
+        "creche centers"
+      ]
+    },
+    "Security Services": {
+      "icon": "user-shield",
+      "synonyms": [
+        "security guard services",
+        "security agencies",
+        "facility protection agency"
+      ]
+    },
+    "Cleaning Services": {
+      "icon": "broom",
+      "synonyms": [
+        "cleaning services",
+        "deep cleaning company",
+        "housekeeping agency"
+      ]
+    },
+    "Pest Control": {
+      "icon": "bug",
+      "synonyms": [
+        "pest control services",
+        "pest exterminators",
+        "fumigation companies"
+      ]
+    },
+    "Solar Companies": {
+      "icon": "sun",
+      "synonyms": [
+        "solar energy companies",
+        "solar rooftop installers",
+        "solar panel distributors"
+      ]
+    },
+    "AC Repair Services": {
+      "icon": "snowflake",
+      "synonyms": [
+        "ac repair services",
+        "air conditioning services",
+        "hvac repair contractors"
+      ]
+    },
+    "Plumbing Services": {
+      "icon": "faucet-drip",
+      "synonyms": [
+        "plumbing contractors",
+        "plumbing services",
+        "plumber agency"
+      ]
+    },
+    "Electrical Contractors": {
+      "icon": "bolt",
+      "synonyms": [
+        "electrical contractors",
+        "electrician services",
+        "electrical installation firm"
+      ]
+    },
+    "Car Rental": {
+      "icon": "car-side",
+      "synonyms": [
+        "car rental agencies",
+        "taxi hire services",
+        "luxury car rentals"
+      ]
+    },
+    "Bike Rental": {
+      "icon": "motorcycle",
+      "synonyms": [
+        "bike rental services",
+        "two wheeler rentals",
+        "scooter rental shop"
+      ]
+    },
+    "Courier Services": {
+      "icon": "box",
+      "synonyms": [
+        "courier services",
+        "parcel delivery centers",
+        "express logistics"
+      ]
+    },
+    "Printing Services": {
+      "icon": "print",
+      "synonyms": [
+        "printing presses",
+        "digital printing services",
+        "offset printers"
+      ]
+    },
+    "Packaging Companies": {
+      "icon": "boxes-packing",
+      "synonyms": [
+        "packaging box manufacturers",
+        "corrugated box suppliers",
+        "packaging solutions"
+      ]
+    },
+    "Manufacturing Companies": {
+      "icon": "industry",
+      "synonyms": [
+        "manufacturing companies",
+        "industrial equipment fabricators",
+        "production units"
+      ]
+    },
+    "Wholesale Businesses": {
+      "icon": "warehouse",
+      "synonyms": [
+        "wholesale distributors",
+        "wholesale traders",
+        "bulk merchants"
+      ]
+    },
+    "B2B Suppliers": {
+      "icon": "truck-moving",
+      "synonyms": [
+        "b2b suppliers",
+        "industrial suppliers",
+        "commercial distributors"
+      ]
+    }
+  },
+  "quickNiches": [
+    "Dental Clinics",
+    "Gym / Fitness Centers",
+    "Real Estate Agencies",
+    "Coaching Institutes",
+    "Beauty Salons",
+    "Contractors",
+    "Interior Designers",
+    "Restaurants",
+    "Hotels",
+    "Law Firms",
+    "IT Companies",
+    "Digital Marketing Agencies",
+    "Doctors / Clinics",
+    "Hospitals",
+    "Spas",
+    "Architects",
+    "Car Dealers",
+    "Automobile Workshops",
+    "Event Management Companies"
+  ]
+}

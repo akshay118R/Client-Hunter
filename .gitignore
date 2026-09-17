@@ -1,0 +1,22 @@
+# Environment variables (CRITICAL: Never commit credentials)
+.env
+.env.local
+.env.*.local
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Electron & Production packaging artifacts (exceeds GitHub 100MB limit)
+dist/
+build/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+scratch/
