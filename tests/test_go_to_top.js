@@ -74,7 +74,7 @@ app.whenReady().then(async () => {
 
     win = new BrowserWindow({
       width: 1400,
-      height: 900,
+      height: 500,
       show: true,
       webPreferences: {
         nodeIntegration: false,
@@ -169,17 +169,33 @@ app.whenReady().then(async () => {
       // Wait for CSS transition (0.22s)
       await new Promise(r => setTimeout(r, 400));
 
-      // Verify button IS visible now
+      // Verify button IS visible now and has clean minimal styling
       const scrolled = await exec(`
         (() => {
           const btn = document.getElementById('btn-go-to-top');
+          const arrow = btn.querySelector('.btn-go-to-top-arrow');
+          const text = btn.querySelector('.btn-go-to-top-text');
           const style = window.getComputedStyle(btn);
+          const arrowStyle = window.getComputedStyle(arrow);
+          const textStyle = window.getComputedStyle(text);
+          const rect = btn.getBoundingClientRect();
           return {
             scrollY: window.scrollY || document.documentElement.scrollTop,
             hasVisibleClass: btn.classList.contains('visible'),
             opacity: style.opacity,
             visibility: style.visibility,
-            pointerEvents: style.pointerEvents
+            pointerEvents: style.pointerEvents,
+            background: style.backgroundColor,
+            boxShadow: style.boxShadow,
+            borderStyle: style.borderStyle,
+            arrowText: arrow ? arrow.textContent.trim() : '',
+            btnText: text ? text.textContent.trim() : '',
+            arrowColor: arrowStyle.color,
+            textColor: textStyle.color,
+            x: Math.round(rect.x),
+            y: Math.round(rect.y),
+            w: Math.round(rect.width),
+            h: Math.round(rect.height)
           };
         })()
       `);
@@ -187,7 +203,19 @@ app.whenReady().then(async () => {
       assert.strictEqual(scrolled.hasVisibleClass, true, `Button must have visible class when scrolled in ${sec.name}`);
       assert.strictEqual(scrolled.opacity, '1', `Button opacity must be 1 when scrolled in ${sec.name}`);
       assert.strictEqual(scrolled.visibility, 'visible', `Button must be visible in ${sec.name}`);
-      console.log(`  ✓ Visible when scrolled (scrollY=${scrolled.scrollY}, opacity=${scrolled.opacity})`);
+      assert.strictEqual(scrolled.background, 'rgba(0, 0, 0, 0)', `Button must have transparent background (NO background box) in ${sec.name}`);
+      assert.strictEqual(scrolled.boxShadow, 'none', `Button must have NO shadow in ${sec.name}`);
+      assert(scrolled.borderStyle === 'none' || scrolled.borderStyle === '', `Button must have NO border in ${sec.name}`);
+      assert.strictEqual(scrolled.arrowText, '↑', `Arrow must be ↑ in ${sec.name}`);
+      assert.strictEqual(scrolled.btnText, 'Top', `Text must be Top in ${sec.name}`);
+      console.log(`  ✓ Visible when scrolled (scrollY=${scrolled.scrollY}, opacity=${scrolled.opacity}, pos=[${scrolled.x}, ${scrolled.y}])`);
+      console.log(`  ✓ Clean minimal styling verified (bg: ${scrolled.background}, shadow: ${scrolled.boxShadow}, border: ${scrolled.borderStyle})`);
+
+      // Save screenshot for visual inspection
+      const scrDir = 'C:\\Users\\Akshay\\.gemini\\antigravity-ide\\brain\\864d727a-1a33-44e9-abbb-875eabe0abe0\\scratch\\screenshots';
+      if (!fs.existsSync(scrDir)) fs.mkdirSync(scrDir, { recursive: true });
+      const img = await win.webContents.capturePage();
+      fs.writeFileSync(path.join(scrDir, `view_${sec.hash}.png`), img.toPNG());
 
       // Click the button
       await exec(`

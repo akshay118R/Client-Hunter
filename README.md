@@ -77,7 +77,7 @@ Packaged as a standalone Windows desktop application, Client Hunter operates off
 * **Disaster Recovery**: Automated fallback to `leads_store_last_valid.json` on unexpected shutdown or file corruption.
 
 ### 9. ⬆️ Quick "↑ Top" Navigation
-* **Floating Action Pill**: Sleek, compact **“↑ Top”** button with emerald glow and smooth lift animation matching Client Hunter's visual design.
+* **Minimal Clean Design**: Sleek, compact **“↑ Top”** button with emerald accent color and smooth lift animation matching Client Hunter's visual design.
 * **Intelligent Visibility**: Remains hidden at the top and gracefully fades in when scrolling down; smoothly hides upon return or view change.
 * **Dedicated Scoping**: Active exclusively on the 6 primary workflow views: **Dashboard**, **Saved Leads**, **Favorites**, **Outreach**, **Follow-Up**, and **History**.
 * **Seamless Behavior**: Returns the view to the top with a smooth native scroll without reloading, navigating, or resetting filters, pagination, or active timers.
