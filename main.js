@@ -341,6 +341,9 @@
     });
 
     window.scrollTo({ top: 0, behavior: 'instant' });
+    if (typeof updateGoToTopVisibility === 'function') {
+      updateGoToTopVisibility();
+    }
 
     // Update browser URL hash without reload
     const targetHash = `#${viewName}`;
@@ -15425,6 +15428,67 @@
   }
 
   // ----------------------------------------------------
+  // GO TO TOP FLOATING BUTTON CONTROLLER
+  // ----------------------------------------------------
+  const GO_TO_TOP_ALLOWED_VIEWS = ['dashboard', 'saved-leads', 'favorites', 'outreach', 'followup', 'history'];
+
+  function updateGoToTopVisibility() {
+    const btn = document.getElementById('btn-go-to-top');
+    if (!btn) return;
+
+    const currentView = AppState.currentView || document.body.getAttribute('data-view') || '';
+    if (!GO_TO_TOP_ALLOWED_VIEWS.includes(currentView)) {
+      btn.classList.remove('visible');
+      return;
+    }
+
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const activePanel = document.querySelector('.view-panel.active-view');
+    const panelScrollY = activePanel ? activePanel.scrollTop : 0;
+    const effectiveScroll = Math.max(scrollY, panelScrollY);
+
+    if (effectiveScroll > 80) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }
+
+  function initGoToTop() {
+    const btn = document.getElementById('btn-go-to-top');
+    if (!btn) return;
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Smoothly scroll window and document containers to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (document.documentElement && document.documentElement.scrollTop > 0) {
+        document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      if (document.body && document.body.scrollTop > 0) {
+        document.body.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // If active view panel has internal scroll, smoothly scroll it to top as well
+      const activePanel = document.querySelector('.view-panel.active-view');
+      if (activePanel && activePanel.scrollTop > 0) {
+        activePanel.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+
+    const onScroll = function () {
+      updateGoToTopVisibility();
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+
+    updateGoToTopVisibility();
+  }
+
+  // ----------------------------------------------------
   // INITIALIZATION ENTRY POINT
   // ----------------------------------------------------
   async function init() {
@@ -15447,6 +15511,7 @@
       try { initHistoryContainerDelegation(); } catch(e) { console.error('initHistoryContainerDelegation error:', e); }
       try { initSettingsModule(); } catch(e) { console.error('initSettingsModule error:', e); }
       try { initUpdateSection(); } catch(e) { console.error('initUpdateSection error:', e); }
+      try { initGoToTop(); } catch(e) { console.error('initGoToTop error:', e); }
       try { await loadSavedViews(); } catch(e) { console.error('loadSavedViews error:', e); }
       try { setupDashboardAnalyticsListeners(); } catch(e) { console.error('setupDashboardAnalyticsListeners error:', e); }
 

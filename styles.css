@@ -14142,5 +14142,105 @@ body.density-compact .table-btn {
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
+/* ==================================================
+   GO TO TOP FLOATING BUTTON (DASHBOARD, SAVED LEADS,
+   FAVORITES, OUTREACH, FOLLOW-UP, HISTORY)
+   ================================================== */
+.btn-go-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 15px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(18, 24, 21, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  font-family: var(--font-sans, "Inter", -apple-system, sans-serif);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 14px rgba(16, 185, 129, 0.14);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.18s ease,
+              border-color 0.18s ease,
+              box-shadow 0.18s ease,
+              visibility 0.22s;
+  user-select: none;
+}
 
+.btn-go-to-top .btn-go-to-top-arrow {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-green, #10b981);
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
 
+.btn-go-to-top .btn-go-to-top-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: 0.01em;
+}
+
+.btn-go-to-top:hover {
+  background: rgba(24, 32, 28, 0.98);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.btn-go-to-top:hover .btn-go-to-top-arrow {
+  transform: translateY(-2px);
+  color: #34d399;
+}
+
+.btn-go-to-top:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Visibility: only active when .visible is present on allowed views */
+body[data-view="dashboard"] .btn-go-to-top.visible,
+body[data-view="saved-leads"] .btn-go-to-top.visible,
+body[data-view="favorites"] .btn-go-to-top.visible,
+body[data-view="outreach"] .btn-go-to-top.visible,
+body[data-view="followup"] .btn-go-to-top.visible,
+body[data-view="history"] .btn-go-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Never show on disallowed views under any circumstance */
+body:not([data-view="dashboard"]):not([data-view="saved-leads"]):not([data-view="favorites"]):not([data-view="outreach"]):not([data-view="followup"]):not([data-view="history"]) #btn-go-to-top {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .btn-go-to-top {
+    bottom: 20px;
+    right: 18px;
+    padding: 6px 13px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
