@@ -7326,6 +7326,7 @@ body:not([data-view="favorites"]) #fav-bulk-bar {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
@@ -8939,6 +8940,7 @@ body:not([data-view="favorites"]) #fav-bulk-bar {
 
 .settings-range-slider {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 6px;
   background: rgba(255, 255, 255, 0.1);
