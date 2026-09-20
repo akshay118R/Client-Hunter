@@ -75,6 +75,12 @@
 
       <!-- RIGHT: Controls -->
       <div class="header-right">
+        <!-- AI Assistant Header Button -->
+        <button type="button" class="btn-header-ai" id="btn-header-ai-assistant" title="Open ClientHunter AI Assist">
+          <span class="ai-sparkle" style="color: #34d399;">✨</span>
+          <span>AI Assist</span>
+        </button>
+
         <!-- Radar Active Indicator -->
         <div class="radar-status" title="Radar System Active">
           <span class="radar-dot"></span>
@@ -579,9 +585,66 @@
               <span class="filter-flask-text">Lead Filters</span>
               <span id="saved-total-pill-count" class="filter-count-pill">60 Leads</span>
             </div>
-            <button type="button" id="btn-reload-saved-table" class="btn-refresh-icon" title="Reload leads from database">
-              <i class="fa-solid fa-rotate-right"></i>
-            </button>
+            <div class="saved-filter-top-actions" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <!-- Saved Views Control -->
+              <div class="saved-views-control-wrap" id="saved-views-control-wrap">
+                <div class="saved-views-select-box">
+                  <i class="fa-solid fa-layer-group saved-views-icon"></i>
+                  <select id="saved-views-select" class="saved-views-select" title="Select a saved view">
+                    <option value="">📁 Saved Views (0)</option>
+                  </select>
+                </div>
+                <button type="button" id="btn-save-current-view" class="btn-save-view-trigger" title="Save current filter combination as a named view">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <span>Save View</span>
+                </button>
+                <div class="saved-views-active-actions hidden" id="saved-views-active-actions">
+                  <button type="button" id="btn-rename-saved-view" class="btn-view-icon-action" title="Rename active view">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" id="btn-duplicate-saved-view" class="btn-view-icon-action" title="Duplicate active view">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                  <button type="button" id="btn-delete-saved-view" class="btn-view-icon-action btn-view-delete" title="Delete active view (removes view config only, never deletes leads)">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" id="btn-clear-saved-filters" class="btn-clear-filters" title="Reset all filters">
+                <i class="fa-solid fa-arrow-rotate-left"></i>
+                <span>Clear Filters</span>
+              </button>
+              <button type="button" id="btn-reload-saved-table" class="btn-refresh-icon" title="Reload leads from database">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conversion Summary Strip -->
+          <div class="conversion-summary-strip" id="saved-conversion-summary">
+            <div class="conversion-summary-header">
+              <i class="fa-solid fa-trophy"></i>
+              <span class="conversion-summary-title">CONVERSION SUMMARY</span>
+            </div>
+            <div class="conversion-metrics-row">
+              <div class="conversion-metric-box">
+                <span class="conversion-metric-label">Total Converted</span>
+                <span class="conversion-metric-value text-converted" id="conv-stat-total">0</span>
+              </div>
+              <div class="conversion-metric-box">
+                <span class="conversion-metric-label">Not Converted</span>
+                <span class="conversion-metric-value text-muted" id="conv-stat-not-converted">0</span>
+              </div>
+              <div class="conversion-metric-box">
+                <span class="conversion-metric-label">Conversion Rate</span>
+                <span class="conversion-metric-value" id="conv-stat-rate">0.0%</span>
+              </div>
+              <div class="conversion-metric-box">
+                <span class="conversion-metric-label">Conversion Value</span>
+                <span class="conversion-metric-value text-emerald" id="conv-stat-value">$0</span>
+              </div>
+            </div>
           </div>
 
           <!-- Controls Grid -->
@@ -589,43 +652,130 @@
             <!-- Search -->
             <div class="search-field-wrapper">
               <i class="fa-solid fa-magnifying-glass search-ico"></i>
-              <input type="text" id="saved-search-box" placeholder="Search business..." />
+              <input type="text" id="saved-search-box" placeholder="Search business, phone, email, city..." />
+            </div>
+
+            <!-- Date Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-date" title="Filter by saved date">
+                <option value="All">Date: All Dates</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="last7">Last 7 Days</option>
+                <option value="last30">Last 30 Days</option>
+              </select>
             </div>
 
             <!-- Website Filter -->
             <div class="select-filter-box">
-              <select id="saved-filter-website">
+              <select id="saved-filter-website" title="Filter by website availability">
                 <option value="All">Website: All</option>
                 <option value="YES">Has Website</option>
                 <option value="NO">No Website</option>
               </select>
             </div>
 
-            <!-- Status Filter -->
+            <!-- Priority Filter -->
             <div class="select-filter-box">
-              <select id="saved-filter-status">
-                <option value="All">Status: All</option>
-                <option value="New">New</option>
-                <option value="Contacted">Contacted</option>
-                <option value="Qualified">Qualified</option>
-                <option value="Closed">Closed</option>
+              <select id="saved-filter-priority" title="Filter by lead priority">
+                <option value="All">Priority: All</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
+            <!-- Outreach Status Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-status" title="Filter by outreach status">
+                <option value="All">Outreach: All</option>
+                <option value="Not Contacted">Not Contacted</option>
+                <option value="Message Sent">Message Sent</option>
+                <option value="Not Sent">Not Sent</option>
+                <option value="Not on WhatsApp">Not on WhatsApp</option>
+                <option value="Awaiting Reply">Awaiting Reply</option>
+                <option value="Replied">Replied</option>
+                <option value="Completed">Completed</option>
+                <option value="Stopped">Stopped</option>
               </select>
             </div>
 
             <!-- Category Filter -->
             <div class="select-filter-box">
-              <select id="saved-filter-category">
+              <select id="saved-filter-category" title="Filter by category">
                 <option value="All">Category: All</option>
               </select>
             </div>
 
             <!-- State Filter -->
             <div class="select-filter-box">
-              <select id="saved-filter-state">
+              <select id="saved-filter-state" title="Filter by state">
                 <option value="All">State: All</option>
               </select>
             </div>
 
+            <!-- City Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-city" title="Filter by city">
+                <option value="All">City: All</option>
+              </select>
+            </div>
+
+            <!-- Favorite Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-favorite" title="Filter by favorite status">
+                <option value="All">Favorite: All</option>
+                <option value="YES">Favorites</option>
+                <option value="NO">Not Favorites</option>
+              </select>
+            </div>
+
+            <!-- WhatsApp Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-whatsapp" title="Filter by WhatsApp availability">
+                <option value="All">WhatsApp: All</option>
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
+
+            <!-- Follow-Up Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-followup" title="Filter by follow-up status">
+                <option value="All">Follow-Up: All</option>
+                <option value="No Follow-Up">No Follow-Up</option>
+                <option value="Due Today">Due Today</option>
+                <option value="Upcoming">Upcoming</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            <!-- Reply Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-reply" title="Filter by reply status">
+                <option value="All">Reply: All</option>
+                <option value="Replied">Replied</option>
+                <option value="No Reply">No Reply</option>
+              </select>
+            </div>
+
+            <!-- Conversion Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-conversion" title="Filter by conversion status">
+                <option value="all">Conversion: All</option>
+                <option value="converted">Converted</option>
+                <option value="not_converted">Not Converted</option>
+              </select>
+            </div>
+
+            <!-- Tag Filter -->
+            <div class="select-filter-box">
+              <select id="saved-filter-tag" title="Filter by lead tag">
+                <option value="All">Tags: All</option>
+                <option value="__no_tag__">No Tag (Untagged)</option>
+              </select>
+            </div>
 
             <!-- Checkbox: Phone -->
             <label class="filter-chk-item">
@@ -701,6 +851,7 @@
                   <th class="col-th-email">EMAIL</th>
                   <th class="col-th-google">GOOGLE LINK</th>
                   <th class="col-th-status">STATUS</th>
+                  <th class="col-th-priority">PRIORITY</th>
                   <th class="col-th-actions">ACTIONS</th>
                 </tr>
               </thead>
@@ -712,12 +863,18 @@
             <!-- Empty State Display -->
             <div id="saved-table-empty" class="saved-empty-view hidden">
               <div class="empty-icon-shield"><i class="fa-solid fa-database"></i></div>
-              <h3 class="empty-view-title">Your saved leads will appear here.</h3>
-              <p class="empty-view-desc">Run a search to discover your first prospects.</p>
-              <button type="button" id="btn-empty-find-more" class="btn-saved-primary">
-                <span class="btn-sparkle-glyph">✦</span>
-                <span>Find Leads</span>
-              </button>
+              <h3 id="saved-empty-title" class="empty-view-title">Your saved leads will appear here.</h3>
+              <p id="saved-empty-desc" class="empty-view-desc">Run a search to discover your first prospects.</p>
+              <div class="empty-view-actions" style="display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <button type="button" id="btn-empty-clear-filters" class="btn-clear-filters is-empty-action hidden">
+                  <i class="fa-solid fa-arrow-rotate-left"></i>
+                  <span>Clear Filters</span>
+                </button>
+                <button type="button" id="btn-empty-find-more" class="btn-saved-primary">
+                  <span class="btn-sparkle-glyph">✦</span>
+                  <span>Find Leads</span>
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -1029,6 +1186,39 @@
                 </select>
               </div>
 
+              <!-- Priority Filter -->
+              <div class="outreach-select-wrap">
+                <select id="outreach-priority-filter" title="Filter by priority">
+                  <option value="ALL">All Priorities</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+
+              <!-- Conversion Filter -->
+              <div class="outreach-select-wrap">
+                <select id="outreach-conversion-filter" title="Filter by conversion status">
+                  <option value="ALL">All Conversions</option>
+                  <option value="CONVERTED">Converted</option>
+                  <option value="NOT_CONVERTED">Not Converted</option>
+                </select>
+              </div>
+
+              <!-- Tag Filter -->
+              <div class="outreach-select-wrap">
+                <select id="outreach-tag-filter" title="Filter by tag">
+                  <option value="ALL">All Tags</option>
+                  <option value="NO_TAG">No Tag (Untagged)</option>
+                </select>
+              </div>
+
+              <!-- Smart Queue Toggle Button -->
+              <button type="button" id="btn-outreach-smart-queue" class="btn-outreach-smart-queue" title="Toggle Smart Queue: sorts leads by High → Medium → Low priority">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Smart Queue</span>
+              </button>
+
               <button type="button" id="btn-outreach-select-all" class="btn-outreach-selectall">
                 <i class="fa-regular fa-square-check"></i>
                 <span>Select All</span>
@@ -1103,6 +1293,14 @@
                     <span class="ws-dt-lbl">Location:</span>
                     <span class="ws-dt-val" id="ws-location">--</span>
                   </div>
+                  <div class="ws-detail-item">
+                    <span class="ws-dt-lbl">Priority:</span>
+                    <select id="ws-priority-select" class="ws-priority-select" title="Lead priority">
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  </div>
                 </div>
 
                 <!-- Quick Actions -->
@@ -1161,6 +1359,153 @@
                 </button>
               </div>
 
+              <!-- Contact Outcome & Reason Section -->
+              <div class="ws-outcome-section" id="ws-outcome-section">
+                <div class="ws-outcome-header">
+                  <div class="ws-outcome-title-wrap">
+                    <i class="fa-solid fa-handshake"></i>
+                    <span class="ws-outcome-title">CONTACT OUTCOME:</span>
+                  </div>
+                  <span class="ws-outcome-badge" id="ws-outcome-current-badge" data-outcome="No outcome">No outcome</span>
+                </div>
+                <div class="ws-outcome-controls">
+                  <div class="ws-outcome-row">
+                    <select class="ws-outcome-select" id="ws-outcome-select" title="Select Contact Outcome">
+                      <option value="">No outcome</option>
+                      <option value="No Response">No Response</option>
+                      <option value="Interested">Interested</option>
+                      <option value="Not Interested">Not Interested</option>
+                      <option value="Call Back Later">Call Back Later</option>
+                      <option value="Wrong Number">Wrong Number</option>
+                      <option value="Converted">Converted</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <input type="text" class="ws-outcome-reason-input" id="ws-outcome-reason-input" placeholder="Reason (optional, e.g. Already has website)..." maxlength="500" />
+                    <button type="button" class="btn-ws-save-outcome" id="btn-ws-save-outcome" title="Save Contact Outcome">
+                      <i class="fa-solid fa-check"></i>
+                      <span>Save</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lead Conversion Section in Outreach Conversation Workspace -->
+              <div class="ws-conversion-section" id="ws-conversion-section">
+                <div class="ws-conversion-header">
+                  <div class="ws-conversion-title-wrap">
+                    <i class="fa-solid fa-trophy" style="color: #00DF81;"></i>
+                    <span class="ws-conversion-title">LEAD CONVERSION:</span>
+                  </div>
+                  <span class="ws-conversion-badge" id="ws-conversion-current-badge" data-converted="false">Not Converted</span>
+                </div>
+                <div class="ws-conversion-body">
+                  <div class="ws-conversion-info" id="ws-conversion-info-text">No conversion recorded</div>
+                  <button type="button" class="btn-ws-conversion-action" id="btn-ws-open-conversion" title="Update Lead Conversion">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span id="btn-ws-conversion-action-label">Mark Converted</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Lead Tags Section in Outreach Conversation Workspace -->
+              <div class="ws-tags-section" id="ws-tags-section">
+                <div class="ws-tags-header">
+                  <div class="ws-tags-title-wrap">
+                    <i class="fa-solid fa-tags" style="color: #00DF81;"></i>
+                    <span class="ws-tags-title">TAGS (<span id="ws-tags-count">0</span>)</span>
+                  </div>
+                  <button type="button" class="btn-ws-manage-tags" id="btn-ws-open-tag-manager" title="Manage Tags">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Manage</span>
+                  </button>
+                </div>
+                <div class="ws-tags-body">
+                  <div class="ws-tags-list" id="ws-tags-list">
+                    <span class="ws-tags-empty">No tags assigned</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lead Notes Section in Outreach Conversation Workspace -->
+              <div class="ws-notes-section" id="ws-notes-section">
+                <div class="ws-notes-header">
+                  <div class="ws-notes-title-wrap">
+                    <i class="fa-regular fa-note-sticky"></i>
+                    <span class="ws-notes-title">NOTES (<span id="ws-notes-count">0</span>)</span>
+                  </div>
+                  <button type="button" class="btn-ws-add-note" id="btn-ws-toggle-add-note">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Note</span>
+                  </button>
+                </div>
+
+                <!-- Add Note Form -->
+                <div class="ws-notes-add-box hidden" id="ws-notes-add-box">
+                  <textarea id="ws-note-input" class="ws-note-textarea" placeholder="Add a note about this lead..." rows="2" maxlength="5000"></textarea>
+                  <div class="ws-note-error hidden" id="ws-note-error">Please enter a note.</div>
+                  <div class="ws-notes-form-actions">
+                    <button type="button" class="btn-note-cancel" id="btn-ws-cancel-note">Cancel</button>
+                    <button type="button" class="btn-note-save" id="btn-ws-save-note">Save Note</button>
+                  </div>
+                </div>
+
+                <!-- Notes List -->
+                <div class="ws-notes-body" id="ws-notes-body">
+                  <div class="ws-notes-empty" id="ws-notes-empty">
+                    <span>No notes yet.</span>
+                  </div>
+                  <div class="ws-notes-list hidden" id="ws-notes-list"></div>
+                </div>
+              </div>
+
+              <!-- Outreach Activity Timeline Section in Conversation Workspace -->
+              <div class="ws-activity-section" id="ws-activity-section">
+                <div class="ws-activity-header">
+                  <div class="ws-activity-title-wrap">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span class="ws-activity-title">ACTIVITY (<span id="ws-activity-count">0</span>)</span>
+                  </div>
+                </div>
+                <div class="activity-search-toolbar" id="ws-activity-toolbar">
+                  <div class="activity-search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass activity-search-icon"></i>
+                    <input type="text" id="ws-activity-search" class="activity-search-input" placeholder="Search activity..." autocomplete="off" spellcheck="false" />
+                    <button type="button" id="ws-activity-search-clear" class="activity-search-clear hidden" title="Clear search">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="activity-filters-row">
+                    <div class="activity-select-wrap">
+                      <select id="ws-activity-type-filter" class="activity-filter-select" title="Filter by activity category">
+                        <option value="all">All activities</option>
+                        <option value="outreach">Outreach</option>
+                        <option value="followup">Follow-Up</option>
+                        <option value="message_sent">Message Sent</option>
+                        <option value="outcome">Outcome</option>
+                        <option value="notes">Notes</option>
+                        <option value="status_change">Status changes</option>
+                      </select>
+                      <i class="fa-solid fa-chevron-down activity-select-arrow"></i>
+                    </div>
+                    <div class="activity-select-wrap">
+                      <select id="ws-activity-date-filter" class="activity-filter-select" title="Filter by date range">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                      </select>
+                      <i class="fa-solid fa-chevron-down activity-select-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="ws-activity-body" id="ws-activity-body">
+                  <div class="ws-activity-empty" id="ws-activity-empty">
+                    <span>No outreach activity yet.</span>
+                  </div>
+                  <div class="ws-activity-timeline hidden" id="ws-activity-timeline"></div>
+                </div>
+              </div>
+
               <!-- Message History Section -->
               <div class="ws-history-section">
                 <div class="ws-history-header">
@@ -1208,25 +1553,35 @@
           </div>
         </section>
 
-        <!-- 1B. "TODAY" REMINDER BANNER -->
+        <!-- 1B. "TODAY" REMINDER BANNER WITH SMART QUEUE ACTION -->
         <div id="fu-today-reminder-banner" class="fu-today-banner anim-dash" style="--d: 0.08s">
-          <i class="fa-solid fa-circle-check text-emerald"></i>
-          <span id="fu-today-reminder-text">Loading today's follow-up schedule...</span>
+          <div class="fu-today-banner-left">
+            <i class="fa-solid fa-circle-check text-emerald"></i>
+            <span id="fu-today-reminder-text">Loading today's follow-up schedule...</span>
+          </div>
+          <button type="button" id="btn-start-followup-queue" class="btn-start-queue hidden">
+            <i class="fa-solid fa-play"></i>
+            <span>Start Follow-Up Queue</span>
+          </button>
         </div>
 
-        <!-- 2. DYNAMIC COUNTERS DASHBOARD ROW (5 CARDS) -->
+        <!-- 2. DYNAMIC COUNTERS DASHBOARD ROW (STATUS CATEGORIES) -->
         <section class="fu-metrics-grid anim-dash" style="--d: 0.1s">
           <div class="fu-metric-card highlight-due" id="card-fu-due-today">
             <span class="fu-metric-lbl">DUE TODAY</span>
             <span class="fu-metric-val val-emerald" id="fu-counter-due-today">0</span>
           </div>
+          <div class="fu-metric-card highlight-overdue" id="card-fu-overdue">
+            <span class="fu-metric-lbl">OVERDUE</span>
+            <span class="fu-metric-val val-danger" id="fu-counter-overdue">0</span>
+          </div>
           <div class="fu-metric-card highlight-upcoming" id="card-fu-upcoming">
             <span class="fu-metric-lbl">UPCOMING</span>
             <span class="fu-metric-val val-muted" id="fu-counter-upcoming">0</span>
           </div>
-          <div class="fu-metric-card highlight-overdue" id="card-fu-overdue">
-            <span class="fu-metric-lbl">OVERDUE</span>
-            <span class="fu-metric-val val-danger" id="fu-counter-overdue">0</span>
+          <div class="fu-metric-card highlight-paused" id="card-fu-paused">
+            <span class="fu-metric-lbl">PAUSED</span>
+            <span class="fu-metric-val val-warning" id="fu-counter-paused">0</span>
           </div>
           <div class="fu-metric-card" id="card-fu-completed">
             <span class="fu-metric-lbl">COMPLETED</span>
@@ -1246,7 +1601,7 @@
             <button type="button" id="btn-followup-search-clear" class="search-clear-btn hidden" aria-label="Clear Search">✕</button>
           </div>
 
-          <!-- Tab Navigation Pills -->
+          <!-- Tab Navigation Pills (Status Category Filters) -->
           <div class="fu-tabs-pill">
             <button type="button" class="fu-tab-btn active" data-fu-tab="all">
               <span>All</span> <span class="fu-pill-count" id="fu-tab-all-count">0</span>
@@ -1259,6 +1614,9 @@
             </button>
             <button type="button" class="fu-tab-btn" data-fu-tab="upcoming">
               <span>Upcoming</span> <span class="fu-pill-count" id="fu-tab-upcoming-count">0</span>
+            </button>
+            <button type="button" class="fu-tab-btn" data-fu-tab="paused">
+              <span>Paused</span> <span class="fu-pill-count" id="fu-tab-paused-count">0</span>
             </button>
             <button type="button" class="fu-tab-btn" data-fu-tab="completed">
               <span>Completed</span> <span class="fu-pill-count" id="fu-tab-completed-count">0</span>
@@ -1280,6 +1638,24 @@
             </select>
           </div>
 
+          <!-- Priority Sub-Filter Dropdown -->
+          <div class="fu-priority-filter-wrap">
+            <select id="fu-priority-filter" class="fu-select" title="Filter by Lead Priority">
+              <option value="ALL">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+
+          <!-- Tag Sub-Filter Dropdown -->
+          <div class="fu-tag-filter-wrap">
+            <select id="followup-tag-filter" class="fu-select" title="Filter by Lead Tag">
+              <option value="ALL">All Tags</option>
+              <option value="NO_TAG">No Tag (Untagged)</option>
+            </select>
+          </div>
+
           <!-- Sub-Filter for Replies tab (Shown when Replies tab is active) -->
           <div class="fu-reply-filter-wrap hidden" id="fu-reply-filter-wrap">
             <select id="fu-reply-status-filter" class="fu-select" title="Filter by Reply Outcome">
@@ -1288,6 +1664,31 @@
               <option value="NOT_INTERESTED">Not Interested</option>
               <option value="OTHER">Other / General</option>
             </select>
+          </div>
+        </section>
+
+        <!-- 3B. BULK ACTIONS & SELECT ALL BAR -->
+        <section class="fu-bulk-bar anim-dash" style="--d: 0.18s" id="fu-bulk-bar">
+          <div class="fu-bulk-left">
+            <label class="fu-select-all-label" id="lbl-fu-select-all" for="chk-fu-select-all">
+              <input type="checkbox" id="chk-fu-select-all" class="fu-select-all-checkbox" />
+              <span id="text-fu-select-all">Select All</span>
+            </label>
+            <span class="fu-selected-count-badge hidden" id="badge-fu-selected-count">0 selected</span>
+          </div>
+          <div class="fu-bulk-right">
+            <button type="button" id="btn-fu-bulk-pause" class="btn-fu-bulk-pause disabled" disabled title="Pause follow-up for selected leads">
+              <i class="fa-solid fa-pause"></i>
+              <span>Pause</span>
+            </button>
+            <button type="button" id="btn-fu-bulk-resume" class="btn-fu-bulk-resume disabled" disabled title="Resume follow-up for selected leads">
+              <i class="fa-solid fa-play"></i>
+              <span>Resume</span>
+            </button>
+            <button type="button" id="btn-fu-bulk-send" class="btn-fu-bulk-send" disabled>
+              <i class="fa-regular fa-paper-plane"></i>
+              <span id="text-fu-bulk-send">Send Follow-Ups</span>
+            </button>
           </div>
         </section>
 
@@ -1343,65 +1744,411 @@
           </div>
         </section>
 
-        <!-- 2. DASHBOARD SUMMARY CARDS (ROW OF 6) -->
-        <section class="dash-cards-section">
-          <!-- Card 1: Today's Outreach -->
-          <div class="dash-card anim-dash" id="dash-card-outreach" style="--d: 0.1s; cursor: pointer;">
-            <span class="dash-card-title">Today's Outreach</span>
-            <div class="dash-card-value" id="dash-card-outreach-val">1 / 50</div>
-            <div class="dash-card-bottom accent-green">
-              <span id="dash-card-outreach-sub">2% done</span>
-              <i class="fa-solid fa-arrow-right"></i>
+        <!-- 2. DATE FILTERS & REPORTING TOOLBAR -->
+        <section class="dash-analytics-toolbar anim-dash" id="dash-analytics-toolbar" style="--d: 0.08s">
+          <div class="dash-time-filter-group">
+            <span class="dash-filter-label"><i class="fa-regular fa-calendar"></i> Period:</span>
+            <button type="button" class="btn-time-filter" data-range="today" id="btn-filter-today">Today</button>
+            <button type="button" class="btn-time-filter" data-range="7d" id="btn-filter-7d">Last 7 Days</button>
+            <button type="button" class="btn-time-filter" data-range="30d" id="btn-filter-30d">Last 30 Days</button>
+            <button type="button" class="btn-time-filter" data-range="month" id="btn-filter-month">This Month</button>
+            <button type="button" class="btn-time-filter active" data-range="all" id="btn-filter-all">All Time</button>
+          </div>
+          <div class="dash-toolbar-meta">
+            <span class="dash-readonly-pill"><i class="fa-solid fa-lock text-green"></i> Read-Only Analytics</span>
+            <span class="dash-meta-period" id="dash-meta-period-text">Showing All Recorded History</span>
+            <button type="button" class="btn-dash-refresh" id="dash-btn-refresh-analytics" title="Refresh Analytics Data">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- 3. 13 RECORDED METRIC CARDS -->
+        <section class="dash-kpi-grid anim-dash" id="dash-kpi-grid" style="--d: 0.12s">
+          <!-- Card 1: Total Leads -->
+          <div class="dash-kpi-card" id="card-total-leads" title="Total leads recorded in database">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-cyan"><i class="fa-solid fa-users"></i></span>
+              <span class="kpi-card-title">Total Leads</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-total-leads">111</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-total-leads">Stored in database</span>
             </div>
           </div>
 
           <!-- Card 2: New Leads -->
-          <div class="dash-card anim-dash" id="dash-card-saved" style="--d: 0.15s; cursor: pointer;">
-            <span class="dash-card-title">New Leads</span>
-            <div class="dash-card-value" id="dash-card-saved-val">60 leads</div>
-            <div class="dash-card-bottom">
-              <span>Pipeline queue</span>
-              <i class="fa-solid fa-arrow-right"></i>
+          <div class="dash-kpi-card" id="card-new-leads" title="Leads in 'New' status">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-green"><i class="fa-solid fa-sparkles"></i></span>
+              <span class="kpi-card-title">New Leads</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-new-leads">75</div>
+            <div class="kpi-card-footer">
+              <span id="dash-card-saved-val">75 in queue</span>
             </div>
           </div>
 
           <!-- Card 3: Favorites -->
-          <div class="dash-card anim-dash" id="dash-card-favorites" style="--d: 0.2s; cursor: pointer;">
-            <span class="dash-card-title">Favorites</span>
-            <div class="dash-card-value" id="dash-card-favorites-val">0 starred</div>
-            <div class="dash-card-bottom">
-              <span>Priority queue</span>
-              <i class="fa-solid fa-arrow-right"></i>
+          <div class="dash-kpi-card" id="card-favorites" title="Starred / High-priority leads">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-amber"><i class="fa-solid fa-star"></i></span>
+              <span class="kpi-card-title">Favorites</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-favorites">0</div>
+            <div class="kpi-card-footer">
+              <span id="dash-card-favorites-val">0 starred</span>
             </div>
           </div>
 
-          <!-- Card 4: Follow-Ups Due -->
-          <div class="dash-card anim-dash" id="dash-card-followups" style="--d: 0.25s; cursor: pointer;">
-            <span class="dash-card-title">Follow-Ups Due</span>
-            <div class="dash-card-value" id="dash-card-followups-val">0 prospects</div>
-            <div class="dash-card-bottom">
-              <span>Review due</span>
-              <i class="fa-solid fa-arrow-right"></i>
+          <!-- Card 4: Outreach Pending -->
+          <div class="dash-kpi-card" id="card-outreach-pending" title="Leads waiting in outreach queue">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-purple"><i class="fa-solid fa-inbox"></i></span>
+              <span class="kpi-card-title">Outreach Pending</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-outreach-pending">60</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-outreach-pending">Ready for pitch</span>
             </div>
           </div>
 
-          <!-- Card 5: Replies & Warm -->
-          <div class="dash-card anim-dash" id="dash-card-replies" style="--d: 0.3s; cursor: pointer;">
-            <span class="dash-card-title">Replies & Warm</span>
-            <div class="dash-card-value" id="dash-card-replies-val">0 engaged</div>
-            <div class="dash-card-bottom">
-              <span>Active chats</span>
-              <i class="fa-solid fa-arrow-right"></i>
+          <!-- Card 5: Messages Sent -->
+          <div class="dash-kpi-card" id="card-messages-sent" title="Total messages confirmed sent in period">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-emerald"><i class="fa-solid fa-paper-plane"></i></span>
+              <span class="kpi-card-title">Messages Sent</span>
+            </div>
+            <div class="kpi-card-value text-green" id="kpi-messages-sent">72</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-messages-sent">Confirmed sent logs</span>
             </div>
           </div>
 
-          <!-- Card 6: No Website (Pink/Red Accent) -->
-          <div class="dash-card card-warning-accent anim-dash" id="dash-card-nowebsite" style="--d: 0.35s; cursor: pointer;">
-            <span class="dash-card-title">No Website</span>
-            <div class="dash-card-value" id="dash-card-nowebsite-val">17 targets</div>
-            <div class="dash-card-bottom accent-pink">
-              <span>Prime pitch</span>
-              <i class="fa-solid fa-arrow-right"></i>
+          <!-- Card 6: Follow-Ups Due Today -->
+          <div class="dash-kpi-card" id="card-fu-due" title="Follow-up scheduled touches due today">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-yellow"><i class="fa-solid fa-bell"></i></span>
+              <span class="kpi-card-title">Follow-Ups Due Today</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-fu-due-today">0</div>
+            <div class="kpi-card-footer">
+              <span id="dash-card-followups-val">0 due today</span>
+            </div>
+          </div>
+
+          <!-- Card 7: Overdue Follow-Ups -->
+          <div class="dash-kpi-card" id="card-fu-overdue" title="Follow-up touches scheduled prior to today">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-rose"><i class="fa-solid fa-triangle-exclamation"></i></span>
+              <span class="kpi-card-title">Overdue Follow-Ups</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-fu-overdue">0</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-fu-overdue">Requires attention</span>
+            </div>
+          </div>
+
+          <!-- Card 8: Paused Follow-Ups -->
+          <div class="dash-kpi-card" id="card-fu-paused" title="Follow-ups temporarily paused">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-slate"><i class="fa-solid fa-circle-pause"></i></span>
+              <span class="kpi-card-title">Paused Follow-Ups</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-fu-paused">0</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-fu-paused">On hold</span>
+            </div>
+          </div>
+
+          <!-- Card 9: Interested Leads -->
+          <div class="dash-kpi-card" id="card-interested" title="Leads with positive contact outcome / reply">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-emerald"><i class="fa-solid fa-thumbs-up"></i></span>
+              <span class="kpi-card-title">Interested Leads</span>
+            </div>
+            <div class="kpi-card-value text-green" id="kpi-interested-leads">0</div>
+            <div class="kpi-card-footer">
+              <span id="dash-card-replies-val">0 positive replies</span>
+            </div>
+          </div>
+
+          <!-- Card 10: Not Interested Leads -->
+          <div class="dash-kpi-card" id="card-not-interested" title="Leads marked Not Interested">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-zinc"><i class="fa-solid fa-thumbs-down"></i></span>
+              <span class="kpi-card-title">Not Interested</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-not-interested-leads">0</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-not-interested">Passed / Declined</span>
+            </div>
+          </div>
+
+          <!-- Card 11: Converted Leads -->
+          <div class="dash-kpi-card" id="card-converted" title="Leads successfully converted into clients">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-gold"><i class="fa-solid fa-handshake"></i></span>
+              <span class="kpi-card-title">Converted Leads</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-converted-leads">0</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-converted">Closed deals</span>
+            </div>
+          </div>
+
+          <!-- Card 12: Conversion Rate -->
+          <div class="dash-kpi-card" id="card-conversion-rate" title="Percentage of leads successfully converted">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-teal"><i class="fa-solid fa-percent"></i></span>
+              <span class="kpi-card-title">Conversion Rate</span>
+            </div>
+            <div class="kpi-card-value" id="kpi-conversion-rate">0.0%</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-conversion-rate">Conversion ratio</span>
+            </div>
+          </div>
+
+          <!-- Card 13: Conversion Value -->
+          <div class="dash-kpi-card" id="card-conversion-value" title="Total deal revenue recorded">
+            <div class="kpi-card-header">
+              <span class="kpi-card-icon text-emerald"><i class="fa-solid fa-sack-dollar"></i></span>
+              <span class="kpi-card-title">Conversion Value</span>
+            </div>
+            <div class="kpi-card-value text-green" id="kpi-conversion-value">—</div>
+            <div class="kpi-card-footer">
+              <span id="kpi-sub-conversion-value">Total revenue recorded</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. PERFORMANCE SUMMARY SECTION -->
+        <section class="dash-perf-summary-section anim-dash" id="dash-perf-summary-section" style="--d: 0.16s">
+          <div class="dash-section-header-row">
+            <div class="dash-section-title-wrap">
+              <h2 class="dash-section-title">
+                <i class="fa-solid fa-chart-line text-green"></i>
+                <span>PERFORMANCE SUMMARY</span>
+              </h2>
+              <p class="dash-section-subtitle">Historical activity derived strictly from actual stored records (Read-Only)</p>
+            </div>
+            <span class="dash-section-sub-right" id="dash-perf-summary-timerange-tag">All Time Records</span>
+          </div>
+
+          <div class="dash-perf-summary-grid">
+            <!-- Panel 1: Leads Added Over Time -->
+            <div class="perf-summary-panel" id="panel-leads-over-time">
+              <div class="perf-panel-header">
+                <span class="perf-panel-icon"><i class="fa-regular fa-calendar-plus"></i></span>
+                <span class="perf-panel-title">Leads Added Over Time</span>
+              </div>
+              <div class="perf-panel-body" id="perf-leads-over-time-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Panel 2: Outreach Execution -->
+            <div class="perf-summary-panel" id="panel-outreach-execution">
+              <div class="perf-panel-header">
+                <span class="perf-panel-icon"><i class="fa-solid fa-paper-plane text-green"></i></span>
+                <span class="perf-panel-title">Outreach Completed</span>
+              </div>
+              <div class="perf-panel-body">
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">First Pitches Sent</span>
+                  <span class="stat-row-val" id="perf-stat-first-msgs">36</span>
+                </div>
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Follow-Up Touches Sent</span>
+                  <span class="stat-row-val" id="perf-stat-followups">36</span>
+                </div>
+                <div class="perf-stat-row total">
+                  <span class="stat-row-label">Total Messages Sent</span>
+                  <span class="stat-row-val text-green" id="perf-stat-total-sent">72</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 3: Follow-Ups Completed -->
+            <div class="perf-summary-panel" id="panel-followups-completed">
+              <div class="perf-panel-header">
+                <span class="perf-panel-icon"><i class="fa-regular fa-circle-check text-green"></i></span>
+                <span class="perf-panel-title">Follow-Ups Completed</span>
+              </div>
+              <div class="perf-panel-body">
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Follow-Ups Completed</span>
+                  <span class="stat-row-val" id="perf-stat-fu-completed">36</span>
+                </div>
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Paused Follow-Ups</span>
+                  <span class="stat-row-val" id="perf-stat-fu-paused">0</span>
+                </div>
+                <div class="perf-stat-row total">
+                  <span class="stat-row-label">Active Queue Touches</span>
+                  <span class="stat-row-val" id="perf-stat-fu-active">36</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 4: Responses & Conversions -->
+            <div class="perf-summary-panel" id="panel-responses-conversions">
+              <div class="perf-panel-header">
+                <span class="perf-panel-icon"><i class="fa-solid fa-comments-dollar text-green"></i></span>
+                <span class="perf-panel-title">Responses &amp; Conversions</span>
+              </div>
+              <div class="perf-panel-body">
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Interested / Positive</span>
+                  <span class="stat-row-val text-green" id="perf-stat-resp-interested">0</span>
+                </div>
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Not Interested</span>
+                  <span class="stat-row-val" id="perf-stat-resp-not-interested">0</span>
+                </div>
+                <div class="perf-stat-row">
+                  <span class="stat-row-label">Converted Leads</span>
+                  <span class="stat-row-val" id="perf-stat-conv-count">0</span>
+                </div>
+                <div class="perf-stat-row total">
+                  <span class="stat-row-label">Total Conversion Value</span>
+                  <span class="stat-row-val text-green" id="perf-stat-conv-value">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2b. DAILY PERFORMANCE SUMMARY CARD -->
+        <section class="dash-daily-perf-section anim-dash" id="dash-daily-perf-section" style="--d: 0.38s">
+          <div class="daily-perf-card">
+            <!-- Header Row -->
+            <div class="daily-perf-header">
+              <div class="daily-perf-title-group">
+                <div class="daily-perf-badge">
+                  <span class="pulse-dot-green"></span>
+                  <span>TODAY'S PERFORMANCE</span>
+                </div>
+                <span class="daily-perf-date" id="daily-perf-date">Saturday, 19 September 2026</span>
+              </div>
+              <div class="daily-perf-status-wrap">
+                <span class="daily-perf-status-pill in-progress" id="daily-perf-status-pill">IN PROGRESS</span>
+              </div>
+            </div>
+
+            <!-- Target Progress Strip -->
+            <div class="daily-perf-target-strip">
+              <div class="target-strip-left">
+                <div class="target-numbers-row">
+                  <span class="target-strip-label">Daily Outreach Target</span>
+                  <span class="target-ratio-val" id="daily-perf-ratio">0 / 50</span>
+                  <span class="target-pct-badge" id="daily-perf-pct">0%</span>
+                </div>
+                <div class="target-progress-track">
+                  <div class="target-progress-fill" id="daily-perf-progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="target-remaining-hint" id="daily-perf-remaining-hint">
+                  50 outreach messages remaining today
+                </div>
+              </div>
+            </div>
+
+            <!-- 7 Key Today Metrics Grid (Clickable) -->
+            <div class="daily-perf-metrics-grid">
+              <!-- Metric 1: Leads Found -->
+              <div class="perf-metric-tile clickable" id="perf-tile-found" title="View Find Leads">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                  <span class="perf-tile-label">Leads Found</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-leads-found">0</div>
+                <span class="perf-tile-hint">Discovered today</span>
+              </div>
+
+              <!-- Metric 2: Leads Saved -->
+              <div class="perf-metric-tile clickable" id="perf-tile-saved" title="View Saved Leads (filtered to today)">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-regular fa-bookmark"></i></span>
+                  <span class="perf-tile-label">Leads Saved</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-leads-saved">0</div>
+                <span class="perf-tile-hint">Added to Saved Leads</span>
+              </div>
+
+              <!-- Metric 3: Messages Sent -->
+              <div class="perf-metric-tile clickable" id="perf-tile-sent" title="View Outreach">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon text-green"><i class="fa-solid fa-paper-plane"></i></span>
+                  <span class="perf-tile-label">Messages Sent</span>
+                </div>
+                <div class="perf-tile-val text-green" id="daily-perf-messages-sent">0</div>
+                <span class="perf-tile-hint" id="daily-perf-sent-breakdown">0 first • 0 follow-ups</span>
+              </div>
+
+              <!-- Metric 4: Follow-Ups Sent -->
+              <div class="perf-metric-tile clickable" id="perf-tile-followups" title="View Follow-Ups">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-regular fa-clock"></i></span>
+                  <span class="perf-tile-label">Follow-Ups Sent</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-followups-sent">0</div>
+                <span class="perf-tile-hint">Scheduled touches</span>
+              </div>
+
+              <!-- Metric 5: Replies Received -->
+              <div class="perf-metric-tile clickable" id="perf-tile-replies" title="View Replied Leads">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-solid fa-reply"></i></span>
+                  <span class="perf-tile-label">Replies</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-replies">0</div>
+                <span class="perf-tile-hint">Prospect responses</span>
+              </div>
+
+              <!-- Metric 6: Added to Outreach -->
+              <div class="perf-metric-tile clickable" id="perf-tile-outreach-added" title="View Outreach">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-solid fa-arrow-right-to-bracket"></i></span>
+                  <span class="perf-tile-label">Added to Outreach</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-added-outreach">0</div>
+                <span class="perf-tile-hint">Entered pipeline</span>
+              </div>
+
+              <!-- Metric 7: Follow-Ups Due Today -->
+              <div class="perf-metric-tile clickable" id="perf-tile-due-today" title="View Today's Follow-Up Queue">
+                <div class="perf-tile-header">
+                  <span class="perf-tile-icon"><i class="fa-solid fa-bell"></i></span>
+                  <span class="perf-tile-label">Follow-Ups Due</span>
+                </div>
+                <div class="perf-tile-val" id="daily-perf-followups-due">0</div>
+                <span class="perf-tile-hint" id="daily-perf-due-breakdown">0 completed</span>
+              </div>
+            </div>
+
+            <!-- Quick Action Bar -->
+            <div class="daily-perf-footer">
+              <div class="perf-footer-left">
+                <span class="perf-live-indicator"><i class="fa-regular fa-circle-check"></i> Real-time local data • Resets at midnight</span>
+              </div>
+              <div class="perf-footer-actions">
+                <button type="button" class="btn-perf-action" id="btn-perf-view-outreach">
+                  <i class="fa-regular fa-paper-plane"></i>
+                  <span>View Outreach</span>
+                </button>
+                <button type="button" class="btn-perf-action" id="btn-perf-view-followups">
+                  <i class="fa-regular fa-clock"></i>
+                  <span>View Follow-Ups</span>
+                </button>
+                <button type="button" class="btn-perf-action secondary" id="btn-perf-view-history">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                  <span>View History</span>
+                </button>
+                <button type="button" class="btn-perf-action" id="btn-perf-export-daily" title="Export today's performance summary">
+                  <i class="fa-solid fa-arrow-down-to-bracket"></i>
+                  <span>Export Daily Performance</span>
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -1468,6 +2215,9 @@
                 </h2>
                 <p class="panel-subtitle">Real-time pipeline analysis from live database records</p>
               </div>
+              <button type="button" id="dash-btn-open-assistant" class="btn-dash-open-assistant" title="Ask AI Assistant">
+                <span class="sparkle-teal">✨</span> Ask Assistant
+              </button>
             </div>
 
             <div class="insights-container">
@@ -1876,8 +2626,13 @@
             <i class="fa-solid fa-chevron-right tab-chevron"></i>
           </button>
           <button type="button" class="settings-tab-btn" data-settings-tab="data" id="tab-btn-data">
-            <i class="fa-solid fa-database tab-icon"></i>
-            <span class="tab-label">Data & Export</span>
+            <i class="fa-solid fa-shield-halved tab-icon"></i>
+            <span class="tab-label">Backup & Restore</span>
+            <i class="fa-solid fa-chevron-right tab-chevron"></i>
+          </button>
+          <button type="button" class="settings-tab-btn" data-settings-tab="diagnostics" id="tab-btn-diagnostics">
+            <i class="fa-solid fa-heart-pulse tab-icon"></i>
+            <span class="tab-label">Data Health & Diagnostics</span>
             <i class="fa-solid fa-chevron-right tab-chevron"></i>
           </button>
         </aside>
@@ -2217,6 +2972,26 @@
             <div id="connection-test-feedback" style="display: none; padding: 12px 16px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 13px;">
               <i class="fa-solid fa-circle-check"></i> Live Connection verified! All systems operational.
             </div>
+
+            <div class="settings-card" style="margin-top: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 223, 129, 0.1); border: 1px solid rgba(0, 223, 129, 0.25); display: flex; align-items: center; justify-content: center; color: #00DF81; font-size: 18px;">
+                  <i class="fa-solid fa-code-branch"></i>
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">Client Hunter v2.2.0</span>
+                    <span class="badge-pill-active" style="font-size: 10px; padding: 2px 8px;">Build 20260920.1</span>
+                    <span id="update-status-pill" style="font-size: 11px; color: #34d399; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-check"></i> Up to date</span>
+                    <span id="app-last-updated-date" style="font-size: 11px; color: #94a3b8; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-regular fa-clock" style="font-size: 10px;"></i> Last Updated: September 20, 2026</span>
+                  </div>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">Production Windows Desktop Release · Single executable architecture</p>
+                </div>
+              </div>
+              <button type="button" id="btn-check-updates" class="btn-settings-save" style="padding: 8px 16px; font-size: 12px;" aria-label="Check for updates">
+                <i class="fa-solid fa-arrows-rotate"></i> Check for Updates
+              </button>
+            </div>
           </div>
 
           <!-- TAB 8: WHATSAPP PREFERENCES -->
@@ -2242,6 +3017,33 @@
                   <option value="desktop">WhatsApp Desktop / Native Protocol (whatsapp://)</option>
                   <option value="web">WhatsApp Web (https://wa.me/)</option>
                 </select>
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-wa-auto-timer">Outreach WhatsApp Timer</label>
+                <select id="set-wa-auto-timer" class="settings-select">
+                  <option value="0">Off</option>
+                  <option value="3" selected>3 seconds</option>
+                  <option value="5">5 seconds</option>
+                  <option value="10">10 seconds</option>
+                  <option value="15">15 seconds</option>
+                  <option value="20">20 seconds</option>
+                  <option value="30">30 seconds</option>
+                </select>
+                <span class="settings-label-hint" style="display:block; font-size: 11px; color: var(--text-muted, #94a3b8); margin-top: 4px;">Automatically open WhatsApp in Outreach after the selected countdown.</span>
+              </div>
+              <div class="settings-group">
+                <label class="settings-label" for="set-wa-fu-auto-timer">Follow-Up WhatsApp Timer</label>
+                <select id="set-wa-fu-auto-timer" class="settings-select">
+                  <option value="0">Off</option>
+                  <option value="immediate">Immediate</option>
+                  <option value="3" selected>3 seconds</option>
+                  <option value="5">5 seconds</option>
+                  <option value="10">10 seconds</option>
+                  <option value="15">15 seconds</option>
+                  <option value="20">20 seconds</option>
+                  <option value="30">30 seconds</option>
+                </select>
+                <span class="settings-label-hint" style="display:block; font-size: 11px; color: var(--text-muted, #94a3b8); margin-top: 4px;">Automatically open WhatsApp in Follow-Up after the selected countdown.</span>
               </div>
             </div>
 
@@ -2295,43 +3097,315 @@
             </div>
           </div>
 
-          <!-- TAB 10: DATA & EXPORT -->
+          <!-- TAB 10: BACKUP & RESTORE -->
           <div id="panel-settings-data" class="settings-panel">
             <div class="settings-panel-header">
               <div class="settings-panel-title-area">
                 <h2 class="settings-panel-title">
-                  <i class="fa-solid fa-database"></i>
-                  <span>Data & Complete System Backup</span>
+                  <i class="fa-solid fa-shield-halved"></i>
+                  <span>Backup & Restore</span>
                 </h2>
-                <p class="settings-panel-desc">Export or restore your full CRM state, outreach logs, message templates, and settings.</p>
+                <p class="settings-panel-desc">Create full, validated snapshots of your entire CRM, leads, templates, outreach, and settings, or safely restore from a previous backup.</p>
               </div>
             </div>
 
             <div class="settings-form-grid">
+              <!-- Create Backup Card -->
               <div class="settings-card" style="height: 100%; justify-content: space-between;">
                 <div>
-                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 16px; margin-bottom: 12px;">
-                    <i class="fa-solid fa-download"></i>
+                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 16px; margin-bottom: 12px;">
+                    <i class="fa-solid fa-floppy-disk"></i>
                   </div>
-                  <div class="settings-card-title">Full JSON Backup</div>
-                  <p class="settings-card-sub" style="margin-top: 4px;">Download a complete portable snapshot of your templates, user profile, message histories, and outreach configurations.</p>
+                  <div class="settings-card-title">Create Backup</div>
+                  <p class="settings-card-sub" style="margin-top: 4px;">Generates a verified, timestamped JSON backup containing all Saved Leads, Favorites, Outreach, Follow-Ups, Notes, Activities, Settings, and My Services.</p>
                 </div>
-                <button type="button" id="btn-download-backup" class="btn-settings-save" style="align-self: flex-start; margin-top: 16px;">
-                  <i class="fa-solid fa-download"></i> Download JSON Backup
-                </button>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                  <button type="button" id="btn-create-backup" class="btn-settings-save" style="align-self: flex-start;">
+                    <i class="fa-solid fa-download"></i> Create Backup
+                  </button>
+                  <span style="font-size: 11px; color: #94a3b8;">Choose where to save via Windows File Dialog.</span>
+                </div>
               </div>
 
+              <!-- Restore Backup Card -->
               <div class="settings-card" style="height: 100%; justify-content: space-between;">
                 <div>
-                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 16px; margin-bottom: 12px;">
+                  <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px; margin-bottom: 12px;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </div>
+                  <div class="settings-card-title">Restore Backup</div>
+                  <p class="settings-card-sub" style="margin-top: 4px;">Select a ClientHunter backup file to restore. Displays an interactive preview and creates an automatic pre-restore safety snapshot before applying.</p>
+                </div>
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                  <button type="button" id="btn-restore-backup" class="btn-settings-save" style="align-self: flex-start; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                    <i class="fa-solid fa-rotate-left"></i> Restore Backup
+                  </button>
+                  <input type="file" id="input-backup-file-fallback" accept=".json" style="display: none;" />
+                  <span style="font-size: 11px; color: #94a3b8;">Deep validation & automatic safety backup included.</span>
+                </div>
+              </div>
+
+              <!-- Recent Backups Card -->
+              <div class="settings-card" style="grid-column: 1 / -1;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div class="settings-card-title">Recent Backups & Snapshots</div>
+                    <p class="settings-card-sub" style="margin-top: 4px;">Recently generated local backups and pre-restore safety snapshots.</p>
+                  </div>
+                  <button type="button" id="btn-refresh-recent-backups" class="btn-settings-outline" style="padding: 6px 12px; font-size: 11px;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                  </button>
+                </div>
+                <div class="recent-backups-table-wrap">
+                  <table class="recent-backups-table">
+                    <thead>
+                      <tr>
+                        <th>Date & Time</th>
+                        <th>File Name</th>
+                        <th>Leads</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recent-backups-tbody">
+                      <tr>
+                        <td colspan="4" style="text-align: center; color: #64748b; padding: 16px;">Loading recent backups...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 11: DATA HEALTH & DIAGNOSTICS -->
+          <div id="panel-settings-diagnostics" class="settings-panel">
+            <div class="settings-panel-header">
+              <div class="settings-panel-title-area">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; width: 100%;">
+                  <h2 class="settings-panel-title" style="margin: 0;">
+                    <i class="fa-solid fa-heart-pulse" style="color: #10b981;"></i>
+                    <span>Data Health &amp; Diagnostics</span>
+                  </h2>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="diag-overall-badge" class="diag-status-pill healthy">
+                      <span class="diag-dot"></span>
+                      <span id="diag-overall-status-text">Healthy</span>
+                    </div>
+                    <button type="button" id="btn-refresh-diagnostics" class="btn-settings-outline" style="padding: 6px 14px; font-size: 12px;">
+                      <i class="fa-solid fa-arrows-rotate"></i> Run Diagnostics
+                    </button>
+                  </div>
+                </div>
+                <p class="settings-panel-desc" style="margin-top: 6px;">
+                  Real-time, read-only diagnostic verification of local lead storage, runtime data paths, Supabase cloud synchronization, backup availability, and application health.
+                </p>
+              </div>
+            </div>
+
+            <!-- 4 Diagnostics Cards Grid -->
+            <div class="diag-cards-grid">
+              <!-- Local Data Card -->
+              <div class="settings-card diag-card">
+                <div class="diag-card-header">
+                  <div class="diag-card-icon" style="background: rgba(16, 185, 129, 0.12); color: #34d399;">
                     <i class="fa-solid fa-database"></i>
                   </div>
-                  <div class="settings-card-title">Database State</div>
-                  <p class="settings-card-sub" style="margin-top: 4px;">All lead searches, favorites, templates, and sent messages persist continuously to data/ on your computer.</p>
-                  <div style="margin-top: 12px; font-size: 12px; color: #94a3b8; line-height: 1.8;">
-                    <div><span style="color: #34d399;">✓</span> Leads Store: <code>data/leads_store.json</code></div>
-                    <div><span style="color: #34d399;">✓</span> Outreach Store: <code>data/outreach_state.json</code></div>
-                    <div><span style="color: #34d399;">✓</span> Searches: <code>data/searches_store.json</code></div>
+                  <div>
+                    <div class="settings-card-title">Local Data</div>
+                    <div id="diag-local-status-pill" class="diag-mini-pill healthy">Healthy</div>
+                  </div>
+                </div>
+                <div class="diag-items-list">
+                  <div class="diag-item">
+                    <span class="diag-item-label">Store Status</span>
+                    <span id="diag-local-store-status" class="diag-item-val">Loaded</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Runtime Path</span>
+                    <span id="diag-local-runtime-path" class="diag-item-val diag-path" title="Runtime data path">...</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Lead Count</span>
+                    <span id="diag-local-lead-count" class="diag-item-val" style="font-weight: 700; color: #34d399;">0</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Last Successful Save</span>
+                    <span id="diag-local-last-save" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">File Accessibility</span>
+                    <span id="diag-local-file-access" class="diag-item-val">Accessible</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Validation Status</span>
+                    <span id="diag-local-validation-status" class="diag-item-val">Valid</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Supabase Card -->
+              <div class="settings-card diag-card">
+                <div class="diag-card-header">
+                  <div class="diag-card-icon" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8;">
+                    <i class="fa-solid fa-cloud"></i>
+                  </div>
+                  <div>
+                    <div class="settings-card-title">Supabase</div>
+                    <div id="diag-supa-status-pill" class="diag-mini-pill healthy">Connected</div>
+                  </div>
+                </div>
+                <div class="diag-items-list">
+                  <div class="diag-item">
+                    <span class="diag-item-label">Connection Status</span>
+                    <span id="diag-supa-conn-status" class="diag-item-val">Connected</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Sync Status</span>
+                    <span id="diag-supa-sync-status" class="diag-item-val">Active / Ready</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Last Successful Sync</span>
+                    <span id="diag-supa-last-sync" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Remote Lead Count</span>
+                    <span id="diag-supa-lead-count" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Sync Error</span>
+                    <span id="diag-supa-error" class="diag-item-val" style="color: #94a3b8;">None</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backup Card -->
+              <div class="settings-card diag-card">
+                <div class="diag-card-header">
+                  <div class="diag-card-icon" style="background: rgba(168, 85, 247, 0.12); color: #c084fc;">
+                    <i class="fa-solid fa-box-archive"></i>
+                  </div>
+                  <div>
+                    <div class="settings-card-title">Backup</div>
+                    <div id="diag-backup-status-pill" class="diag-mini-pill healthy">Healthy</div>
+                  </div>
+                </div>
+                <div class="diag-items-list">
+                  <div class="diag-item">
+                    <span class="diag-item-label">Recent Backups</span>
+                    <span id="diag-backup-count" class="diag-item-val" style="font-weight: 700; color: #c084fc;">0</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Last Successful Backup</span>
+                    <span id="diag-backup-last" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Latest Backup Leads</span>
+                    <span id="diag-backup-latest-leads" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Latest Snapshot Name</span>
+                    <span id="diag-backup-latest-name" class="diag-item-val diag-path">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Snapshot Size</span>
+                    <span id="diag-backup-latest-size" class="diag-item-val">--</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Application Card -->
+              <div class="settings-card diag-card">
+                <div class="diag-card-header">
+                  <div class="diag-card-icon" style="background: rgba(245, 158, 11, 0.12); color: #fbbf24;">
+                    <i class="fa-solid fa-server"></i>
+                  </div>
+                  <div>
+                    <div class="settings-card-title">Application</div>
+                    <div id="diag-app-status-pill" class="diag-mini-pill healthy">Healthy</div>
+                  </div>
+                </div>
+                <div class="diag-items-list">
+                  <div class="diag-item">
+                    <span class="diag-item-label">ClientHunter Version</span>
+                    <span id="diag-app-version" class="diag-item-val">v2.2.0</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Electron Version</span>
+                    <span id="diag-app-electron" class="diag-item-val">--</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Backend Status</span>
+                    <span id="diag-app-backend-status" class="diag-item-val" style="color: #34d399;">Active &amp; Responsive</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Backend Port</span>
+                    <span id="diag-app-port" class="diag-item-val">3000</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Platform / Arch</span>
+                    <span id="diag-app-platform" class="diag-item-val">win32 / x64</span>
+                  </div>
+                  <div class="diag-item">
+                    <span class="diag-item-label">Backend Uptime</span>
+                    <span id="diag-app-uptime" class="diag-item-val">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Safety & Integrity Checklist Table -->
+            <div class="settings-card" style="margin-top: 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div class="settings-card-title" style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-clipboard-check" style="color: #10b981;"></i>
+                    Data Safety &amp; Integrity Verification
+                  </div>
+                  <p class="settings-card-sub" style="margin-top: 4px;">
+                    Continuous read-only checks covering store structure, identifier uniqueness, record schema, cloud sync, and backup readiness.
+                  </p>
+                </div>
+                <span class="diag-read-only-badge">
+                  <i class="fa-solid fa-shield-halved"></i> Strictly Read-Only
+                </span>
+              </div>
+
+              <div class="recent-backups-table-wrap">
+                <table class="recent-backups-table diag-checks-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 240px;">Check Item</th>
+                      <th style="width: 120px;">Health State</th>
+                      <th>Diagnostic Finding / Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diag-checks-tbody">
+                    <tr>
+                      <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">Loading data health diagnostics...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Safe Recovery & Maintenance Notice -->
+            <div class="settings-card diag-recovery-box" style="margin-top: 20px;">
+              <div style="display: flex; gap: 16px; align-items: flex-start;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 20px; flex-shrink: 0;">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-size: 14px; font-weight: 600; color: #f8fafc; margin-bottom: 4px;">Data Safety Guarantee</div>
+                  <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 0 0 12px 0;">
+                    This diagnostic system is <strong>strictly read-only</strong>. It never automatically repairs, deletes, resets, migrates, truncates, or overwrites your real data. If you ever need to perform manual recovery or troubleshooting, always create a safety backup first.
+                  </p>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" id="btn-create-diag-backup" class="btn-settings-save" style="font-size: 12px; padding: 7px 14px;">
+                      <i class="fa-solid fa-download"></i> Create Safety Backup
+                    </button>
+                    <button type="button" id="btn-diag-goto-backup" class="btn-settings-outline" style="font-size: 12px; padding: 7px 14px;">
+                      <i class="fa-solid fa-arrow-right"></i> Open Backup &amp; Restore
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2369,7 +3443,7 @@
     <div class="modal-template-editor-window">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;">
         <h3 id="modal-template-title" style="margin: 0; font-size: 17px; color: #fff;">Create Message Template</h3>
-        <button type="button" id="btn-close-template-modal" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">&times;</button>
+        <button type="button" id="btn-close-template-modal" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="settings-group">
         <label class="settings-label" for="input-tpl-name">Template Name</label>
@@ -2401,6 +3475,7 @@
           <button type="button" class="var-chip-btn" data-var="{my_name}">{my_name}</button>
           <button type="button" class="var-chip-btn" data-var="{my_company}">{my_company}</button>
           <button type="button" class="var-chip-btn" data-var="{portfolio_url}">{portfolio_url}</button>
+          <button type="button" class="var-chip-btn" data-var="{my_services}" title="Automatically inserts your currently enabled services from My Services.">{my_services}</button>
         </div>
         <textarea id="textarea-tpl-content" class="settings-textarea" style="min-height: 130px; margin-top: 6px;"></textarea>
       </div>
@@ -2544,6 +3619,135 @@
             <span class="info-label"><i class="fa-solid fa-star"></i> Rating &amp; Reviews:</span>
             <span id="detail-rating-text" class="info-val">4.8 ★ (120 reviews)</span>
           </div>
+          <div class="detail-info-row">
+            <span class="info-label"><i class="fa-solid fa-flag"></i> Priority:</span>
+            <select id="detail-priority-select" class="detail-priority-select" title="Lead Priority">
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div class="detail-info-row detail-outcome-row">
+            <span class="info-label"><i class="fa-solid fa-handshake"></i> Outcome:</span>
+            <div class="detail-outcome-controls">
+              <span id="detail-outcome-badge" class="detail-outcome-badge" data-outcome="No outcome">No outcome</span>
+              <select id="detail-outcome-select" class="detail-outcome-select" title="Contact Outcome">
+                <option value="">No outcome</option>
+                <option value="No Response">No Response</option>
+                <option value="Interested">Interested</option>
+                <option value="Not Interested">Not Interested</option>
+                <option value="Call Back Later">Call Back Later</option>
+                <option value="Wrong Number">Wrong Number</option>
+                <option value="Converted">Converted</option>
+                <option value="Other">Other</option>
+              </select>
+              <input type="text" id="detail-outcome-reason-input" class="detail-outcome-reason-input" placeholder="Optional reason..." maxlength="500" />
+              <button type="button" id="btn-detail-save-outcome" class="btn-detail-save-outcome">Save</button>
+            </div>
+          </div>
+          <div class="detail-info-row detail-conversion-row">
+            <span class="info-label"><i class="fa-solid fa-trophy" style="color: #00DF81;"></i> Conversion:</span>
+            <div class="detail-conversion-controls">
+              <span id="detail-conversion-badge" class="detail-conversion-badge" data-converted="false">Not Converted</span>
+              <span id="detail-conversion-summary-text" class="detail-conversion-summary-text">No conversion recorded</span>
+              <button type="button" id="btn-detail-open-conversion" class="btn-detail-conversion-action" title="Update Conversion">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span id="btn-detail-conversion-action-label">Mark Converted</span>
+              </button>
+            </div>
+          </div>
+          <div class="detail-info-row detail-tags-row">
+            <span class="info-label"><i class="fa-solid fa-tags" style="color: #00DF81;"></i> Tags:</span>
+            <div class="detail-tags-controls">
+              <div class="detail-tags-list" id="detail-tags-list">
+                <span class="detail-tags-empty">No tags</span>
+              </div>
+              <button type="button" id="btn-detail-open-tag-manager" class="btn-detail-tag-action" title="Manage Tags">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add / Edit Tags</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lead Notes Section -->
+        <div class="detail-notes-card" id="detail-notes-card">
+          <div class="detail-notes-header">
+            <div class="detail-notes-title-wrap">
+              <i class="fa-regular fa-note-sticky"></i>
+              <span class="detail-notes-title">NOTES (<span id="detail-notes-count">0</span>)</span>
+            </div>
+            <button type="button" class="btn-detail-add-note" id="btn-detail-toggle-add-note">
+              <i class="fa-solid fa-plus"></i>
+              <span>Add Note</span>
+            </button>
+          </div>
+
+          <!-- Add Note Inline Form -->
+          <div class="detail-notes-add-box hidden" id="detail-notes-add-box">
+            <textarea id="detail-note-input" class="detail-note-textarea" placeholder="Add a note about this lead..." rows="2" maxlength="5000"></textarea>
+            <div class="detail-note-error hidden" id="detail-note-error">Please enter a note.</div>
+            <div class="detail-notes-form-actions">
+              <button type="button" class="btn-note-cancel" id="btn-detail-cancel-note">Cancel</button>
+              <button type="button" class="btn-note-save" id="btn-detail-save-note">Save Note</button>
+            </div>
+          </div>
+
+          <!-- Notes List Container -->
+          <div class="detail-notes-body" id="detail-notes-body">
+            <div class="detail-notes-empty" id="detail-notes-empty">
+              <span>No notes yet.</span>
+            </div>
+            <div class="detail-notes-list hidden" id="detail-notes-list"></div>
+          </div>
+        </div>
+
+        <!-- Outreach Activity Timeline Card in Lead Details Modal -->
+        <div class="detail-activity-card" id="detail-activity-card">
+          <div class="detail-activity-header">
+            <div class="detail-activity-title-wrap">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span class="detail-activity-title">ACTIVITY (<span id="detail-activity-count">0</span>)</span>
+            </div>
+          </div>
+          <div class="activity-search-toolbar" id="detail-activity-toolbar">
+            <div class="activity-search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass activity-search-icon"></i>
+              <input type="text" id="detail-activity-search" class="activity-search-input" placeholder="Search activity..." autocomplete="off" spellcheck="false" />
+              <button type="button" id="detail-activity-search-clear" class="activity-search-clear hidden" title="Clear search">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="activity-filters-row">
+              <div class="activity-select-wrap">
+                <select id="detail-activity-type-filter" class="activity-filter-select" title="Filter by activity category">
+                  <option value="all">All activities</option>
+                  <option value="outreach">Outreach</option>
+                  <option value="followup">Follow-Up</option>
+                  <option value="message_sent">Message Sent</option>
+                  <option value="outcome">Outcome</option>
+                  <option value="notes">Notes</option>
+                  <option value="status_change">Status changes</option>
+                </select>
+                <i class="fa-solid fa-chevron-down activity-select-arrow"></i>
+              </div>
+              <div class="activity-select-wrap">
+                <select id="detail-activity-date-filter" class="activity-filter-select" title="Filter by date range">
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+                <i class="fa-solid fa-chevron-down activity-select-arrow"></i>
+              </div>
+            </div>
+          </div>
+          <div class="detail-activity-body" id="detail-activity-body">
+            <div class="detail-activity-empty" id="detail-activity-empty">
+              <span>No outreach activity yet.</span>
+            </div>
+            <div class="detail-activity-timeline hidden" id="detail-activity-timeline"></div>
+          </div>
         </div>
 
         <!-- AI Digital Growth Audit Card -->
@@ -2598,6 +3802,125 @@
   </div>
 
   <!-- ==================================================
+       LEAD CONVERSION TRACKING MODAL
+       ================================================== -->
+  <div id="modal-lead-conversion" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window conversion-modal-window" style="max-width: 520px; text-align: left;">
+      <div class="conversion-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 223, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #00DF81; font-size: 16px;">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; color: #fff; font-weight: 700;">Lead Conversion</h3>
+            <p id="conv-modal-lead-title" style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">Record conversion outcome</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-conversion-modal" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-lead-conversion" onsubmit="return false;">
+        <!-- Status Choice -->
+        <div class="conv-field-group" style="margin-bottom: 16px;">
+          <label class="conv-field-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">Conversion Status</label>
+          <div class="conv-toggle-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="btn-conv-status-converted" class="conv-status-toggle-btn" data-status="converted">
+              <i class="fa-solid fa-check"></i>
+              <span>Converted</span>
+            </button>
+            <button type="button" id="btn-conv-status-not-converted" class="conv-status-toggle-btn active-not-converted" data-status="not_converted">
+              <i class="fa-solid fa-xmark"></i>
+              <span>Not Converted</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Optional Fields Container -->
+        <div id="conv-details-fields" class="conv-details-fields hidden" style="display: flex; flex-direction: column; gap: 14px; background: rgba(255, 255, 255, 0.02); padding: 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 16px;">
+          <div>
+            <label for="conv-input-date" class="conv-field-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Conversion Date (Optional)</label>
+            <input type="date" id="conv-input-date" class="settings-input" style="width: 100%;" />
+          </div>
+          <div>
+            <label for="conv-input-service" class="conv-field-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Service Purchased (Optional)</label>
+            <input type="text" id="conv-input-service" class="settings-input" placeholder="e.g. Website Redesign, SEO Retainer" maxlength="200" style="width: 100%;" />
+          </div>
+          <div>
+            <label for="conv-input-value" class="conv-field-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Conversion Value / Revenue ($) (Optional)</label>
+            <input type="number" id="conv-input-value" class="settings-input" placeholder="e.g. 1500" min="0" step="any" style="width: 100%;" />
+          </div>
+          <div>
+            <label for="conv-input-notes" class="conv-field-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Short Notes (Optional)</label>
+            <textarea id="conv-input-notes" class="settings-input" placeholder="Add any deal notes or contract specifics..." rows="2" maxlength="1000" style="width: 100%; resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <div class="confirm-btn-row" style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="btn-cancel-conversion-modal" class="btn-confirm-cancel">Cancel</button>
+          <button type="button" id="btn-save-conversion-modal" class="btn-saved-primary" style="padding: 9px 20px;">
+            <i class="fa-solid fa-check"></i>
+            <span>Save Conversion</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       LEAD TAGS MANAGEMENT MODAL
+       ================================================== -->
+  <div id="modal-lead-tags" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window tags-modal-window" style="max-width: 520px; text-align: left;">
+      <div class="tags-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 223, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #00DF81; font-size: 16px;">
+            <i class="fa-solid fa-tags"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; color: #fff; font-weight: 700;">Manage Tags</h3>
+            <p id="tag-modal-lead-title" style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">Assign or remove tags</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-tag-modal" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Current Active Tags Container -->
+      <div class="tag-modal-section" style="margin-bottom: 18px;">
+        <label class="tag-modal-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">Active Tags</label>
+        <div id="tag-modal-active-list" class="tag-modal-active-list" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 38px; padding: 8px 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;">
+          <span class="tags-empty-msg" style="color: #64748b; font-size: 12px; align-self: center;">No tags assigned yet.</span>
+        </div>
+      </div>
+
+      <!-- Add New / Custom Tag Input -->
+      <div class="tag-modal-section" style="margin-bottom: 18px;">
+        <label class="tag-modal-label" for="tag-modal-input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">Add Custom Tag</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="tag-modal-input" class="settings-input" placeholder="Type tag name and press Enter..." maxlength="50" style="flex: 1;" />
+          <button type="button" id="btn-tag-modal-add" class="btn-saved-primary" style="padding: 8px 16px; font-size: 13px;">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Suggested & Existing Tags Cloud -->
+      <div class="tag-modal-section" style="margin-bottom: 20px;">
+        <label class="tag-modal-label" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">Suggested &amp; Existing Tags</label>
+        <div id="tag-modal-suggestions-cloud" class="tag-modal-cloud" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 140px; overflow-y: auto;">
+          <!-- Dynamically populated chips -->
+        </div>
+      </div>
+
+      <div class="confirm-btn-row" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" id="btn-done-tag-modal" class="btn-saved-primary" style="padding: 9px 24px;">
+          <span>Done</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
        DELETE CONFIRMATION MODAL
        ================================================== -->
   <div id="modal-delete-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
@@ -2610,6 +3933,67 @@
       <div class="confirm-btn-row">
         <button type="button" id="btn-cancel-delete" class="btn-confirm-cancel">Cancel</button>
         <button type="button" id="btn-perform-delete" class="btn-confirm-danger">Delete Leads</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       SAVED VIEW CREATE / RENAME MODAL
+       ================================================== -->
+  <div id="modal-saved-view" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window saved-view-modal-window" style="max-width: 480px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 223, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #00DF81; font-size: 16px;">
+            <i class="fa-solid fa-layer-group" id="saved-view-modal-icon"></i>
+          </div>
+          <div>
+            <h3 id="saved-view-modal-title" style="margin: 0; font-size: 16px; color: #fff; font-weight: 700;">Save View</h3>
+            <p id="saved-view-modal-subtitle" style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">Save current filter combination</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-saved-view-modal" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-saved-view" onsubmit="return false;">
+        <!-- View Name Input -->
+        <div style="margin-bottom: 16px;">
+          <label for="saved-view-name-input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">View Name</label>
+          <input type="text" id="saved-view-name-input" class="settings-input" placeholder="e.g. High Priority — No Website" maxlength="80" style="width: 100%; box-sizing: border-box;" required />
+        </div>
+
+        <!-- Captured Filters Preview Section -->
+        <div id="saved-view-preview-section" style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Captured Filter Settings</label>
+          <div id="saved-view-preview-list" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; max-height: 120px; overflow-y: auto;">
+            <!-- Filter preview badges rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="confirm-btn-row" style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="btn-cancel-saved-view-modal" class="btn-confirm-cancel">Cancel</button>
+          <button type="button" id="btn-submit-saved-view-modal" class="btn-saved-primary" style="padding: 9px 22px;">
+            <i class="fa-solid fa-check"></i>
+            <span id="btn-submit-saved-view-label">Save View</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       DELETE SAVED VIEW CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-delete-view-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window" style="max-width: 440px;">
+      <div class="confirm-icon-danger">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 class="confirm-title">Delete Saved View?</h3>
+      <p id="confirm-delete-view-desc" class="confirm-desc">Are you sure you want to delete this saved view? Only the saved filter configuration will be removed. <strong>Your leads are NEVER deleted.</strong></p>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-delete-view" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-confirm-delete-view" class="btn-confirm-danger">Delete View</button>
       </div>
     </div>
   </div>
@@ -2644,6 +4028,58 @@
   </div>
 
   <!-- ==================================================
+       BACKUP RESTORE PREVIEW & CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-backup-restore-preview" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window" style="max-width: 560px; text-align: left;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 16px;">
+            <i class="fa-solid fa-rotate-left"></i>
+          </div>
+          <div>
+            <h3 class="confirm-title" style="margin: 0; font-size: 17px; text-align: left;">Restore Backup Preview</h3>
+            <span id="restore-preview-filename" style="font-size: 11px; color: #94a3b8; font-family: monospace;"></span>
+          </div>
+        </div>
+        <button type="button" id="btn-close-restore-preview-x" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p class="confirm-desc" style="text-align: left; margin-bottom: 12px; font-size: 13px;">
+        Review the contents of this backup file before restoring:
+      </p>
+
+      <!-- Stats Grid -->
+      <div class="restore-stats-grid" id="restore-preview-stats">
+        <!-- Populated dynamically by JavaScript -->
+      </div>
+
+      <!-- Pre-Restore Safety Notice -->
+      <div class="confirm-notice-preserve" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px 14px; margin: 14px 0; font-size: 12px; color: #a7f3d0;">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <i class="fa-solid fa-shield-halved" style="color: #34d399; font-size: 14px; margin-top: 2px;"></i>
+          <div>
+            <strong>Automatic Pre-Restore Safety Snapshot:</strong> A verified safety backup of your current active data will be created automatically before restoring. If the safety backup fails, the restore is immediately aborted.
+          </div>
+        </div>
+      </div>
+
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #fca5a5;">
+        <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px; color: #f87171;"></i>
+        <span>Restoring will replace your currently active leads and settings with the records from this backup.</span>
+      </div>
+
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-restore" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-perform-restore" class="btn-confirm-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: 1px solid #38bdf8; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer;">
+          <i class="fa-solid fa-rotate-left" style="margin-right: 6px;"></i>
+          <span>Confirm & Restore</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
        REMOVE FROM FAVORITES CONFIRMATION MODAL
        ================================================== -->
   <div id="modal-unfav-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
@@ -2656,6 +4092,23 @@
       <div class="confirm-btn-row">
         <button type="button" id="btn-cancel-unfav" class="btn-confirm-cancel">Cancel</button>
         <button type="button" id="btn-perform-unfav" class="btn-confirm-danger" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: #fbbf24;">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       REMOVE FROM OUTREACH CONFIRMATION MODAL
+       ================================================== -->
+  <div id="modal-remove-outreach-confirm" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window">
+      <div class="confirm-icon-danger" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3);">
+        <i class="fa-regular fa-trash-can"></i>
+      </div>
+      <h3 id="confirm-remove-outreach-title" class="confirm-title">Remove from Outreach?</h3>
+      <p id="confirm-remove-outreach-desc" class="confirm-desc">This will remove the selected lead(s) from Outreach only. Your Saved Leads will not be affected.</p>
+      <div class="confirm-btn-row">
+        <button type="button" id="btn-cancel-remove-outreach" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-perform-remove-outreach" class="btn-confirm-danger">Remove from Outreach</button>
       </div>
     </div>
   </div>
@@ -2926,6 +4379,8 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
   <!-- ==================================================
        DEDICATED FOLLOW-UP SEND MODAL
@@ -2941,7 +4396,15 @@
             <span class="fu-modal-bizname" id="fu-modal-bizname">Business Name</span>
           </div>
         </div>
-        <button type="button" id="btn-fu-modal-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+        <div class="fu-modal-header-right">
+          <div id="fu-modal-queue-tracker" class="composer-queue-pill hidden">
+            <span class="queue-pill-label">FOLLOW-UP QUEUE</span>
+            <span class="queue-pill-step"><strong id="fu-queue-current-step">1</strong> of <strong id="fu-queue-total-step">1</strong></span>
+            <button type="button" id="btn-fu-queue-skip" class="btn-queue-mini" title="Skip this lead">Skip</button>
+            <button type="button" id="btn-fu-queue-stop" class="btn-queue-mini stop" title="Stop queue">Stop</button>
+          </div>
+          <button type="button" id="btn-fu-modal-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+        </div>
       </div>
 
       <!-- Context Sub-Bar -->
@@ -3008,16 +4471,10 @@
         </div>
         <div class="fu-confirm-buttons">
           <button type="button" class="btn-fu-confirm-yes" id="btn-fu-confirm-yes">
-            <i class="fa-solid fa-check"></i>
-            <span>YES — Message Sent</span>
+            <span>✓ Yes — Message Sent</span>
           </button>
           <button type="button" class="btn-fu-confirm-no" id="btn-fu-confirm-no">
-            <i class="fa-solid fa-xmark"></i>
-            <span>NO — Not Sent</span>
-          </button>
-          <button type="button" class="btn-confirm-not-on-wa" id="btn-fu-confirm-not-wa" title="This number is not on WhatsApp — delete lead from outreach">
-            <i class="fa-brands fa-whatsapp"></i>
-            <span>Not on WhatsApp</span>
+            <span>✕ No — Not Sent</span>
           </button>
         </div>
       </div>
@@ -3084,6 +4541,73 @@
   </div>
 
   <!-- ==================================================
+       FOLLOW-UP SNOOZE MODAL
+       ================================================== -->
+  <div id="modal-followup-snooze" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="snooze-modal-window">
+      <div class="snooze-modal-header">
+        <div class="snooze-header-left">
+          <div class="snooze-header-icon">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div class="snooze-title-group">
+            <h3 class="snooze-modal-title">Snooze Follow-Up</h3>
+            <p class="snooze-modal-subtitle">Postpone next follow-up without modifying lead data</p>
+          </div>
+        </div>
+        <button type="button" id="btn-snooze-modal-close" class="composer-close-btn" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="snooze-modal-body">
+        <div class="snooze-lead-preview">
+          <h4 class="snooze-lead-name" id="snooze-lead-biz-name">Business Name</h4>
+          <p class="snooze-lead-meta" id="snooze-lead-meta">Current schedule: Due Today</p>
+        </div>
+
+        <p class="snooze-question-prompt">Choose how long to postpone this follow-up:</p>
+
+        <div class="snooze-options-grid">
+          <button type="button" class="btn-snooze-option" data-snooze-days="1">
+            <div class="snooze-opt-icon"><i class="fa-regular fa-sun"></i></div>
+            <div class="snooze-opt-meta">
+              <strong>Snooze 1 Day</strong>
+              <span>Due tomorrow</span>
+            </div>
+          </button>
+          <button type="button" class="btn-snooze-option" data-snooze-days="3">
+            <div class="snooze-opt-icon"><i class="fa-regular fa-calendar"></i></div>
+            <div class="snooze-opt-meta">
+              <strong>Snooze 3 Days</strong>
+              <span>Give prospect breathing room</span>
+            </div>
+          </button>
+          <button type="button" class="btn-snooze-option" data-snooze-days="7">
+            <div class="snooze-opt-icon"><i class="fa-regular fa-calendar-days"></i></div>
+            <div class="snooze-opt-meta">
+              <strong>Snooze 7 Days</strong>
+              <span>Follow-up next week</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="snooze-custom-date-section">
+          <label class="snooze-custom-lbl" for="snooze-custom-date-input">Or Choose a Specific Date:</label>
+          <div class="snooze-custom-input-row">
+            <input type="date" id="snooze-custom-date-input" class="snooze-date-input" />
+            <button type="button" id="btn-snooze-apply-custom" class="btn-snooze-apply">
+              <span>Apply Custom Date</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="snooze-modal-footer">
+        <button type="button" id="btn-snooze-modal-cancel" class="btn-footer-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
        EDIT DAILY OUTREACH TARGET MODAL
        ================================================== -->
   <div id="modal-target-edit" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
@@ -3100,6 +4624,108 @@
       <div class="confirm-btn-row">
         <button type="button" id="btn-cancel-target-edit" class="btn-confirm-cancel">Cancel</button>
         <button type="button" id="btn-save-target-edit" class="btn-saved-primary" style="padding: 10px 20px;">Save Target</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       ADVANCED EXPORT MODAL
+       ================================================== -->
+  <div id="modal-export-leads" class="confirm-modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="confirm-modal-window export-modal-window" style="max-width: 480px; text-align: left; align-items: stretch; border: 1px solid rgba(16, 185, 129, 0.35);">
+      <!-- Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.14); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px solid rgba(16, 185, 129, 0.28);">
+            <i class="fa-solid fa-arrow-down-to-bracket"></i>
+          </div>
+          <div>
+            <h3 class="confirm-title" style="font-size: 17px; margin: 0; text-align: left;">Export Leads</h3>
+            <p style="font-size: 12px; color: #94a3b8; margin: 2px 0 0 0;">Safely export prospect data, activities, or backups</p>
+          </div>
+        </div>
+        <button type="button" id="btn-export-close-x" class="modal-header-close-btn" aria-label="Close dialog" title="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Scope Selection -->
+      <div class="export-form-group" style="margin-top: 8px;">
+        <label for="export-scope-select" style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+          What to Export
+        </label>
+        <div style="position: relative;">
+          <select id="export-scope-select" style="width: 100%; padding: 10px 14px; background: rgba(15, 20, 25, 0.9); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 8px; color: #ffffff; font-size: 13.5px; outline: none; appearance: none; cursor: pointer;">
+            <option value="filtered">Current Filtered Leads</option>
+            <option value="all_saved">All Saved Leads</option>
+            <option value="selected">Selected Leads</option>
+            <option value="favorites">Favorites</option>
+            <option value="outreach">Outreach Leads</option>
+            <option value="followup">Follow-Up Leads</option>
+            <option value="activity">Lead Activity Timeline</option>
+            <option value="backup">Full ClientHunter Backup</option>
+            <option value="daily_perf">Daily Performance Summary</option>
+          </select>
+          <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #71717a; font-size: 11px;">
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Format Selection -->
+      <div class="export-form-group" style="margin-top: 12px;">
+        <label style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+          Export Format
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="export-format-group">
+          <button type="button" class="export-format-btn active" data-format="csv" id="btn-format-csv" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981;">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>CSV (Spreadsheets)</span>
+          </button>
+          <button type="button" class="export-format-btn" data-format="json" id="btn-format-json" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1;">
+            <i class="fa-solid fa-code"></i>
+            <span>JSON (Structured Backup)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Preview Summary Box (Requirement 17) -->
+      <div class="export-preview-card" style="margin-top: 14px; background: rgba(15, 20, 25, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 6px;">
+          <span style="font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Export Preview</span>
+          <span id="export-preview-record-badge" style="font-size: 11px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); padding: 2px 8px; border-radius: 999px;">0 records</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 12.5px;">
+          <div>
+            <span style="color: #71717a; display: block; font-size: 11px;">Records:</span>
+            <span id="export-preview-records" style="color: #ffffff; font-weight: 600;">0</span>
+          </div>
+          <div>
+            <span style="color: #71717a; display: block; font-size: 11px;">Format:</span>
+            <span id="export-preview-format" style="color: #ffffff; font-weight: 600;">CSV</span>
+          </div>
+          <div>
+            <span style="color: #71717a; display: block; font-size: 11px;">Selection:</span>
+            <span id="export-preview-selection" style="color: #ffffff; font-weight: 600;">Current Filtered Results</span>
+          </div>
+          <div>
+            <span style="color: #71717a; display: block; font-size: 11px;">Fields:</span>
+            <span id="export-preview-fields" style="color: #ffffff; font-weight: 600;">Lead information</span>
+          </div>
+        </div>
+
+        <!-- Warning / notice banner for empty selection (e.g. 0 selected) -->
+        <div id="export-preview-notice" style="display: none; margin-top: 10px; padding: 8px 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 12px; color: #fbbf24; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="export-preview-notice-text">Select at least one lead to export.</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="confirm-btn-row" style="margin-top: 18px; width: 100%;">
+        <button type="button" id="btn-export-cancel" class="btn-confirm-cancel">Cancel</button>
+        <button type="button" id="btn-export-submit" class="btn-saved-primary" style="padding: 10px 22px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-arrow-down-to-bracket" id="icon-export-submit"></i>
+          <span id="text-export-submit">Export</span>
+        </button>
       </div>
     </div>
   </div>
@@ -3148,6 +4774,66 @@
       </div>
     </div>
   </div>
+
+  <!-- ==================================================
+       CLIENTHUNTER SIMPLE AI ASSISTANT PANEL
+       ================================================== -->
+  <aside id="ai-assistant-panel" class="ai-assistant-panel hidden" aria-label="ClientHunter AI Assistant" role="complementary">
+    <!-- Header -->
+    <div class="ai-assistant-header">
+      <div class="ai-assistant-header-title">
+        <div class="ai-sparkle-avatar">✨</div>
+        <div>
+          <h3 class="ai-title">ClientHunter AI</h3>
+          <span class="ai-subtitle">Data Intelligence & Drafting</span>
+        </div>
+      </div>
+      <div class="ai-assistant-header-actions">
+        <button type="button" id="btn-ai-clear-chat" class="btn-ai-header-action" title="Clear chat conversation only">
+          <i class="fa-solid fa-broom"></i>
+          <span>Clear Chat</span>
+        </button>
+        <button type="button" id="btn-ai-close-panel" class="btn-ai-close" title="Close assistant">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Stream -->
+    <div id="ai-messages-container" class="ai-messages-container">
+      <!-- Default Initial Greeting -->
+      <div class="ai-message-row ai-message-row-assistant">
+        <div class="ai-msg-avatar">✨</div>
+        <div class="ai-msg-bubble">
+          <p class="ai-greeting-text" style="margin: 0 0 10px 0;">Hi! How can I help?</p>
+          <div class="ai-quick-chips" id="ai-quick-chips">
+            <button type="button" class="ai-quick-chip" data-query="How did I do today?">How did I do today?</button>
+            <button type="button" class="ai-quick-chip" data-query="What should I work on next?">What should I work on next?</button>
+            <button type="button" class="ai-quick-chip" data-query="How many follow-ups are due?">Show my follow-ups</button>
+            <button type="button" class="ai-quick-chip" data-query="How many saved leads do I have?">How many leads do I have?</button>
+            <button type="button" class="ai-quick-chip" data-query="How many leads are in Outreach?">Show Outreach stats</button>
+            <button type="button" class="ai-quick-chip" data-query="Show Follow-Up stats">Show Follow-Up stats</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thinking Indicator -->
+    <div id="ai-thinking-indicator" class="ai-thinking-indicator" style="display: none;">
+      <span class="ai-thinking-dots">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="ai-thinking-text">Thinking...</span>
+    </div>
+
+    <!-- Input Footer Form -->
+    <form id="ai-input-form" class="ai-input-form" autocomplete="off">
+      <input type="text" id="ai-input-field" class="ai-input-field" placeholder="Ask something..." maxlength="500" required />
+      <button type="submit" id="btn-ai-send" class="btn-ai-send" title="Send Question">
+        <i class="fa-solid fa-arrow-up"></i>
+      </button>
+    </form>
+  </aside>
 
   <!-- ==================================================
        TOAST NOTIFICATIONS CONTAINER

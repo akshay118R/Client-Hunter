@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, Menu } = require('electron');
+const { app, BrowserWindow, shell, dialog, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -11,6 +11,10 @@ let mainWindow = null;
 let serverProcess = null;
 let serverPort = null;
 let isShuttingDown = false;
+let isRestartingBackend = false;
+let isCrashDialogOpen = false;
+let consecutiveRestartAttempts = 0;
+const MAX_RESTART_ATTEMPTS = 3;
 
 if (!gotSingleInstanceLock) {
   console.log('[ClientHunter] Another instance is already running. Exiting.');
@@ -19,6 +23,7 @@ if (!gotSingleInstanceLock) {
   app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isMaximized()) mainWindow.maximize();
       mainWindow.focus();
     }
   });
@@ -31,23 +36,7 @@ function setupAppLifecycle() {
   Menu.setApplicationMenu(null);
 
   app.whenReady().then(async () => {
-    try {
-      console.log('[ClientHunter] Desktop application initializing...');
-      const port = await resolvePort(process.env.PORT || 3000);
-      serverPort = port;
-      console.log(`[ClientHunter] Designated backend port: ${port}`);
-
-      await startBackendServer(port);
-      await waitForBackendReady(port, 30000);
-      createMainWindow(port);
-    } catch (err) {
-      console.error('[ClientHunter] Critical startup error:', err);
-      dialog.showErrorBox(
-        'Client Hunter Startup Error',
-        `Failed to launch Client Hunter local services:\n\n${err.message}\n\nPlease verify system permissions and relaunch.`
-      );
-      cleanUpAndQuit();
-    }
+    await initializeApplicationServices();
   });
 
   app.on('window-all-closed', () => {
@@ -69,6 +58,46 @@ function setupAppLifecycle() {
   });
 }
 
+async function initializeApplicationServices() {
+  try {
+    console.log('[ClientHunter] Desktop application initializing...');
+    const port = await resolvePort(process.env.PORT || 3000);
+    serverPort = port;
+    console.log(`[ClientHunter] Designated backend port: ${port}`);
+
+    await startBackendServer(port);
+    await waitForBackendReady(port, 30000);
+    consecutiveRestartAttempts = 0;
+
+    if (!mainWindow) {
+      createMainWindow(port);
+    } else {
+      mainWindow.webContents.send('backend-reconnected', { port });
+    }
+  } catch (err) {
+    console.error('[ClientHunter] Critical startup error:', err);
+    if (!isShuttingDown) {
+      const choice = dialog.showMessageBoxSync({
+        type: 'warning',
+        title: 'Client Hunter Startup Notice',
+        message: 'Failed to launch Client Hunter local services.\n\nYour data has not been modified.\n\nWould you like to retry starting local services?',
+        detail: `Error detail: ${err.message || 'Server timeout or startup failure'}`,
+        buttons: ['Retry Starting Services', 'Close Application'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true
+      });
+
+      if (choice === 0) {
+        terminateServerProcess();
+        setTimeout(() => initializeApplicationServices(), 500);
+      } else {
+        cleanUpAndQuit();
+      }
+    }
+  }
+}
+
 // 2. Port Management & Conflict Detection
 function checkPortAvailable(port) {
   return new Promise((resolve) => {
@@ -79,7 +108,7 @@ function checkPortAvailable(port) {
       .once('listening', () => {
         tester.close(() => resolve(true));
       })
-      .listen(port, '127.0.0.1');
+      .listen(port);
   });
 }
 
@@ -139,7 +168,10 @@ function startBackendServer(port) {
       PORT: String(port)
     };
 
-    if (process.resourcesPath) {
+    const rootEnv = path.join(__dirname, '..', '.env');
+    if (fs.existsSync(rootEnv)) {
+      childEnv.CLIENTHUNTER_ENV_PATH = rootEnv;
+    } else if (process.resourcesPath) {
       const resourceEnv = path.join(process.resourcesPath, '.env');
       if (fs.existsSync(resourceEnv)) {
         childEnv.CLIENTHUNTER_ENV_PATH = resourceEnv;
@@ -167,16 +199,17 @@ function startBackendServer(port) {
 
       serverProcess.on('error', (err) => {
         console.error('[ClientHunter] Server process encounter error:', err);
-        if (!isShuttingDown) {
-          reject(err);
+        if (!isShuttingDown && !isRestartingBackend) {
+          handleUnexpectedBackendCrash(null, null, err);
         }
       });
 
       serverProcess.on('exit', (code, signal) => {
         console.log(`[ClientHunter] Backend server process exited with code=${code}, signal=${signal}`);
         serverProcess = null;
-        if (!isShuttingDown) {
+        if (!isShuttingDown && !isRestartingBackend) {
           console.error('[ClientHunter] Server exited unexpectedly while application was running.');
+          handleUnexpectedBackendCrash(code, signal, null);
         }
       });
 
@@ -193,6 +226,102 @@ function startBackendServer(port) {
       reject(spawnErr);
     }
   });
+}
+
+// 3.1 Backend Crash Detection & Recovery Routines
+function handleUnexpectedBackendCrash(code, signal, err) {
+  if (isShuttingDown || isRestartingBackend) return;
+  if (isCrashDialogOpen) return;
+  isCrashDialogOpen = true;
+
+  const detailInfo = err
+    ? err.message
+    : (code !== null ? `Process exit code: ${code}` : `Signal: ${signal}`);
+  console.log(`[ClientHunter] Presenting recovery notice to user (Details: ${detailInfo})`);
+
+  const dialogOptions = {
+    type: 'warning',
+    title: 'ClientHunter Services Notice',
+    message: 'ClientHunter services stopped unexpectedly.\n\nYour data has not been deleted.\n\nYou can restart the ClientHunter services without closing the application.',
+    detail: `Details: ${detailInfo}\n\nClick "Restart Services" to reconnect immediately, or "Close Application" to exit safely.`,
+    buttons: ['Restart Services', 'Close Application'],
+    defaultId: 0,
+    cancelId: 1,
+    noLink: true
+  };
+
+  const choice = mainWindow && !mainWindow.isDestroyed()
+    ? dialog.showMessageBoxSync(mainWindow, dialogOptions)
+    : dialog.showMessageBoxSync(dialogOptions);
+
+  isCrashDialogOpen = false;
+
+  if (choice === 0) {
+    recoverBackendServices();
+  } else {
+    cleanUpAndQuit();
+  }
+}
+
+async function recoverBackendServices() {
+  if (isRestartingBackend) return;
+  isRestartingBackend = true;
+
+  consecutiveRestartAttempts++;
+  console.log(`[ClientHunter] Initiating safe backend recovery (Attempt ${consecutiveRestartAttempts}/${MAX_RESTART_ATTEMPTS})...`);
+
+  if (consecutiveRestartAttempts > MAX_RESTART_ATTEMPTS) {
+    console.error(`[ClientHunter] Max consecutive restart attempts (${MAX_RESTART_ATTEMPTS}) reached. Halting auto-recovery.`);
+    dialog.showMessageBoxSync({
+      type: 'error',
+      title: 'ClientHunter Recovery Notice',
+      message: 'ClientHunter services could not be restarted automatically.\n\nYour existing data has not been modified.\n\nPlease restart ClientHunter manually.',
+      buttons: ['Close Application'],
+      defaultId: 0,
+      noLink: true
+    });
+    cleanUpAndQuit();
+    return;
+  }
+
+  try {
+    // 1. Confirm previous server process is terminated
+    terminateServerProcess();
+    await new Promise((r) => setTimeout(r, 600));
+
+    // 2. Resolve port safely
+    const targetPort = serverPort || 3000;
+    const resolvedPort = await resolvePort(targetPort);
+    console.log(`[ClientHunter] Re-launching backend on port: ${resolvedPort}`);
+
+    // 3. Start backend process
+    await startBackendServer(resolvedPort);
+
+    // 4. Wait for readiness probe
+    await waitForBackendReady(resolvedPort, 30000);
+
+    const portChanged = serverPort !== resolvedPort;
+    serverPort = resolvedPort;
+    consecutiveRestartAttempts = 0;
+    isRestartingBackend = false;
+
+    console.log('[ClientHunter] Backend services recovered and verified ready.');
+
+    // 5. Notify frontend or reload URL if port changed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (portChanged) {
+        console.log(`[ClientHunter] Port changed from previous session. Reloading window to: http://127.0.0.1:${resolvedPort}`);
+        mainWindow.loadURL(`http://127.0.0.1:${resolvedPort}`);
+      } else {
+        console.log('[ClientHunter] Port retained. Sending "backend-reconnected" IPC signal to frontend.');
+        mainWindow.webContents.send('backend-reconnected', { port: resolvedPort });
+      }
+    }
+  } catch (recoverErr) {
+    console.error('[ClientHunter] Backend recovery attempt failed:', recoverErr);
+    isRestartingBackend = false;
+    handleUnexpectedBackendCrash(null, null, recoverErr);
+  }
 }
 
 // 4. HTTP Readiness Verification
@@ -251,11 +380,13 @@ function createMainWindow(port) {
     }
   });
 
+  mainWindow.webContents.session.clearCache().catch(() => {});
   mainWindow.loadURL(`http://127.0.0.1:${port}`);
 
   mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
     mainWindow.show();
-    console.log('[ClientHunter] Desktop window presented successfully.');
+    console.log('[ClientHunter] Desktop window presented successfully in maximized state.');
   });
 
   mainWindow.webContents.on('did-finish-load', () => {
@@ -330,3 +461,144 @@ function cleanUpAndQuit() {
     app.quit();
   }, 300);
 }
+
+// 7. Desktop Native Export IPC Handlers
+ipcMain.handle('show-save-dialog', async (event, options = {}) => {
+  if (!mainWindow) return { canceled: true };
+  return await dialog.showSaveDialog(mainWindow, options);
+});
+
+ipcMain.handle('save-export-file', async (event, payload = {}) => {
+  if (!mainWindow) {
+    return { success: false, error: 'Desktop main window is not available.' };
+  }
+
+  const { defaultFileName = 'ClientHunter_Export.csv', content = '', filters } = payload;
+
+  // Derive initial save directory: user's Downloads or Documents directory (never C:\ root)
+  let baseFolder = '';
+  try {
+    baseFolder = app.getPath('downloads') || app.getPath('documents');
+  } catch (_) {
+    baseFolder = app.getPath('userData');
+  }
+
+  // Ensure unique initial filename if file already exists in default folder
+  let targetFileName = defaultFileName;
+  const ext = path.extname(defaultFileName) || '.csv';
+  const nameBase = path.basename(defaultFileName, ext);
+  let counter = 1;
+  while (fs.existsSync(path.join(baseFolder, targetFileName))) {
+    targetFileName = `${nameBase}_${counter}${ext}`;
+    counter++;
+  }
+
+  const defaultPath = path.join(baseFolder, targetFileName);
+
+  const defaultFilters = ext.toLowerCase() === '.json'
+    ? [{ name: 'JSON Files (*.json)', extensions: ['json'] }, { name: 'All Files (*.*)', extensions: ['*'] }]
+    : [{ name: 'CSV Files (*.csv)', extensions: ['csv'] }, { name: 'All Files (*.*)', extensions: ['*'] }];
+
+  const saveResult = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export ClientHunter Lead Data',
+    defaultPath,
+    filters: filters || defaultFilters,
+    properties: ['showOverwriteConfirmation']
+  });
+
+  if (saveResult.canceled || !saveResult.filePath) {
+    return { canceled: true };
+  }
+
+  try {
+    fs.writeFileSync(saveResult.filePath, content, 'utf8');
+    console.log(`[ClientHunter] Export saved successfully to: ${saveResult.filePath}`);
+    return {
+      success: true,
+      filePath: saveResult.filePath,
+      fileName: path.basename(saveResult.filePath)
+    };
+  } catch (writeErr) {
+    console.error('[ClientHunter] Failed to write export file:', writeErr);
+    return {
+      success: false,
+      error: `Export failed. Could not save file: ${writeErr.message}`
+    };
+  }
+});
+
+// 8. Desktop Native Backup & Restore IPC Handlers
+ipcMain.handle('show-open-dialog', async (event, options = {}) => {
+  if (!mainWindow) return { canceled: true };
+  const defaultOptions = {
+    title: 'Select ClientHunter Backup File',
+    filters: [
+      { name: 'JSON Backup Files (*.json)', extensions: ['json'] },
+      { name: 'All Files (*.*)', extensions: ['*'] }
+    ],
+    properties: ['openFile']
+  };
+  return await dialog.showOpenDialog(mainWindow, { ...defaultOptions, ...options });
+});
+
+ipcMain.handle('read-backup-file', async (event, filePath) => {
+  if (!filePath || typeof filePath !== 'string') {
+    return { success: false, error: 'Invalid file path specified.' };
+  }
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return { success: true, content, fileName: path.basename(filePath), filePath };
+  } catch (err) {
+    console.error('[ClientHunter] Error reading backup file:', err);
+    return { success: false, error: `Could not read file: ${err.message}` };
+  }
+});
+
+ipcMain.handle('save-backup-file', async (event, payload = {}) => {
+  if (!mainWindow) {
+    return { success: false, error: 'Desktop main window is not available.' };
+  }
+
+  const { defaultFileName = 'ClientHunter_Backup.json', content = '' } = payload;
+
+  let baseFolder = '';
+  try {
+    baseFolder = app.getPath('documents') || app.getPath('downloads');
+  } catch (_) {
+    baseFolder = app.getPath('userData');
+  }
+
+  const defaultPath = path.join(baseFolder, defaultFileName);
+
+  const saveResult = await dialog.showSaveDialog(mainWindow, {
+    title: 'Save ClientHunter Backup File',
+    defaultPath,
+    filters: [
+      { name: 'JSON Backup Files (*.json)', extensions: ['json'] },
+      { name: 'All Files (*.*)', extensions: ['*'] }
+    ],
+    properties: ['showOverwriteConfirmation']
+  });
+
+  if (saveResult.canceled || !saveResult.filePath) {
+    return { canceled: true };
+  }
+
+  try {
+    fs.writeFileSync(saveResult.filePath, content, 'utf8');
+    console.log(`[ClientHunter] Backup saved successfully to: ${saveResult.filePath}`);
+    return {
+      success: true,
+      filePath: saveResult.filePath,
+      fileName: path.basename(saveResult.filePath)
+    };
+  } catch (writeErr) {
+    console.error('[ClientHunter] Failed to write backup file:', writeErr);
+    return {
+      success: false,
+      error: `Could not save backup file: ${writeErr.message}`
+    };
+  }
+});
+
+

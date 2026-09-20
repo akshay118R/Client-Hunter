@@ -60,6 +60,7 @@ CREATE POLICY "Allow anon delete" ON public.leads
 
 -- Indexes for lightning-fast lookup and strict uniqueness
 CREATE UNIQUE INDEX IF NOT EXISTS leads_place_id_idx ON public.leads (place_id);
+CREATE INDEX IF NOT EXISTS leads_phone_idx ON public.leads (phone);
 CREATE INDEX IF NOT EXISTS leads_category_idx ON public.leads (category);
 CREATE INDEX IF NOT EXISTS leads_city_idx ON public.leads (city);
 CREATE INDEX IF NOT EXISTS leads_created_at_idx ON public.leads (created_at DESC);
@@ -81,5 +82,5 @@ ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS reply_status TEXT;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS replied_at TIMESTAMPTZ;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS outreach_completed_at TIMESTAMPTZ;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS message_history JSONB DEFAULT '[]'::jsonb;
-
-
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS notes JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS activities JSONB DEFAULT '[]'::jsonb;
