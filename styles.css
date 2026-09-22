@@ -5886,6 +5886,12 @@ body:not([data-view="favorites"]) #fav-bulk-bar {
   flex-wrap: wrap;
 }
 
+.outreach-filter-bar .outreach-pagination-bottom {
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
 .outreach-search-wrap {
   flex: 1;
   min-width: 170px;

@@ -69,7 +69,10 @@
       tagFilter: 'ALL',
       smartQueueActive: false,
       currentComposerLead: null,
-      isFollowUpComposer: false
+      isFollowUpComposer: false,
+      page: 1,
+      rowsPerPage: 25,
+      lastFilteredCount: 0
     },
     outreachQueue: {
       isActive: false,
@@ -8247,6 +8250,23 @@
       });
     }
 
+    const totalFiltered = leads.length;
+    AppState.outreach.lastFilteredCount = totalFiltered;
+    const allOutreachLeads = getActiveOutreachList();
+    const totalAll = allOutreachLeads.length;
+    const isFiltered = (AppState.outreach.searchQuery || '').trim() !== '' ||
+      AppState.outreach.categoryFilter !== 'ALL' ||
+      AppState.outreach.siteFilter !== 'ALL' ||
+      AppState.outreach.priorityFilter !== 'ALL' ||
+      AppState.outreach.conversionFilter !== 'ALL' ||
+      AppState.outreach.tagFilter !== 'ALL';
+
+    const showingIndicator = document.getElementById('outreach-showing-indicator');
+    const rowsChoice = document.getElementById('outreach-rows-choice');
+    if (rowsChoice && AppState.outreach.rowsPerPage) {
+      rowsChoice.value = String(AppState.outreach.rowsPerPage);
+    }
+
     if (leads.length === 0) {
       container.innerHTML = '';
       if (emptyState) {
@@ -8256,6 +8276,10 @@
         if (emptyTitle) emptyTitle.textContent = "You're all caught up.";
         if (emptyDesc) emptyDesc.textContent = "New saved leads will appear here when they're ready for outreach.";
       }
+      if (showingIndicator) {
+        showingIndicator.textContent = isFiltered ? `Showing 0 of ${totalAll} leads` : 'Showing 0 leads';
+      }
+      renderOutreachPaginationButtons(0, 1, AppState.outreach.rowsPerPage || 25);
       AppState.outreach.selectedLeadIds.clear();
       updateOutreachBulkControls();
       return;
@@ -8263,7 +8287,32 @@
 
     if (emptyState) emptyState.classList.add('hidden');
 
-    const html = leads.map((lead) => {
+    const perPage = AppState.outreach.rowsPerPage || 25;
+    const maxPage = Math.max(1, Math.ceil(totalFiltered / perPage));
+    if (AppState.outreach.page > maxPage) {
+      AppState.outreach.page = maxPage;
+    }
+    if (AppState.outreach.page < 1) {
+      AppState.outreach.page = 1;
+    }
+    const page = AppState.outreach.page;
+    const startIndex = (page - 1) * perPage;
+    const endIndex = Math.min(startIndex + perPage, totalFiltered);
+    const visibleLeads = leads.slice(startIndex, endIndex);
+
+    if (showingIndicator) {
+      if (isFiltered) {
+        if (totalFiltered <= perPage) {
+          showingIndicator.textContent = `Showing ${totalFiltered} of ${totalAll} leads`;
+        } else {
+          showingIndicator.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalFiltered} leads (${totalFiltered} of ${totalAll} filtered)`;
+        }
+      } else {
+        showingIndicator.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalAll} leads`;
+      }
+    }
+
+    const html = visibleLeads.map((lead) => {
       const leadId = lead.id || lead.place_id;
       const isActive = leadId === AppState.outreach.activeLeadId;
       const isChecked = AppState.outreach.selectedLeadIds.has(leadId);
@@ -8318,7 +8367,41 @@
     }).join('');
 
     container.innerHTML = html;
+    renderOutreachPaginationButtons(totalFiltered, page, perPage);
     updateOutreachBulkControls();
+  }
+
+  function renderOutreachPaginationButtons(total, currentPage, perPage) {
+    const container = document.getElementById('outreach-page-nums-list');
+    const prevBtn = document.getElementById('btn-outreach-page-prev');
+    const nextBtn = document.getElementById('btn-outreach-page-next');
+    if (!container) return;
+
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+    container.innerHTML = '';
+
+    // Show up to 5 page numbers (identical to Saved Leads)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `btn-page-num ${p === currentPage ? 'active' : ''}`;
+      btn.textContent = p;
+      btn.addEventListener('click', () => {
+        AppState.outreach.page = p;
+        renderOutreachCards();
+      });
+      container.appendChild(btn);
+    }
   }
 
   function updateOutreachBulkControls() {
@@ -10229,6 +10312,7 @@
         if (outreachSearchDebounceTimer) clearTimeout(outreachSearchDebounceTimer);
         outreachSearchDebounceTimer = setTimeout(() => {
           AppState.outreach.searchQuery = val;
+          AppState.outreach.page = 1;
           renderOutreachCards();
         }, 180);
       });
@@ -10238,6 +10322,7 @@
         if (outreachSearchDebounceTimer) clearTimeout(outreachSearchDebounceTimer);
         if (searchInput) searchInput.value = '';
         AppState.outreach.searchQuery = '';
+        AppState.outreach.page = 1;
         clearSearch.classList.add('hidden');
         renderOutreachCards();
       });
@@ -10247,6 +10332,7 @@
     if (catFilter) {
       catFilter.addEventListener('change', () => {
         AppState.outreach.categoryFilter = catFilter.value;
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10255,6 +10341,7 @@
     if (siteFilter) {
       siteFilter.addEventListener('change', () => {
         AppState.outreach.siteFilter = siteFilter.value;
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10263,6 +10350,7 @@
     if (priFilter) {
       priFilter.addEventListener('change', () => {
         AppState.outreach.priorityFilter = priFilter.value;
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10271,6 +10359,7 @@
     if (convFilter) {
       convFilter.addEventListener('change', () => {
         AppState.outreach.conversionFilter = convFilter.value;
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10279,6 +10368,7 @@
     if (outreachTagFilter) {
       outreachTagFilter.addEventListener('change', () => {
         AppState.outreach.tagFilter = outreachTagFilter.value;
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10293,6 +10383,7 @@
           'info',
           2000
         );
+        AppState.outreach.page = 1;
         renderOutreachCards();
       });
     }
@@ -10332,6 +10423,37 @@
     const emptyGotoSaved = document.getElementById('btn-outreach-goto-saved');
     if (emptyGotoSaved) {
       emptyGotoSaved.addEventListener('click', () => switchView('saved-leads'));
+    }
+
+    // 6b. Outreach Pagination & Rows per page
+    const outreachRowsChoice = document.getElementById('outreach-rows-choice');
+    if (outreachRowsChoice) {
+      outreachRowsChoice.addEventListener('change', function () {
+        AppState.outreach.rowsPerPage = parseInt(this.value, 10) || 25;
+        AppState.outreach.page = 1;
+        renderOutreachCards();
+      });
+    }
+
+    const prevOutreachPageBtn = document.getElementById('btn-outreach-page-prev');
+    const nextOutreachPageBtn = document.getElementById('btn-outreach-page-next');
+    if (prevOutreachPageBtn) {
+      prevOutreachPageBtn.addEventListener('click', () => {
+        if (AppState.outreach.page > 1) {
+          AppState.outreach.page--;
+          renderOutreachCards();
+        }
+      });
+    }
+    if (nextOutreachPageBtn) {
+      nextOutreachPageBtn.addEventListener('click', () => {
+        const total = AppState.outreach.lastFilteredCount || 0;
+        const maxPage = Math.ceil(total / (AppState.outreach.rowsPerPage || 25));
+        if (AppState.outreach.page < maxPage) {
+          AppState.outreach.page++;
+          renderOutreachCards();
+        }
+      });
     }
 
     // 7. Workspace Send Message (Primary Emerald Button)
@@ -11964,9 +12086,11 @@
             lead.activities = data.activities;
           }
         }).catch(err => console.warn('Dedicated followup_not_sent activity record notice:', err));
-        closeDedicatedFollowUpModal();
-        if (AppState.followup.queue?.isActive) {
+        if (AppState.followup.queue?.isActive && AppState.followup.queue.leads?.length > 1) {
           openFollowUpQueueLead(AppState.followup.queue.currentIndex + 1);
+        } else {
+          if (AppState.followup.queue) AppState.followup.queue.isActive = false;
+          closeDedicatedFollowUpModal();
         }
         return;
       }
@@ -12008,13 +12132,20 @@
         const favMatch = AppState.favoriteLeads.find((l) => (String(l.id) === String(leadId) || (l.place_id && String(l.place_id) === String(leadId))));
         if (favMatch && json.lead) Object.assign(favMatch, json.lead);
 
+        if (AppState.followup.selectedLeadIds) {
+          AppState.followup.selectedLeadIds.delete(leadId);
+          AppState.followup.selectedLeadIds.delete(String(leadId));
+        }
+
         updateFollowUpCounters();
         renderFollowUpCards();
         updateBadgeCounts();
-        closeDedicatedFollowUpModal();
 
-        if (AppState.followup.queue?.isActive) {
+        if (AppState.followup.queue?.isActive && AppState.followup.queue.leads?.length > 1) {
           openFollowUpQueueLead(AppState.followup.queue.currentIndex + 1);
+        } else {
+          if (AppState.followup.queue) AppState.followup.queue.isActive = false;
+          closeDedicatedFollowUpModal();
         }
       } else {
         showToast(json.error || 'Failed to record follow-up.', 'error', 3000);
@@ -12197,7 +12328,8 @@
     const isReplied = Boolean(freshLead.reply_status === 'INTERESTED' || freshLead.reply_status === 'NOT_INTERESTED' || freshLead.reply_status === 'OTHER' || freshLead.outreach_status === 'Replied');
     const isCompleted = Boolean(freshLead.follow_up_completed || freshLead.outreach_status === 'Completed');
     const isStopped = Boolean(freshLead.outreach_status === 'Stopped' || freshLead.stopped === true);
-    if (isReplied || isCompleted || isStopped) {
+    const isPaused = Boolean(freshLead.follow_up_paused || freshLead.followUpPaused);
+    if (isReplied || isCompleted || isStopped || isPaused) {
       openFollowUpQueueLead(index + 1);
       return;
     }
