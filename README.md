@@ -15,23 +15,29 @@
 
 ## ⚡ Overview
 
-**Client Hunter** is an enterprise-grade, high-velocity B2B revenue and client acquisition desktop workstation. Built specifically for digital agencies, web developers, marketing consultants, and B2B service providers, it discovers high-intent local business prospects across India, scores digital opportunity potential, conducts automated deep AI audits, and executes high-converting WhatsApp pitches and scheduled follow-up cadences.
+**Client Hunter** is an enterprise-grade, high-velocity B2B revenue and client acquisition desktop workstation. Built specifically for digital agencies, web developers, marketing consultants, and B2B service providers, it discovers high-intent local business prospects across India, scores digital opportunity potential, conducts automated deep AI audits, and executes multi-channel client acquisition via **100% ban-proof WhatsApp outreach** and a **dedicated mobile-first Cold Calling workspace**.
 
-Operating as an offline-first Windows desktop application with self-healing backend processes, Client Hunter guarantees **zero data loss** through dual-tier persistence (local disk snapshotting + optional Supabase cloud synchronization) while adhering to a **100% ban-proof WhatsApp outreach protocol**.
+Operating as an offline-first Windows desktop application with self-healing backend processes, Client Hunter guarantees **zero data loss** through dual-tier persistence (local disk snapshotting + optional Supabase cloud synchronization), granular **modular category data reset controls**, and an in-app **ClientHunter AI Assistant** for real-time performance intelligence and contextual pitch drafting.
 
 ---
 
 ## 🚀 End-to-End Client Acquisition Pipeline
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["📍 Hyper-Local Discovery<br/>(Google Places API New)"] --> B["🔥 Opportunity Scoring<br/>(0–100 Digital Gap Score)"]
     B --> C["🧠 Gemini AI Copilot<br/>(Deep Audit & Pitch Lab)"]
+    
     C --> D["💬 1-Click WhatsApp Outreach<br/>(Anti-Ban Protocol via wa.me)"]
+    C --> CC["📞 Cold Call Workspace<br/>(Split Terminal & Dialing Copilot)"]
+    
     D --> E["📅 14-Day Cadence Engine<br/>(Smart Timers & Follow-ups)"]
+    CC --> E
+    
     E --> F{"Client Response"}
     F -- "Objection" --> G["💡 AI Objection Handler<br/>(Instant Rebuttal Engine)"]
     G --> D
+    G --> CC
     F -- "Interested / Book Call" --> H["🏆 Deal Won<br/>(Revenue Added to Pipeline)"]
 ```
 
@@ -64,14 +70,28 @@ flowchart LR
   * *"Call or contact me next month."*
 * **Contextual Pitch Synthesis**: Powered by Google's **Gemini 3.8 Flash** engine, personalizing pitches based on rating, location, category, and dynamically enabled agency services.
 
-### 4. 💬 100% Anti-Ban WhatsApp Outreach Terminal
+### 4. 📞 Cold Call Workspace & Mobile Calling Terminal
+* **2-Column Split Workspace**: Dedicated calling terminal with a filterable queue on the left (Calling Status, Priority, Category, live search, rows choice) and an active calling cockpit on the right.
+* **Mobile-First Calling Flow**: Normalized E.164 phone numbers with 1-click clipboard copy (`btn-cc-copy-phone`), clear guidance to dial from mobile, and immediate outcome logging.
+* **Granular Outcome Logging**: Record precise call outcomes with single-click chips:
+  * *Interested* — logs qualified interest and flags for follow-up
+  * *Call Back Later* — reveals date and time picker to schedule the callback
+  * *Not Interested* — marks prospect and halts calling sequence
+  * *No Answer* & *Wrong Number* — tracks connection status
+  * *Converted* — marks lead as converted with live timestamp
+* **Interactive Call Scripts**: Collapsible reference script with variable interpolation (`{businessName}`), instant clipboard copy, and inline customization editor with reset capability.
+* **Integrated Audit Timeline & Notes**: Automatically writes call outcome records, discussion summaries, and callback alerts to the lead's permanent activity timeline and notes stream.
+* **Dedicated Recent Activity Table**: Full-width audit log showing chronological calling history with business name, date/time, color-coded outcome badges, and call notes.
+* **Dedicated Cold Call Backup & Safety**: Dedicated JSON export endpoint (`/api/coldcall/export`) and non-destructive lead unqueueing with 1-click tokenized undo recovery (`/api/coldcall/undo-remove`).
+
+### 5. 💬 100% Anti-Ban WhatsApp Outreach Terminal
 * **Compliant `wa.me` Deep-Linking Protocol**: Launches messages directly via WhatsApp Web or native WhatsApp Desktop with zero headless browser automation or unauthorized API scraping — eliminating SIM ban risks.
 * **Outreach Sequence Queue**: Batch-pitch queued leads sequentially with single-click advancement, keeping focus uninterrupted.
 * **11 Field-Tested Pitch Templates**: Curated library with dynamic variable interpolation (`{businessName}`, `{category}`, `{city}`, `{my_name}`, `{my_company}`, `{portfolio_url}`, `{my_services}`).
 * **Outcome & Conversion Tracking**: Log call and message statuses (*Contacted*, *Replied*, *Interested*, *Not Interested*, *Not on WhatsApp*).
 * **Activity Timeline & Instant Undo**: Complete chronological audit trail with instant undo recovery for accidentally deleted leads or outreach records.
 
-### 5. 📅 Day-Anchored 14-Day Cadence Engine
+### 6. 📅 Day-Anchored 14-Day Cadence Engine
 * **Automated Multi-Touch Follow-Up Schedule**: Systematically anchored to Day 0 (Initial Pitch):
   * **Day 0**: Initial Outreach Pitch
   * **Day 2**: Follow-Up #1 — *Gentle Nudge*
@@ -83,31 +103,55 @@ flowchart LR
 * **"Stop on Reply" Protection**: Progresses automatically halt as soon as a lead responds, preventing awkward duplicate pitches.
 * **Configurable Smart Dispatch Timers**: Power-user automation controls with customizable countdown delays (*Immediate 0s*, *3s*, *5s*, *10s*, *15s*, *20s*, *30s*).
 
-### 6. 🗃️ Terminal Lead Management & Advanced Filtering
+### 7. ✨ ClientHunter AI Assistant (In-App Intelligence & Copilot)
+* **Built-in Conversational Assistant**: Slide-out panel (`#ai-assistant-panel`) accessible from the header, dashboard, or keyboard shortcuts.
+* **Ground-Truth Verified Data**: Queries exact real-time database numbers for zero-hallucination answers to questions like *"How did I do today?"*, *"What should I work on next?"*, *"How many follow-ups are due?"*, or *"Show Outreach stats"*.
+* **Lead-Contextual Drafting**: When inspecting an active lead, ClientHunter AI examines the business name, category, website gap, and notes to draft bespoke pitches on demand.
+* **Actionable Navigation Triggers**: Generates interactive quick-navigation buttons in chat bubbles (e.g. `[Open Follow-Ups]`, `[Open Outreach]`, `[Open Saved Leads]`, `[Open API Settings]`).
+* **Conversation Management**: Quick suggestion prompt chips and one-click chat history clearing.
+
+### 8. ⚡ Floating Bulk Action Bars & High-Velocity Pagination
+* **Universal Floating Action Bars**: Context-aware floating pill action bars for:
+  * **Saved Leads**: *Move to Outreach*, *Add to Cold Call*, *Delete*, *Cancel*
+  * **Favorite Leads**: *Remove from Favorites*, *Send Message*, *Delete*, *Cancel*
+  * **Outreach Queue**: *Send Message*, *Add to Cold Call*, *Delete*, *Cancel*
+  * **Follow-Up Pipeline**: *Pause*, *Resume*, *Send Follow-Ups*, *Cancel*
+  * **Cold Call Queue**: *Remove from Cold Call*, *Cancel*
+* **Configurable Rows Per Page**: Switch between **10**, **25**, **50**, or **100** rows per page across Saved Leads, Favorites, Outreach, Follow-Up, and Cold Call views.
+* **Minimal Floating "Go To Top"**: Instant smooth scroll navigation back to the top of long data views.
+
+### 9. 🗃️ Terminal Lead Management & Advanced Filtering
 * **High-Performance Offline Table**: Virtualized list handling thousands of leads with instant search and multi-column sorting.
 * **Multi-Dimensional Query Filter**: Filter simultaneously by opportunity tier, rating range, review count, geographical region, website presence, and outreach state.
 * **Dynamic Color Tags & Notes**: Multi-line timestamped notes and custom color badges for granular lead classification.
 * **Saved Views**: Persist and recall complex filter criteria in a single click across desktop sessions.
 * **1-Click Favorites**: Dedicated high-priority prospect vault with bulk actions.
 
-### 7. 📊 Performance Analytics & Revenue Dashboard
+### 10. 📊 Performance Analytics & Revenue Dashboard
 * **Velocity Metrics**: Real-time tracking of leads discovered, messages sent, response rates, and pipeline progression.
 * **Daily Target Milestone Bars**: Visual pacing indicators against daily prospecting goals.
 * **Pipeline Valuation Tracker**: Live INR (₹) revenue estimates based on active negotiations and won deals.
 * **System Health Diagnostics**: Live reporting of database integrity, connection status, and API availability.
 
-### 8. 🛡️ Dual-Tier Hybrid Persistence & Disaster Recovery
+### 11. 🛡️ Dual-Tier Hybrid Persistence & Modular Data Reset Engine
 * **Isolated Data Runtime**: All user data, notes, activity history, and settings live securely in `%APPDATA%\clienthunter\data\leads_store.json`, safe from application updates and binary reinstalls.
+* **Granular Category-Level Data Reset**: Reset individual system areas without risking master database integrity:
+  * *Saved Leads* — removes master leads database and dependent outreach while keeping settings, search sessions, and API keys intact.
+  * *Cold Call* — clears calling queue and call outcome records only.
+  * *Outreach* — resets outreach progression and tracking while keeping saved leads intact.
+  * *Favorites* — unstars prospects without modifying records.
+  * *Follow-Up* — resets cadence schedules and pause states without deleting leads.
+  * *History* — purges search query sessions only.
+  * *Settings* — restores preferences, templates, and profile to defaults.
+  * *Reset Everything* — isolated high-risk Danger Zone action requiring explicit modal confirmation.
+* **Pre-Reset & Pre-Write Safety Snapshots**: Automatically creates an emergency snapshot (`leads_store_last_valid.json` and timestamped backups) before any reset or disk write.
 * **Supabase Cloud Sync (Optional)**: Bidirectional cloud synchronization for remote PostgreSQL backups and multi-device access.
-* **1-Click Safety Snapshots**: Export version-controlled JSON snapshots stripped of secret API keys.
-* **Pre-Restore Rollback Shield**: Automatically creates an emergency snapshot prior to any restore action.
-* **Disaster Recovery Failover**: In the event of an unexpected power cut or storage corruption, Client Hunter automatically restores from `leads_store_last_valid.json`.
 
-### 9. 📤 RFC 4180 Advanced Export Engine
+### 12. 📤 RFC 4180 Advanced Export Engine
 * **28-Column Full CRM CSV**: Comprehensive export formatted strictly to RFC 4180 specifications.
 * **Indian Unicode & ₹ Rupee Support**: Includes UTF-8 BOM (`\uFEFF`) to ensure Excel and Google Sheets render Hindi, Telugu, and ₹ currency symbols flawlessly.
 * **Data Sanitization & Format Guard**: Preserves leading zeroes on STD codes and phone numbers (`+91` / `040`) and safely escapes commas and multiline notes.
-* **7 Granular Export Scopes**: Export All Saved Leads, Filtered Results, Selected Rows, Favorites, Outreach Queue, Follow-Up Pipeline, or Full JSON System Backups.
+* **8 Granular Export Scopes**: Export All Saved Leads, Filtered Results, Selected Rows, Favorites, Outreach Queue, Follow-Up Pipeline, Dedicated Cold Call Backup, or Full JSON System Backups.
 
 ---
 
@@ -120,8 +164,12 @@ flowchart LR
 | **Opportunity Qualification** | None (raw data dump) | Manual inspection | **Automated 0–100 Opportunity Score** |
 | **Deep AI Pitch Audits** | ❌ No | ❌ No | **✅ Gemini 3.8 Flash B2B Audits** |
 | **WhatsApp Ban Risk** | 🚨 High (Unregulated Bots) | Low (Tiring & slow) | **🛡️ Zero (100% Compliant wa.me)** |
+| **Cold Calling Terminal** | ❌ No | ❌ Scrambled phone dials | **✅ Mobile-First Split Terminal** |
+| **In-App AI Copilot** | ❌ No | ❌ No | **✅ Ground-Truth Verified AI** |
 | **AI Objection Handler** | ❌ No | ❌ No | **✅ 1-Click WhatsApp Rebuttal Engine** |
 | **Cadence Automation** | ❌ Manual spreadsheets | ❌ Easy to forget | **✅ 14-Day Day-Anchored Cadence** |
+| **Floating Bulk Action Bars** | ❌ No | ❌ No | **✅ Universal Floating Action Bars** |
+| **Modular Category Reset** | ❌ Nuclear data delete only | ❌ Manual row delete | **✅ 8 Isolated Category Resets** |
 | **Data Safety & Offline Mode** | ❌ Cloud-dependent / Fragile | ❌ Lost in chat tabs | **✅ Dual-Tier Hybrid Persistence** |
 | **Indian Localization (₹ & Unicode)** | ❌ Often garbled | Manual | **✅ Native UTF-8 BOM + INR Pipeline** |
 
@@ -132,11 +180,11 @@ flowchart LR
 | Layer | Technology | Role & Architecture |
 | :--- | :--- | :--- |
 | **Desktop Shell** | Electron 44.4.1 | Native Windows container, maximized startup, single-instance lock, backend lifecycle supervision |
-| **Backend API** | Node.js & Express 5.2 | Local REST API, input validation, automated snapshotting, failover recovery |
+| **Backend API** | Node.js & Express 5.2 | Local REST API, input validation, automated snapshotting, failover recovery, modular reset engine |
 | **Frontend UI** | HTML5 & Vanilla CSS3 | Modern glassmorphism dark theme, custom design tokens, micro-interactions, zero framework overhead |
-| **Client Logic** | Vanilla JavaScript | State machine architecture with instant DOM reactivity |
+| **Client Logic** | Vanilla JavaScript | State machine architecture with instant DOM reactivity and virtualized queue handling |
 | **Cloud Database** | Supabase (PostgreSQL) | Optional cloud backup, sync layer, and multi-machine persistence |
-| **AI Engine** | Google Gemini 3.8 Flash | B2B lead audits, pitch personalization, objection rebuttals, follow-up copy |
+| **AI Engine** | Google Gemini 3.8 Flash | B2B lead audits, pitch personalization, objection rebuttals, conversational in-app copilot |
 | **Places Engine** | Google Places API (New) | Hyper-local business discovery and geolocation queries |
 | **Packaging** | Electron Builder 26.15.3 | Automated generation of NSIS installer (`.exe`) and portable standalone binaries |
 

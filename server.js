@@ -341,6 +341,21 @@ function normalizePhoneNumber(phone) {
   return digits.length >= 7 ? digits : null;
 }
 
+function formatContactPhone(phone) {
+  if (!phone || typeof phone !== 'string') return phone || '';
+  let trimmed = phone.trim();
+  if (!trimmed || trimmed === 'Not available' || trimmed === 'N/A' || trimmed === 'No phone number') {
+    return trimmed;
+  }
+  if (trimmed.startsWith('0')) {
+    return '+91 ' + trimmed.replace(/^0\s*/, '');
+  }
+  if (/^\+91\s*0/.test(trimmed)) {
+    return '+91 ' + trimmed.replace(/^\+91\s*0\s*/, '');
+  }
+  return trimmed;
+}
+
 function normalizeBusinessName(name) {
   if (!name || typeof name !== 'string') return '';
   return name
@@ -1516,7 +1531,8 @@ app.post('/api/leads/search', async (req, res) => {
 
           // Candidate Qualification: NO WEBSITE + VALID PHONE
           if (isQualifiedLead(p)) {
-            const phone = (p.nationalPhoneNumber || p.internationalPhoneNumber || '').trim();
+            const rawPhone = (p.nationalPhoneNumber || p.internationalPhoneNumber || '').trim();
+            const phone = formatContactPhone(rawPhone);
             let leadCity = city;
             if (isEntireState) {
               leadCity = state;
@@ -1665,7 +1681,8 @@ app.post('/api/leads/search', async (req, res) => {
             dailyTracker.candidatesChecked++;
 
             if (isQualifiedLead(p)) {
-              const phone = (p.nationalPhoneNumber || p.internationalPhoneNumber || '').trim();
+              const rawPhone = (p.nationalPhoneNumber || p.internationalPhoneNumber || '').trim();
+              const phone = formatContactPhone(rawPhone);
               const opp = calculateOpportunityScore(false, true, p.rating, p.userRatingCount);
 
               const leadRecord = {
@@ -1831,6 +1848,7 @@ app.post('/api/leads/save', async (req, res) => {
     const cleanLead = {
       ...lead,
       id: lead.id || lead.place_id || 'lead_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      phone: formatContactPhone(lead.phone || lead.nationalPhoneNumber || lead.internationalPhoneNumber || 'Not available'),
       status: lead.status || 'New',
       outreach_status: lead.outreach_status || 'Pending',
       favorite: Boolean(lead.favorite),
@@ -2181,6 +2199,7 @@ app.get('/api/leads/saved', async (req, res) => {
     favoritesCount,
     leads: results.map((l) => ({
       ...l,
+      phone: formatContactPhone(l.phone || l.phone_number || ''),
       priority: l.priority || 'Medium',
       contact_outcome: l.contact_outcome || null,
       contact_outcome_reason: l.contact_outcome_reason || '',
@@ -2260,6 +2279,398 @@ app.delete('/api/leads/reset', async (req, res) => {
     return res.status(500).json({
       success: false,
       error: `Server error during lead reset: ${err.message}`
+    });
+  }
+});
+
+// 5.9b Unified Category-Level Data Reset Engine
+app.post('/api/reset/:category', async (req, res) => {
+  const { category } = req.params;
+  const allowedCategories = [
+    'saved-leads',
+    'cold-call',
+    'outreach',
+    'favorites',
+    'followup',
+    'history',
+    'settings',
+    'everything'
+  ];
+
+  if (!allowedCategories.includes(category)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid reset category: '${category}'. Allowed categories: ${allowedCategories.join(', ')}`
+    });
+  }
+
+  try {
+    if (storeStatus === 'failed') {
+      return res.status(500).json({
+        success: false,
+        error: 'ClientHunter could not safely perform reset: Persistent store is in a failed load state.'
+      });
+    }
+
+    const store = getStoredData();
+    if (!store) {
+      return res.status(500).json({
+        success: false,
+        error: 'Persistent store is unavailable.'
+      });
+    }
+
+    createPreWriteBackup();
+    const nowIso = new Date().toISOString();
+    let affectedCount = 0;
+    let message = '';
+
+    switch (category) {
+      case 'saved-leads': {
+        // 1. Remove all Saved Leads (Master lead records)
+        // Dependent tracking in store.outreach is also cleared since it points to these leads.
+        // Search sessions, settings, and API configuration remain 100% intact.
+        const initialLeadCount = Array.isArray(store.leads) ? store.leads.length : 0;
+        let supaDeletedCount = 0;
+
+        if (supabase) {
+          const { error: supaError, count } = await supabase
+            .from('leads')
+            .delete({ count: 'exact' })
+            .not('id', 'is', null);
+
+          if (supaError) {
+            console.error('Supabase lead reset error:', supaError);
+            return res.status(500).json({
+              success: false,
+              error: `Database reset failed: ${supaError.message || 'Supabase error'}`
+            });
+          }
+          supaDeletedCount = count ?? initialLeadCount;
+        }
+
+        store.leads = [];
+        store.outreach = [];
+        store.__allowEmptyReset = true;
+        saveStoredData(store, true);
+        delete store.__allowEmptyReset;
+
+        if (cachedKnownPlaceIds) cachedKnownPlaceIds.clear();
+        lastPlaceIdsRefresh = 0;
+
+        affectedCount = supaDeletedCount || initialLeadCount;
+        message = 'Saved Leads removed successfully.';
+        break;
+      }
+
+      case 'cold-call': {
+        // 2. Remove Cold Call queue and call outcome records only.
+        // Saved Leads remain 100% intact.
+        if (Array.isArray(store.leads)) {
+          for (const lead of store.leads) {
+            if (lead.cold_call) {
+              if (lead.cold_call.queued || lead.cold_call.status !== 'Not Called' || lead.cold_call.outcome) {
+                affectedCount++;
+              }
+              lead.cold_call = {
+                queued: false,
+                status: 'Not Called',
+                added_at: null,
+                last_call_at: null,
+                outcome: null,
+                callback_at: null,
+                reason: null,
+                notes: ''
+              };
+              lead.updated_at = nowIso;
+            }
+          }
+        }
+        saveStoredData(store, true);
+        message = 'Cold Call queue and records cleared successfully.';
+        break;
+      }
+
+      case 'outreach': {
+        // 3. Remove/reset Outreach records and Outreach tracking only.
+        // Saved Leads remain 100% intact.
+        if (Array.isArray(store.leads)) {
+          for (const lead of store.leads) {
+            if (lead.outreach_status && lead.outreach_status !== 'Pending') {
+              affectedCount++;
+            }
+            lead.outreach_status = 'Pending';
+            lead.first_message_sent = false;
+            lead.first_message_sent_at = null;
+            lead.main_message_sent_at = null;
+            lead.last_message_sent_at = null;
+            lead.last_message_type = null;
+            lead.last_message_text = null;
+            lead.next_follow_up_at = null;
+            lead.next_follow_up_number = null;
+            lead.next_follow_up_name = null;
+            lead.follow_up_completed = false;
+            lead.reply_status = null;
+            lead.replied_at = null;
+            lead.outreach_completed_at = null;
+            lead.message_history = [];
+            lead.updated_at = nowIso;
+          }
+        }
+        store.outreach = [];
+        saveStoredData(store, true);
+
+        if (supabase) {
+          try {
+            await supabase
+              .from('leads')
+              .update({
+                outreach_status: 'Pending',
+                next_follow_up_at: null,
+                next_follow_up_number: null,
+                next_follow_up_name: null,
+                updated_at: nowIso
+              })
+              .not('id', 'is', null);
+          } catch (supaErr) {
+            console.warn('[RESET OUTREACH] Supabase sync notice:', supaErr.message);
+          }
+        }
+        message = 'Outreach records and tracking reset successfully.';
+        break;
+      }
+
+      case 'favorites': {
+        // 4. Remove Favorites only.
+        // Saved Leads remain 100% intact.
+        if (Array.isArray(store.leads)) {
+          for (const lead of store.leads) {
+            if (lead.favorite || lead.is_favorite) {
+              affectedCount++;
+              lead.favorite = false;
+              lead.is_favorite = false;
+              lead.updated_at = nowIso;
+            }
+          }
+        }
+        saveStoredData(store, true);
+
+        if (supabase) {
+          try {
+            await supabase
+              .from('leads')
+              .update({ favorite: false, updated_at: nowIso })
+              .not('id', 'is', null);
+          } catch (supaErr) {
+            console.warn('[RESET FAVORITES] Supabase sync notice:', supaErr.message);
+          }
+        }
+        message = 'All favorite markings removed successfully.';
+        break;
+      }
+
+      case 'followup': {
+        // 5. Remove/reset Follow-Up records/state only.
+        // Saved Leads and Outreach remain intact.
+        if (Array.isArray(store.leads)) {
+          for (const lead of store.leads) {
+            const hasFollowupData = Boolean(
+              lead.next_follow_up_at ||
+              lead.next_follow_up_number ||
+              lead.next_follow_up_name ||
+              lead.follow_up_day ||
+              lead.current_follow_up_number ||
+              lead.follow_up_completed ||
+              lead.follow_up_paused ||
+              lead.followUpPaused ||
+              lead.followUpDate ||
+              lead.followup_timeline ||
+              lead.outreach_status === 'Follow-Up' ||
+              lead.outreach_status === 'Completed' ||
+              lead.outreach_status === 'Replied' ||
+              lead.reply_status ||
+              (lead.message_history && lead.message_history.some(m => m.type === 'follow_up' || m.type === 'followup'))
+            );
+
+            if (hasFollowupData) {
+              affectedCount++;
+            }
+
+            lead.next_follow_up_at = null;
+            lead.next_follow_up_number = null;
+            lead.next_follow_up_name = null;
+            lead.follow_up_day = null;
+            lead.current_follow_up_number = 0;
+            lead.follow_up_completed = false;
+            lead.follow_up_paused = false;
+            lead.followUpPaused = false;
+            lead.followUpDate = null;
+            lead.followup_timeline = null;
+            lead.reply_status = null;
+            lead.replied_at = null;
+            lead.outreach_completed_at = null;
+
+            if (lead.outreach_status === 'Follow-Up' || lead.outreach_status === 'Completed' || lead.outreach_status === 'Replied') {
+              lead.outreach_status = lead.first_message_sent ? 'Contacted' : 'Pending';
+            }
+
+            if (Array.isArray(lead.message_history)) {
+              lead.message_history = lead.message_history.filter(m => m.type !== 'follow_up' && m.type !== 'followup');
+            }
+
+            if (Array.isArray(lead.activities)) {
+              lead.activities = lead.activities.filter(a =>
+                a.event_type !== 'followup_sent' &&
+                a.event_type !== 'followup_due' &&
+                a.event_type !== 'followup_paused' &&
+                a.event_type !== 'followup_resumed' &&
+                a.event_type !== 'outreach_completed'
+              );
+            }
+
+            if (lead.last_message_type && lead.last_message_type.startsWith('Follow-Up')) {
+              lead.last_message_type = lead.first_message_sent ? 'Main Message' : null;
+              lead.last_message_sent_at = lead.main_message_sent_at || lead.first_message_sent_at || null;
+            }
+
+            lead.updated_at = nowIso;
+          }
+        }
+
+        if (Array.isArray(store.outreach)) {
+          for (const o of store.outreach) {
+            if (o.status === 'Follow-Up' || o.status === 'Completed' || o.status === 'Replied') {
+              o.status = 'Contacted';
+              o.updated_at = nowIso;
+            }
+          }
+        }
+
+        saveStoredData(store, true);
+
+        if (supabase) {
+          try {
+            await supabase
+              .from('leads')
+              .update({
+                outreach_status: 'Contacted',
+                next_follow_up_at: null,
+                next_follow_up_number: null,
+                next_follow_up_name: null,
+                follow_up_completed: false,
+                current_follow_up_number: 0,
+                updated_at: nowIso
+              })
+              .in('outreach_status', ['Follow-Up', 'Completed', 'Replied']);
+          } catch (supaErr) {
+            console.warn('[RESET FOLLOWUP] Supabase sync notice:', supaErr.message);
+          }
+        }
+        message = 'Follow-Up state and schedules reset successfully.';
+        break;
+      }
+
+      case 'history': {
+        // 6. Remove search/history records only.
+        // Saved Leads, Settings, Outreach, etc., remain 100% intact.
+        affectedCount = Array.isArray(store.searchSessions) ? store.searchSessions.length : 0;
+        store.searchSessions = [];
+        saveStoredData(store, true);
+        message = 'Search history cleared successfully.';
+        break;
+      }
+
+      case 'settings': {
+        // 7. Reset Client Hunter settings only.
+        // Lead data, Favorites, Outreach, Cold Call, Follow-Up, and History remain 100% intact.
+        store.settings = getDefaultSettings();
+        if (!store.outreach_settings) store.outreach_settings = {};
+        store.outreach_settings.dailyTarget = 50;
+        saveStoredData(store, true);
+
+        if (supabase) {
+          try {
+            await supabase
+              .from('settings')
+              .upsert({
+                id: 'default',
+                settings: store.settings,
+                updated_at: nowIso
+              }, { onConflict: 'id' });
+          } catch (supaErr) {
+            console.warn('[RESET SETTINGS] Supabase sync notice:', supaErr.message);
+          }
+        }
+        affectedCount = 1;
+        message = 'Application settings reset to defaults successfully.';
+        break;
+      }
+
+      case 'everything': {
+        // 8. High-risk complete reset: All leads, outreach, search sessions, settings.
+        const initialLeadCount = Array.isArray(store.leads) ? store.leads.length : 0;
+        let supaDeletedCount = 0;
+
+        if (supabase) {
+          const { error: supaError, count } = await supabase
+            .from('leads')
+            .delete({ count: 'exact' })
+            .not('id', 'is', null);
+
+          if (supaError) {
+            console.error('Supabase everything reset error:', supaError);
+            return res.status(500).json({
+              success: false,
+              error: `Database reset failed: ${supaError.message || 'Supabase error'}`
+            });
+          }
+          supaDeletedCount = count ?? initialLeadCount;
+
+          try {
+            const defSettings = getDefaultSettings();
+            await supabase
+              .from('settings')
+              .upsert({
+                id: 'default',
+                settings: defSettings,
+                updated_at: nowIso
+              }, { onConflict: 'id' });
+          } catch (_) {}
+        }
+
+        store.leads = [];
+        store.outreach = [];
+        store.searchSessions = [];
+        store.settings = getDefaultSettings();
+        if (!store.outreach_settings) store.outreach_settings = {};
+        store.outreach_settings.dailyTarget = 50;
+
+        store.__allowEmptyReset = true;
+        saveStoredData(store, true);
+        delete store.__allowEmptyReset;
+
+        if (cachedKnownPlaceIds) cachedKnownPlaceIds.clear();
+        lastPlaceIdsRefresh = 0;
+
+        affectedCount = supaDeletedCount || initialLeadCount;
+        message = 'All Client Hunter data and settings have been completely reset.';
+        break;
+      }
+    }
+
+    console.log(`[RESET DATA] Category: ${category} | Affected items: ${affectedCount}`);
+
+    return res.json({
+      success: true,
+      category,
+      affectedCount,
+      message
+    });
+  } catch (err) {
+    console.error(`[RESET DATA ERROR] Failed to reset category '${category}':`, err);
+    return res.status(500).json({
+      success: false,
+      error: `Server error while resetting ${category}: ${err.message}`
     });
   }
 });// ==========================================
@@ -2446,6 +2857,9 @@ function recordLeadActivity(lead, eventData = {}) {
       const oldTags = JSON.stringify(a.metadata?.tags || []);
       const newTags = JSON.stringify(eventData.metadata?.tags || []);
       if (oldTags !== newTags) return false;
+    }
+    if (eventType === 'cold_call') {
+      if (a.metadata?.outcome !== eventData.metadata?.outcome) return false;
     }
     const diff = Math.abs(new Date(nowIso).getTime() - new Date(a.created_at).getTime());
     return diff < 3000;
@@ -2654,6 +3068,9 @@ function filterActivitiesList(activities, { q, type, date, lead } = {}) {
     const t = String(type).toLowerCase().trim();
     list = list.filter((act) => {
       const et = (act.event_type || '').toLowerCase();
+      if (t === 'coldcall' || t === 'cold_call' || t === 'cold call' || t === 'call') {
+        return et === 'cold_call' || et === 'cold_call_added' || et.startsWith('cold_call');
+      }
       if (t === 'outreach') {
         return et.startsWith('outreach_') || et === 'lead_added_outreach' || et === 'whatsapp_opened' || et === 'not_on_whatsapp' || et === 'message_sent' || et === 'message_not_sent';
       }
@@ -2664,13 +3081,13 @@ function filterActivitiesList(activities, { q, type, date, lead } = {}) {
         return et === 'message_sent' || et === 'followup_sent';
       }
       if (t === 'outcome') {
-        return et === 'contact_outcome' || et === 'lead_replied' || et === 'lead_converted' || et === 'lead_conversion_updated' || Boolean(act.metadata?.outcome) || Boolean(act.metadata?.reply_status);
+        return et === 'contact_outcome' || et === 'cold_call' || et === 'lead_replied' || et === 'lead_converted' || et === 'lead_conversion_updated' || Boolean(act.metadata?.outcome) || Boolean(act.metadata?.reply_status);
       }
       if (t === 'notes' || t === 'note') {
         return et === 'note_added' || et === 'note_edited' || Boolean(act.metadata?.note_text) || Boolean(act.metadata?.note_id);
       }
       if (t === 'status_change' || t === 'status' || t === 'status changes') {
-        return et === 'lead_added_outreach' || et === 'outreach_started' || et === 'outreach_stopped' || et === 'outreach_completed' || et === 'outreach_skipped' || et === 'followup_paused' || et === 'followup_resumed' || et === 'lead_saved' || et === 'contact_outcome' || et === 'lead_converted' || et === 'lead_conversion_updated' || et === 'lead_tags_updated';
+        return et === 'lead_added_outreach' || et === 'cold_call_added' || et === 'cold_call' || et === 'outreach_started' || et === 'outreach_stopped' || et === 'outreach_completed' || et === 'outreach_skipped' || et === 'followup_paused' || et === 'followup_resumed' || et === 'lead_saved' || et === 'contact_outcome' || et === 'lead_converted' || et === 'lead_conversion_updated' || et === 'lead_tags_updated';
       }
       if (t === 'conversion' || t === 'converted') {
         return et === 'lead_converted' || et === 'lead_conversion_updated';
@@ -3951,6 +4368,9 @@ app.get('/api/leads/count', async (req, res) => {
   }).length;
   const replied = eligibleLeads.filter((l) => l.reply_status != null || l.outreach_status === 'Replied').length;
   const notContacted = eligibleLeads.filter((l) => !l.first_message_sent && (l.outreach_status === 'Not Contacted' || l.outreach_status === 'Ready')).length;
+  const coldCallQueued = (store.leads || []).filter((l) => Boolean(l.cold_call && l.cold_call.queued));
+  const coldCallCount = coldCallQueued.length;
+  const coldCallRemaining = coldCallQueued.filter((l) => !l.cold_call.status || l.cold_call.status === 'Not Called').length;
 
   res.json({
     total: store.leads.length,
@@ -3964,7 +4384,9 @@ app.get('/api/leads/count', async (req, res) => {
     remaining: Math.max(0, target - sentTodayCount),
     percent: Math.min(100, Math.round((sentTodayCount / target) * 100)),
     followUpsDue,
-    replied
+    replied,
+    coldCallCount,
+    coldCallRemaining
   });
 });
 
@@ -4405,7 +4827,7 @@ function enrichLeadOutreachFields(lead) {
     if (!lead.last_message_sent_at) {
       lead.last_message_sent_at = lead.first_message_sent_at;
     }
-    if (!lead.follow_up_completed && !lead.reply_status) {
+    if (lead.outreach_status === 'Follow-Up' && !lead.follow_up_completed && !lead.reply_status) {
       if (!lead.next_follow_up_number) {
         lead.next_follow_up_number = Math.min(5, (lead.current_follow_up_number || 0) + 1);
       }
@@ -5883,6 +6305,438 @@ app.post('/api/outreach/undo-remove', async (req, res) => {
 });
 
 // ==========================================
+// 10.11 COLD CALLING TERMINAL API ENGINE
+// ==========================================
+
+function enrichLeadColdCallFields(lead) {
+  if (!lead) return;
+  if (!lead.cold_call || typeof lead.cold_call !== 'object') {
+    lead.cold_call = {
+      queued: false,
+      status: 'Not Called',
+      added_at: null,
+      last_call_at: null,
+      outcome: null,
+      callback_at: null,
+      reason: null
+    };
+  } else {
+    if (lead.cold_call.queued === undefined) lead.cold_call.queued = false;
+    if (!lead.cold_call.status) lead.cold_call.status = 'Not Called';
+  }
+  if (lead.phone) lead.phone = formatContactPhone(lead.phone);
+  if (lead.phone_number) lead.phone_number = formatContactPhone(lead.phone_number);
+}
+
+function getColdCallSummary(store) {
+  const allLeads = store.leads || [];
+  allLeads.forEach(enrichLeadColdCallFields);
+
+  const queuedLeads = allLeads.filter((l) => Boolean(l.cold_call && l.cold_call.queued));
+
+  const now = new Date();
+  const todayStr = now.toDateString();
+
+  let todayCallsCount = 0;
+  let interestedCount = 0;
+  let callbackCount = 0;
+  let notInterestedCount = 0;
+  let noAnswerCount = 0;
+  let wrongNumberCount = 0;
+  let convertedCount = 0;
+  let calledCount = 0;
+  let remainingCount = 0;
+
+  for (const l of queuedLeads) {
+    const cc = l.cold_call;
+    const status = cc.status || 'Not Called';
+    const outcome = cc.outcome;
+
+    if (status === 'Not Called') {
+      remainingCount++;
+    } else {
+      calledCount++;
+    }
+
+    if (outcome === 'Interested') interestedCount++;
+    else if (outcome === 'Call Back Later') callbackCount++;
+    else if (outcome === 'Not Interested') notInterestedCount++;
+    else if (outcome === 'No Answer') noAnswerCount++;
+    else if (outcome === 'Wrong Number') wrongNumberCount++;
+    else if (outcome === 'Converted' || l.converted) convertedCount++;
+
+    if (cc.last_call_at && new Date(cc.last_call_at).toDateString() === todayStr) {
+      todayCallsCount++;
+    }
+  }
+
+  // Extract recent cold call history records across all leads
+  const history = [];
+  allLeads.forEach((l) => {
+    const acts = Array.isArray(l.activities) ? l.activities : [];
+    acts.forEach((a) => {
+      if (a.event_type === 'cold_call') {
+        history.push({
+          activity_id: a.activity_id,
+          lead_id: l.id || l.place_id,
+          business_name: l.business_name || l.name || '',
+          businessName: l.business_name || l.name || '',
+          phone: l.phone || l.phone_number || '',
+          category: l.category || '',
+          city: l.city || '',
+          created_at: a.created_at,
+          date: a.created_at,
+          outcome: a.metadata?.outcome || (a.event_title ? a.event_title.replace('Cold Call - ', '') : 'Called'),
+          notes: a.metadata?.notes || a.event_description || '',
+          reason: a.metadata?.reason || '',
+          callback_at: a.metadata?.callback_at || null
+        });
+      }
+    });
+  });
+  history.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return {
+    queuedLeads,
+    totalQueue: queuedLeads.length,
+    metrics: {
+      totalQueue: queuedLeads.length,
+      remaining: remainingCount,
+      called: calledCount,
+      interested: interestedCount,
+      callback: callbackCount,
+      notInterested: notInterestedCount,
+      noAnswer: noAnswerCount,
+      wrongNumber: wrongNumberCount,
+      converted: convertedCount,
+      todayCalls: todayCallsCount
+    },
+    history: history.slice(0, 50),
+    recentHistory: history.slice(0, 50),
+    allHistory: history
+  };
+}
+
+// 10.11a Get Cold Call Data, Metrics & History
+app.get('/api/coldcall/data', async (req, res) => {
+  let store = getStoredData();
+  if (storeStatus === 'failed' || !store) {
+    return res.status(500).json({
+      success: false,
+      status: 'failed',
+      error: 'ClientHunter could not safely load existing data. Your data has not been modified. Please retry or check the data source.',
+      leads: [],
+      metrics: {},
+      history: []
+    });
+  }
+
+  if (supabase && (!leadsSupabaseSyncDone || !store.leads || store.leads.length === 0)) {
+    store = await syncPersistentLeads(store);
+  }
+
+  const summary = getColdCallSummary(store);
+
+  res.json({
+    success: true,
+    leads: summary.queuedLeads,
+    totalQueue: summary.totalQueue,
+    metrics: summary.metrics,
+    history: summary.history,
+    recentHistory: summary.recentHistory
+  });
+});
+
+// 10.11b Add Selected Leads to Cold Call Queue (Idempotent, No Duplicates)
+app.post('/api/coldcall/add', async (req, res) => {
+  const { leadIds = [] } = req.body;
+  if (!Array.isArray(leadIds) || leadIds.length === 0) {
+    return res.status(400).json({ success: false, error: 'No lead IDs provided.' });
+  }
+
+  const store = getStoredData();
+  const idSet = new Set(leadIds.map(String));
+  const nowIso = new Date().toISOString();
+  const matchedLeads = [];
+  let newlyAddedCount = 0;
+
+  for (const lead of store.leads) {
+    if (idSet.has(String(lead.id)) || (lead.place_id && idSet.has(String(lead.place_id)))) {
+      enrichLeadColdCallFields(lead);
+      if (!lead.cold_call.queued) {
+        lead.cold_call.queued = true;
+        lead.cold_call.status = lead.cold_call.status || 'Not Called';
+        lead.cold_call.added_at = nowIso;
+        newlyAddedCount++;
+
+        recordLeadActivity(lead, {
+          event_type: 'cold_call_added',
+          event_title: 'Added to Cold Call',
+          event_description: 'Lead entered the Cold Call calling queue',
+          created_at: nowIso
+        });
+      }
+      lead.updated_at = nowIso;
+      matchedLeads.push(lead);
+    }
+  }
+
+  if (matchedLeads.length === 0) {
+    return res.status(404).json({ success: false, error: 'No matching leads found.' });
+  }
+
+  saveStoredData(store, true);
+
+  const totalQueue = store.leads.filter((l) => l.cold_call && l.cold_call.queued).length;
+
+  res.json({
+    success: true,
+    addedCount: newlyAddedCount,
+    totalQueue,
+    leadIds: matchedLeads.map((l) => l.id || l.place_id),
+    message: `${newlyAddedCount} lead(s) added to Cold Call queue.`
+  });
+});
+
+// 10.11c Record Call Outcome, Notes, Callback & Activity
+app.post('/api/coldcall/outcome', async (req, res) => {
+  const { leadId, outcome, status, reason, notes, callbackAt } = req.body;
+  if (!leadId) {
+    return res.status(400).json({ success: false, error: 'leadId is required.' });
+  }
+  if (!outcome) {
+    return res.status(400).json({ success: false, error: 'outcome is required.' });
+  }
+
+  const store = getStoredData();
+  const lead = store.leads.find((l) => String(l.id) === String(leadId) || (l.place_id && String(l.place_id) === String(leadId)));
+  if (!lead) {
+    return res.status(404).json({ success: false, error: 'Lead not found.' });
+  }
+
+  enrichLeadColdCallFields(lead);
+  const nowIso = new Date().toISOString();
+
+  // Determine calling status: use provided status or derive logically
+  let finalStatus = status;
+  if (!finalStatus) {
+    if (outcome === 'Interested' || outcome === 'Call Back Later') {
+      finalStatus = 'Follow-Up Required';
+    } else if (outcome === 'Not Interested' || outcome === 'Wrong Number' || outcome === 'Converted') {
+      finalStatus = 'Completed';
+    } else {
+      finalStatus = 'Called';
+    }
+  }
+
+  lead.cold_call.status = finalStatus;
+  lead.cold_call.outcome = outcome;
+  lead.cold_call.last_call_at = nowIso;
+  lead.cold_call.reason = reason ? String(reason).trim() : null;
+  lead.cold_call.callback_at = callbackAt ? String(callbackAt).trim() : null;
+  lead.updated_at = nowIso;
+
+  // Add notes to lead.notes if provided
+  if (notes && typeof notes === 'string' && notes.trim()) {
+    if (!Array.isArray(lead.notes)) lead.notes = [];
+    const noteText = notes.trim();
+    lead.notes.unshift({
+      id: 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      lead_id: lead.id || lead.place_id,
+      text: `[Cold Call - ${outcome}] ${noteText}`,
+      created_at: nowIso,
+      updated_at: nowIso
+    });
+  }
+
+  // Build activity description
+  const descParts = [];
+  if (reason && reason.trim()) descParts.push(reason.trim());
+  if (notes && notes.trim()) descParts.push(`Notes: ${notes.trim()}`);
+  if (callbackAt && callbackAt.trim()) descParts.push(`Callback: ${callbackAt.trim()}`);
+  const actDesc = descParts.length > 0 ? descParts.join(' • ') : `Cold call recorded with outcome: ${outcome}`;
+
+  // Record Activity in Lead Activity Timeline
+  recordLeadActivity(lead, {
+    event_type: 'cold_call',
+    event_title: `Cold Call - ${outcome}`,
+    event_description: actDesc,
+    created_at: nowIso,
+    metadata: {
+      channel: 'Phone',
+      outcome,
+      status: finalStatus,
+      reason: reason || null,
+      notes: notes || null,
+      callback_at: callbackAt || null
+    }
+  });
+
+  // Converted sync
+  if (outcome === 'Converted') {
+    lead.converted = true;
+    if (!lead.conversion_date) lead.conversion_date = nowIso;
+  }
+
+  saveStoredData(store, true);
+
+  if (supabase && lead.place_id) {
+    try {
+      await supabase.from('leads').update({
+        notes: lead.notes,
+        converted: lead.converted,
+        updated_at: nowIso
+      }).eq('place_id', lead.place_id);
+    } catch (err) {
+      console.warn('Supabase cold call sync notice:', err.message);
+    }
+  }
+
+  const summary = getColdCallSummary(store);
+
+  res.json({
+    success: true,
+    lead,
+    metrics: summary.metrics,
+    history: summary.history,
+    recentHistory: summary.recentHistory,
+    message: `Call outcome "${outcome}" saved for ${lead.business_name || 'lead'}.`
+  });
+});
+
+// 10.11d Remove Leads from Cold Call Queue (Does NOT Delete Lead)
+app.post('/api/coldcall/remove', async (req, res) => {
+  const { leadIds = [] } = req.body;
+  if (!Array.isArray(leadIds) || leadIds.length === 0) {
+    return res.status(400).json({ success: false, error: 'No lead IDs provided.' });
+  }
+
+  const store = getStoredData();
+  const idSet = new Set(leadIds.map(String));
+  const nowIso = new Date().toISOString();
+  let removedCount = 0;
+  const previousColdCallStates = [];
+
+  for (const lead of store.leads) {
+    if (idSet.has(String(lead.id)) || (lead.place_id && idSet.has(String(lead.place_id)))) {
+      if (lead.cold_call && lead.cold_call.queued) {
+        previousColdCallStates.push({
+          id: lead.id,
+          place_id: lead.place_id,
+          cold_call: JSON.parse(JSON.stringify(lead.cold_call))
+        });
+        lead.cold_call.queued = false;
+        lead.updated_at = nowIso;
+        removedCount++;
+      }
+    }
+  }
+
+  const undoToken = storeTemporaryDeletion('cold_call', {
+    previousColdCallStates
+  });
+
+  saveStoredData(store, true);
+
+  const summary = getColdCallSummary(store);
+
+  res.json({
+    success: true,
+    removedCount,
+    totalQueue: summary.totalQueue,
+    undoToken,
+    previousStates: previousColdCallStates,
+    metrics: summary.metrics,
+    message: `${removedCount} lead(s) removed from Cold Call queue.`
+  });
+});
+
+// 10.11e Undo Cold Call Removal (Restore Cold Call Queue State)
+app.post('/api/coldcall/undo-remove', async (req, res) => {
+  const { undoToken, fallbackStates } = req.body;
+  let restoreData = null;
+
+  if (undoToken && recentDeletions.has(undoToken)) {
+    const entry = recentDeletions.get(undoToken);
+    if (entry && entry.type === 'cold_call' && entry.payload) {
+      restoreData = entry.payload;
+      recentDeletions.delete(undoToken); // Consume token
+    }
+  }
+
+  if (!restoreData && Array.isArray(fallbackStates) && fallbackStates.length > 0) {
+    restoreData = { previousColdCallStates: fallbackStates };
+  }
+
+  if (!restoreData || !Array.isArray(restoreData.previousColdCallStates) || restoreData.previousColdCallStates.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'Unable to restore Cold Call leads. Undo window has expired or already restored.'
+    });
+  }
+
+  const store = getStoredData();
+  const nowIso = new Date().toISOString();
+  let restoredCount = 0;
+  const restoredLeadIds = [];
+
+  for (const prev of restoreData.previousColdCallStates) {
+    const lead = store.leads.find((l) => String(l.id) === String(prev.id) || (prev.place_id && String(l.place_id) === String(prev.place_id)));
+    if (lead) {
+      enrichLeadColdCallFields(lead);
+      if (prev.cold_call) {
+        lead.cold_call = { ...prev.cold_call, queued: true };
+      } else {
+        lead.cold_call.queued = true;
+      }
+      lead.updated_at = nowIso;
+      restoredLeadIds.push(lead.id || lead.place_id);
+      restoredCount++;
+    }
+  }
+
+  saveStoredData(store, true);
+
+  const summary = getColdCallSummary(store);
+
+  res.json({
+    success: true,
+    restoredCount,
+    totalQueue: summary.totalQueue,
+    restoredLeadIds,
+    metrics: summary.metrics,
+    message: `${restoredCount} lead(s) restored to Cold Call queue.`
+  });
+});
+
+// 10.11f Export Dedicated Cold Call Backup Payload (JSON)
+app.get('/api/coldcall/export', async (req, res) => {
+  try {
+    let store = getStoredData();
+    if (storeStatus === 'failed' || !store) {
+      return res.status(500).json({ success: false, error: 'Store not available.' });
+    }
+    const summary = getColdCallSummary(store);
+    const dateStr = getTodayDateString();
+    const exportPayload = {
+      exportVersion: '2.2.0',
+      exportedAt: new Date().toISOString(),
+      source: 'ClientHunter Cold Call Backup',
+      totalQueue: summary.totalQueue,
+      metrics: summary.metrics,
+      leads: summary.queuedLeads,
+      history: summary.allHistory || summary.history || []
+    };
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="ClientHunter_ColdCall_Backup_${dateStr}.json"`);
+    res.send(JSON.stringify(exportPayload, null, 2));
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// ==========================================
 // 11. SETTINGS & SYSTEM API ROUTES
 // ==========================================
 
@@ -6954,6 +7808,7 @@ app.get('/api/backup/export', (req, res) => {
   // Merge all lead activities into timeline
   const activityTimeline = [];
   dedupedLeads.forEach((lead) => {
+    enrichLeadColdCallFields(lead);
     const acts = getLeadActivitiesWithDerived(lead);
     acts.forEach((a) => {
       activityTimeline.push({
@@ -6964,11 +7819,14 @@ app.get('/api/backup/export', (req, res) => {
     });
   });
 
+  const coldCallCount = dedupedLeads.filter(l => l.cold_call && (l.cold_call.queued || (l.cold_call.status && l.cold_call.status !== 'Not Called') || l.cold_call.outcome)).length;
+
   const exportData = {
     exportVersion: '2.2.0',
     exportedAt: new Date().toISOString(),
     source: 'ClientHunter Desktop',
     leadCount: dedupedLeads.length,
+    coldCallCount,
     leads: dedupedLeads,
     settings: cleanSettings,
     outreachSettings: store.outreach_settings || { dailyTarget: 50 },
@@ -7032,6 +7890,7 @@ function generateFullBackupPayload(store) {
   const favoritesCount = leads.filter(l => l.is_favorite || l.favorite).length;
   const outreachCount = outreach.length;
   const followUpCount = leads.filter(l => l.followUpDate || l.followup_timeline || l.outreach_status === 'Follow-Up').length;
+  const coldCallCount = leads.filter(l => l.cold_call && (l.cold_call.queued || (l.cold_call.status && l.cold_call.status !== 'Not Called') || l.cold_call.outcome)).length;
   const notesCount = leads.reduce((acc, l) => acc + (Array.isArray(l.notes) ? l.notes.length : (l.notes ? 1 : 0)), 0);
   const activitiesCount = leads.reduce((acc, l) => acc + (Array.isArray(l.activities) ? l.activities.length : 0), 0);
   const servicesCount = (settings && Array.isArray(settings.services)) ? settings.services.length : 0;
@@ -7048,6 +7907,7 @@ function generateFullBackupPayload(store) {
     favoritesCount,
     outreachCount,
     followUpCount,
+    coldCallCount,
     notesCount,
     activitiesCount,
     servicesCount
@@ -7156,6 +8016,7 @@ app.post('/api/backup/validate', (req, res) => {
     const favoritesCount = leads.filter(l => l.is_favorite || l.favorite).length;
     const outreachCount = outreach.length;
     const followUpCount = leads.filter(l => l.followUpDate || l.followup_timeline || l.outreach_status === 'Follow-Up').length;
+    const coldCallCount = backupData.metadata?.coldCallCount ?? backupData.coldCallCount ?? leads.filter(l => l.cold_call && (l.cold_call.queued || (l.cold_call.status && l.cold_call.status !== 'Not Called') || l.cold_call.outcome)).length;
     const notesCount = leads.reduce((acc, l) => acc + (Array.isArray(l.notes) ? l.notes.length : (l.notes ? 1 : 0)), 0);
     const activitiesCount = leads.reduce((acc, l) => acc + (Array.isArray(l.activities) ? l.activities.length : 0), 0);
     const servicesCount = (settings && Array.isArray(settings.services)) ? settings.services.length : 0;
@@ -7170,6 +8031,7 @@ app.post('/api/backup/validate', (req, res) => {
         favoritesCount,
         outreachCount,
         followUpCount,
+        coldCallCount,
         notesCount,
         activitiesCount,
         servicesCount,

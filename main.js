@@ -108,10 +108,59 @@
     historyDirty: false,
     outreachDirty: false,
     followupDirty: false,
+    coldCallDirty: true,
+    hasLoadedColdCall: false,
+    coldCall: {
+      data: null,
+      leads: [],
+      selectedIds: new Set(),
+      activeLeadId: null,
+      activeOutcome: null,
+      queueRunner: {
+        active: false,
+        leadIds: [],
+        currentIndex: -1
+      },
+      filters: {
+        status: 'ALL',
+        outcome: 'ALL',
+        priority: 'ALL',
+        category: 'ALL',
+        search: ''
+      },
+      pagination: {
+        page: 1,
+        pageSize: 15
+      },
+      isLoading: false
+    },
     analyticsRange: 'all',
     analyticsData: null,
     analyticsLoading: false
   };
+
+  if (typeof window !== 'undefined') {
+    window.AppState = AppState;
+  }
+
+  function formatContactPhone(phone) {
+    if (!phone || typeof phone !== 'string') return phone || '';
+    let trimmed = phone.trim();
+    if (!trimmed || trimmed === 'Not available' || trimmed === 'N/A' || trimmed === 'No phone number') {
+      return trimmed;
+    }
+    if (trimmed.startsWith('0')) {
+      return '+91 ' + trimmed.replace(/^0\s*/, '');
+    }
+    if (/^\+91\s*0/.test(trimmed)) {
+      return '+91 ' + trimmed.replace(/^\+91\s*0\s*/, '');
+    }
+    return trimmed;
+  }
+
+  if (typeof window !== 'undefined') {
+    window.formatContactPhone = formatContactPhone;
+  }
 
   // ----------------------------------------------------
   // 1. TOAST NOTIFICATION ENGINE
@@ -189,6 +238,31 @@
         });
       }
     }
+  }
+
+  // ----------------------------------------------------
+  // NUMERIC UI VALUE / COUNTER FORMATTING UTILITY
+  // Cleans formatting artifacts like 01 -> 1, 05 -> 5, 050 -> 50
+  // CRITICAL: NEVER used on phone numbers or contact data!
+  // ----------------------------------------------------
+  function cleanNumericDisplay(val) {
+    if (val === null || val === undefined || val === '') return '0';
+    if (typeof val === 'number') return isNaN(val) ? '0' : String(val);
+    const s = String(val).trim();
+    if (!s) return '0';
+    // Pure leading-zero numbers: "01" -> "1", "05" -> "5", "050" -> "50"
+    if (/^0+[1-9]\d*$/.test(s)) {
+      return String(parseInt(s, 10));
+    }
+    // "00", "000" -> "0"
+    if (/^0+$/.test(s)) {
+      return '0';
+    }
+    // Compound text like "05 / 050" -> "5 / 50", "01 leads" -> "1 leads"
+    if (/\b0+[1-9]\d*\b/.test(s) || /\b00+\b/.test(s)) {
+      return s.replace(/\b0+([1-9]\d*)\b/g, '$1').replace(/\b00+\b/g, '0');
+    }
+    return s;
   }
 
   // ----------------------------------------------------
@@ -301,6 +375,7 @@
     const viewFavorites = document.getElementById('view-favorites');
     const viewOutreach = document.getElementById('view-outreach');
     const viewFollowup = document.getElementById('view-followup');
+    const viewColdCall = document.getElementById('view-cold-call');
     const viewDashboard = document.getElementById('view-dashboard');
     const viewHistory = document.getElementById('view-history');
     const viewHero = document.getElementById('view-hero');
@@ -312,6 +387,7 @@
       { name: 'favorites', el: viewFavorites },
       { name: 'outreach', el: viewOutreach },
       { name: 'followup', el: viewFollowup },
+      { name: 'cold-call', el: viewColdCall },
       { name: 'dashboard', el: viewDashboard },
       { name: 'history', el: viewHistory },
       { name: 'hero', el: viewHero },
@@ -331,6 +407,13 @@
         el.classList.remove('active-view');
       }
     });
+
+    // Update floating bulk action bars visibility across all views
+    if (typeof updateBulkActionBar === 'function') updateBulkActionBar();
+    if (typeof updateFavBulkActionBar === 'function') updateFavBulkActionBar();
+    if (typeof updateOutreachBulkControls === 'function') updateOutreachBulkControls();
+    if (typeof updateFollowUpSelectionUI === 'function') updateFollowUpSelectionUI();
+    if (typeof updateColdCallBulkControls === 'function') updateColdCallBulkControls();
 
     // Update Nav Link Highlights
     const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
@@ -377,6 +460,12 @@
       } else {
         renderFollowUpCards();
       }
+    } else if (viewName === 'cold-call') {
+      if (!AppState.coldCall?.data || AppState.coldCallDirty) {
+        loadColdCallData(AppState.coldCall?.activeLeadId);
+      } else {
+        renderColdCallCards();
+      }
     } else if (viewName === 'history') {
       if (!AppState.hasLoadedHistory || AppState.historyDirty) {
         loadHistoryData();
@@ -384,6 +473,9 @@
     } else if (viewName === 'settings') {
       if (window.SettingsModule) {
         window.SettingsModule.initSettingsUI();
+      }
+      if (typeof initDataResetListeners === 'function') {
+        initDataResetListeners();
       }
     } else if (viewName === 'dashboard') {
       updateDashboardCounts();
@@ -444,44 +536,53 @@
         const totalPill = document.getElementById('saved-total-pill-count');
         const favTotalPill = document.getElementById('fav-total-pill-count');
 
-        if (desktopBadge) desktopBadge.textContent = count;
-        if (mobileBadge) mobileBadge.textContent = count;
-        if (totalPill) totalPill.textContent = `${count} Leads`;
-        if (favTotalPill) favTotalPill.textContent = `${favCount} Favorites`;
+        if (desktopBadge) desktopBadge.textContent = cleanNumericDisplay(count);
+        if (mobileBadge) mobileBadge.textContent = cleanNumericDisplay(count);
+        if (totalPill) totalPill.textContent = `${cleanNumericDisplay(count)} Leads`;
+        if (favTotalPill) favTotalPill.textContent = `${cleanNumericDisplay(favCount)} Favorites`;
 
         const outreachBadge = document.getElementById('nav-outreach-badge');
         if (outreachBadge && data.outreachReady !== undefined) {
-          outreachBadge.textContent = data.outreachReady;
+          outreachBadge.textContent = cleanNumericDisplay(data.outreachReady);
         }
 
         const fuBadge = document.getElementById('nav-followup-badge');
         const mobileFuBadge = document.getElementById('mobile-nav-followup-badge');
         const actionableCount = (data.actionableFollowUps !== undefined) ? data.actionableFollowUps : (data.followUpsDue ?? 0);
-        if (fuBadge) fuBadge.textContent = actionableCount;
-        if (mobileFuBadge) mobileFuBadge.textContent = actionableCount;
+        if (fuBadge) fuBadge.textContent = cleanNumericDisplay(actionableCount);
+        if (mobileFuBadge) mobileFuBadge.textContent = cleanNumericDisplay(actionableCount);
+
+        const coldCallBadge = document.getElementById('nav-coldcall-badge');
+        const mobileColdCallBadge = document.getElementById('mobile-nav-coldcall-badge');
+        if (coldCallBadge && data.coldCallCount !== undefined) {
+          coldCallBadge.textContent = cleanNumericDisplay(data.coldCallCount);
+        }
+        if (mobileColdCallBadge && data.coldCallCount !== undefined) {
+          mobileColdCallBadge.textContent = cleanNumericDisplay(data.coldCallCount);
+        }
 
         // 1. Dashboard summary cards
         const dashOutreachVal = document.getElementById('dash-card-outreach-val');
         const dashOutreachSub = document.getElementById('dash-card-outreach-sub');
         if (dashOutreachVal && data.sentToday !== undefined && data.dailyTarget) {
-          dashOutreachVal.textContent = `${data.sentToday} / ${data.dailyTarget}`;
-          if (dashOutreachSub) dashOutreachSub.textContent = `${data.percent || 0}% done`;
+          dashOutreachVal.textContent = `${cleanNumericDisplay(data.sentToday)} / ${cleanNumericDisplay(data.dailyTarget)}`;
+          if (dashOutreachSub) dashOutreachSub.textContent = `${cleanNumericDisplay(data.percent || 0)}% done`;
         }
 
         const newLeadsCardVal = document.getElementById('dash-card-saved-val') || document.querySelector('.dash-card:nth-child(2) .dash-card-value');
-        if (newLeadsCardVal) newLeadsCardVal.textContent = `${count} leads`;
+        if (newLeadsCardVal) newLeadsCardVal.textContent = `${cleanNumericDisplay(count)} leads`;
 
         const favCardVal = document.getElementById('dash-card-favorites-val') || document.querySelector('.dash-card:nth-child(3) .dash-card-value');
-        if (favCardVal) favCardVal.textContent = `${favCount} starred`;
+        if (favCardVal) favCardVal.textContent = `${cleanNumericDisplay(favCount)} starred`;
 
         const fuCardVal = document.getElementById('dash-card-followups-val');
         if (fuCardVal && data.followUpsDue !== undefined) {
-          fuCardVal.textContent = `${data.followUpsDue} prospects`;
+          fuCardVal.textContent = `${cleanNumericDisplay(data.followUpsDue)} prospects`;
         }
 
         const repliesCardVal = document.getElementById('dash-card-replies-val');
         if (repliesCardVal && data.replied !== undefined) {
-          repliesCardVal.textContent = `${data.replied} replies`;
+          repliesCardVal.textContent = `${cleanNumericDisplay(data.replied)} replies`;
         }
 
         const revCardVal = document.getElementById('dash-card-revenue-val');
@@ -1670,7 +1771,10 @@
       if (P.countNew) P.countNew.textContent = `${qualifiedVal} / 100`;
       console.log(`[Find Leads Trace] Frontend UI updated: Candidates Checked=${checkedVal} / 300, Duplicates=${result.duplicatesRemoved}, Qualified Leads=${qualifiedVal} / 100`);
 
-      AppState.pendingDiscoveredLeads = result.leads || [];
+      AppState.pendingDiscoveredLeads = (result.leads || []).map((l) => ({
+        ...l,
+        phone: formatContactPhone(l.phone || l.nationalPhoneNumber || l.internationalPhoneNumber || '')
+      }));
 
       // Case 1: 0 total candidate businesses evaluated
       if (!checkedVal || checkedVal === 0) {
@@ -1909,8 +2013,11 @@
         return;
       }
 
-      AppState.allSavedLeads = data.leads || [];
-      AppState.savedLeads = data.leads || [];
+      AppState.allSavedLeads = (data.leads || []).map((l) => ({
+        ...l,
+        phone: formatContactPhone(l.phone || l.phone_number || '')
+      }));
+      AppState.savedLeads = AppState.allSavedLeads;
       AppState.hasLoadedSavedLeads = true;
       AppState.savedLeadsDirty = false;
 
@@ -3084,7 +3191,7 @@
              </div>`;
 
         // Phone formatting
-        const phoneDisplay = lead.phone || 'Not available';
+        const phoneDisplay = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
         const hasPhone = phoneDisplay !== 'Not available';
 
         // Maps URL
@@ -3433,7 +3540,6 @@
 
   function updateBulkActionBar() {
     const actionInfo = document.getElementById('saved-action-bar-info');
-    const actionButtons = document.getElementById('saved-action-bar-buttons');
     const deselectBtn = document.getElementById('btn-saved-deselect-all');
     const bar = document.getElementById('saved-bulk-bar');
     const countText = document.getElementById('saved-bulk-count-text');
@@ -3441,14 +3547,12 @@
 
     const count = AppState.selectedLeadIds.size;
 
-    // 1. In-Card Action Bar
+    // 1. In-Card Action Bar (Header Info & Deselect)
     if (count > 0) {
       if (actionInfo) actionInfo.innerHTML = `Selected: <strong>${count}</strong>`;
-      if (actionButtons) actionButtons.classList.remove('hidden');
       if (deselectBtn) deselectBtn.classList.remove('hidden');
     } else {
       if (actionInfo) actionInfo.textContent = 'Select leads to perform bulk actions';
-      if (actionButtons) actionButtons.classList.add('hidden');
       if (deselectBtn) deselectBtn.classList.add('hidden');
     }
 
@@ -5228,7 +5332,7 @@
     }
 
     document.getElementById('detail-address-text').textContent = lead.address || 'Address unlisted';
-    document.getElementById('detail-phone-text').textContent = lead.phone || 'Not available';
+    document.getElementById('detail-phone-text').textContent = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
 
     const webText = document.getElementById('detail-website-text');
     if (webText) {
@@ -5410,6 +5514,130 @@
     }
   }
 
+  async function undoSavedLeadDelete(undoToken, fallbackLeads = []) {
+    try {
+      const res = await fetch('/api/leads/undo-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ undoToken, fallbackLeads })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !Array.isArray(data.restoredLeads)) {
+        showToast(data?.error || 'Unable to restore lead. Please try again.', 'error', 3500);
+        return;
+      }
+
+      const restored = data.restoredLeads;
+      if (!restored.length) {
+        showToast('Unable to restore lead. Please try again.', 'error', 3500);
+        return;
+      }
+
+      // Re-insert into AppState without duplicates
+      restored.forEach((lead) => {
+        const key = String(lead.id || lead.place_id);
+        if (!AppState.savedLeads.some((l) => String(l.id || l.place_id) === key)) {
+          AppState.savedLeads.unshift(lead);
+        }
+        if (AppState.allSavedLeads && !AppState.allSavedLeads.some((l) => String(l.id || l.place_id) === key)) {
+          AppState.allSavedLeads.unshift(lead);
+        }
+        if (lead.is_favorite || lead.favorite) {
+          if (!AppState.favoriteLeads.some((l) => String(l.id || l.place_id) === key)) {
+            AppState.favoriteLeads.unshift(lead);
+          }
+        }
+      });
+
+      // Re-render active view
+      if (AppState.currentView === 'favorites') {
+        renderFavTableRows();
+        populateFavFilterOptions();
+        updateFavBulkActionBar();
+      } else if (AppState.currentView === 'outreach') {
+        await loadOutreachData(null, true);
+        renderOutreachCards();
+        updateOutreachBulkControls();
+      } else {
+        filterAndRenderSavedLeads();
+        populateSavedFilterOptions(AppState.allSavedLeads);
+        updateBulkActionBar();
+      }
+
+      AppState.savedLeadsDirty = true;
+      AppState.favoritesDirty = true;
+      AppState.outreachDirty = true;
+      AppState.followupDirty = true;
+      await updateBadgeCounts();
+
+      const count = restored.length;
+      const msg = count === 1
+        ? `Lead restored: ${restored[0].business_name || 'Lead'}`
+        : `${count} leads restored.`;
+      showToast(msg, 'success', 3000);
+    } catch (err) {
+      console.error('[UNDO DELETE ERROR]:', err);
+      showToast('Unable to restore lead. Please try again.', 'error', 3500);
+    }
+  }
+
+  async function undoOutreachRemove(undoToken, fallbackStates = []) {
+    try {
+      const res = await fetch('/api/outreach/undo-remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ undoToken, fallbackStates })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data?.error || 'Unable to restore lead. Please try again.', 'error', 3500);
+        return;
+      }
+
+      AppState.outreachDirty = true;
+      AppState.followupDirty = true;
+      AppState.savedLeadsDirty = true;
+      AppState.favoritesDirty = true;
+
+      const restoredLeads = data.restoredLeads || [];
+      const firstId = restoredLeads.length > 0 ? (restoredLeads[0].id || restoredLeads[0].place_id) : AppState.outreach.activeLeadId;
+
+      // Restore outreach_status on in-memory savedLeads, allSavedLeads, and favoriteLeads
+      if (Array.isArray(restoredLeads)) {
+        restoredLeads.forEach((rl) => {
+          const rId = String(rl.id || rl.place_id);
+          const updateObj = (l) => {
+            if (String(l.id) === rId || (l.place_id && String(l.place_id) === rId)) {
+              l.outreach_status = rl.outreach_status || 'Not Contacted';
+              if (rl.next_follow_up_at !== undefined) l.next_follow_up_at = rl.next_follow_up_at;
+              if (rl.next_follow_up_number !== undefined) l.next_follow_up_number = rl.next_follow_up_number;
+              if (rl.next_follow_up_name !== undefined) l.next_follow_up_name = rl.next_follow_up_name;
+            }
+          };
+          if (AppState.savedLeads) AppState.savedLeads.forEach(updateObj);
+          if (AppState.allSavedLeads) AppState.allSavedLeads.forEach(updateObj);
+          if (AppState.favoriteLeads) AppState.favoriteLeads.forEach(updateObj);
+        });
+      }
+
+      // Force refresh reload of outreach data
+      await loadOutreachData(firstId, true);
+      renderOutreachCards();
+      updateOutreachBulkControls();
+      await updateBadgeCounts();
+
+      const count = data.restoredCount || restoredLeads.length || 1;
+      const msg = count === 1 ? 'Lead restored.' : `${count} leads restored.`;
+      showToast(msg, 'success', 3000);
+    } catch (err) {
+      console.error('[UNDO OUTREACH ERROR]:', err);
+      showToast('Unable to restore lead. Please try again.', 'error', 3500);
+    }
+  }
+
+  window.undoSavedLeadDelete = undoSavedLeadDelete;
+  window.undoOutreachRemove = undoOutreachRemove;
+
   let modalsBound = false;
   function initModals() {
     if (modalsBound) return;
@@ -5461,6 +5689,7 @@
         deleteConfirmCallback = null;
         AppState.leadToDelete = null;
         AppState.isBulkDelete = false;
+        isPerformDeleteActive = false;
       });
     }
     if (deleteModal) {
@@ -5470,6 +5699,7 @@
           deleteConfirmCallback = null;
           AppState.leadToDelete = null;
           AppState.isBulkDelete = false;
+          isPerformDeleteActive = false;
         }
       });
     }
@@ -5623,104 +5853,6 @@
     initExportModalListeners();
     initAiAssistant();
 
-    async function undoSavedLeadDelete(undoToken, fallbackLeads = []) {
-      try {
-        const res = await fetch('/api/leads/undo-delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ undoToken, fallbackLeads })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success || !Array.isArray(data.restoredLeads)) {
-          showToast(data?.error || 'Unable to restore lead. Please try again.', 'error', 3500);
-          return;
-        }
-
-        const restored = data.restoredLeads;
-        if (!restored.length) {
-          showToast('Unable to restore lead. Please try again.', 'error', 3500);
-          return;
-        }
-
-        // Re-insert into AppState without duplicates
-        restored.forEach((lead) => {
-          const key = String(lead.id || lead.place_id);
-          if (!AppState.savedLeads.some((l) => String(l.id || l.place_id) === key)) {
-            AppState.savedLeads.unshift(lead);
-          }
-          if (AppState.allSavedLeads && !AppState.allSavedLeads.some((l) => String(l.id || l.place_id) === key)) {
-            AppState.allSavedLeads.unshift(lead);
-          }
-          if (lead.is_favorite || lead.favorite) {
-            if (!AppState.favoriteLeads.some((l) => String(l.id || l.place_id) === key)) {
-              AppState.favoriteLeads.unshift(lead);
-            }
-          }
-        });
-
-        // Re-render active view
-        if (AppState.currentView === 'favorites') {
-          renderFavTableRows();
-          populateFavFilterOptions();
-          updateFavBulkActionBar();
-        } else {
-          filterAndRenderSavedLeads();
-          populateSavedFilterOptions(AppState.allSavedLeads);
-          updateBulkActionBar();
-        }
-
-        AppState.savedLeadsDirty = true;
-        AppState.favoritesDirty = true;
-        AppState.outreachDirty = true;
-        AppState.followupDirty = true;
-        await updateBadgeCounts();
-
-        const count = restored.length;
-        const msg = count === 1
-          ? `Lead restored: ${restored[0].business_name || 'Lead'}`
-          : `${count} leads restored.`;
-        showToast(msg, 'success', 3000);
-      } catch (err) {
-        console.error('[UNDO DELETE ERROR]:', err);
-        showToast('Unable to restore lead. Please try again.', 'error', 3500);
-      }
-    }
-
-    async function undoOutreachRemove(undoToken, fallbackStates = []) {
-      try {
-        const res = await fetch('/api/outreach/undo-remove', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ undoToken, fallbackStates })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          showToast(data?.error || 'Unable to restore lead. Please try again.', 'error', 3500);
-          return;
-        }
-
-        AppState.outreachDirty = true;
-        AppState.followupDirty = true;
-        AppState.savedLeadsDirty = true;
-        AppState.favoritesDirty = true;
-
-        const restoredLeads = data.restoredLeads || [];
-        const firstId = restoredLeads.length > 0 ? (restoredLeads[0].id || restoredLeads[0].place_id) : AppState.outreach.activeLeadId;
-
-        await loadOutreachData(firstId);
-        renderOutreachCards();
-        updateOutreachBulkControls();
-        await updateBadgeCounts();
-
-        const count = data.restoredCount || restoredLeads.length || 1;
-        const msg = count === 1 ? 'Outreach lead restored.' : `${count} outreach leads restored.`;
-        showToast(msg, 'success', 3000);
-      } catch (err) {
-        console.error('[UNDO OUTREACH ERROR]:', err);
-        showToast('Unable to restore lead. Please try again.', 'error', 3500);
-      }
-    }
-
     let isPerformDeleteActive = false;
     if (performDeleteBtn && deleteModal) {
       performDeleteBtn.addEventListener('click', async () => {
@@ -5732,7 +5864,11 @@
           if (typeof deleteConfirmCallback === 'function') {
             const cb = deleteConfirmCallback;
             deleteConfirmCallback = null;
-            await cb();
+            try {
+              await cb();
+            } finally {
+              isPerformDeleteActive = false;
+            }
             return;
           }
 
@@ -5896,6 +6032,11 @@
     'Follow-Up Number',
     'Reply Status',
     'Notes',
+    'Cold Call Status',
+    'Cold Call Outcome',
+    'Last Call Date',
+    'Callback Date',
+    'Cold Call Notes',
     'Created At',
     'Updated At'
   ];
@@ -5936,7 +6077,7 @@
       notesStr = l.notes;
     }
 
-    const phoneVal = (l.phone || '').trim();
+    const phoneVal = formatContactPhone(l.phone || l.phone_number || '').trim();
     const websiteUrl = (l.website || l.website_url || '').trim();
     const websiteStatus = (l.website_status === 'YES' || websiteUrl) ? 'Yes' : 'No';
 
@@ -5959,6 +6100,13 @@
     } else if (l.first_message_sent) {
       msgCount = 1 + (l.follow_up_day || 0);
     }
+
+    const cc = l.cold_call || {};
+    const ccStatus = cc.status || (cc.queued ? 'Queued' : 'Not Called');
+    const ccOutcome = cc.outcome || '';
+    const ccLastCall = formatExportDate(cc.last_call_at);
+    const ccCallback = formatExportDate(cc.callback_at);
+    const ccNotes = cc.notes || '';
 
     return [
       escapeCsvCell(l.id || l.place_id || ''),
@@ -5987,6 +6135,11 @@
       fuNumber,
       escapeCsvCell(l.reply_status || 'NO_REPLY'),
       escapeCsvCell(notesStr),
+      escapeCsvCell(ccStatus),
+      escapeCsvCell(ccOutcome),
+      escapeCsvCell(ccLastCall),
+      escapeCsvCell(ccCallback),
+      escapeCsvCell(ccNotes),
       escapeCsvCell(createdAt),
       escapeCsvCell(updatedAt)
     ];
@@ -6044,6 +6197,7 @@
     else if (scope === 'favorites') scopePart = 'Favorites';
     else if (scope === 'outreach') scopePart = 'Outreach';
     else if (scope === 'followup') scopePart = 'FollowUps';
+    else if (scope === 'cold_call') scopePart = 'ColdCall';
     else if (scope === 'activity') scopePart = 'LeadActivity';
     else if (scope === 'daily_perf') scopePart = 'DailyPerformance';
     else if (scope === 'backup') scopePart = 'Backup';
@@ -6163,8 +6317,30 @@
       return {
         type: 'leads',
         scopeName: 'Follow-Up Leads',
-        fieldsDesc: 'Follow-up pipeline prospects (28 columns)',
+        fieldsDesc: 'Follow-up pipeline prospects (33 columns)',
         leads: fuList
+      };
+    }
+
+    // 6b. Cold Call Leads
+    if (scope === 'cold_call') {
+      let ccList = [];
+      if (AppState.coldCall?.leads && AppState.coldCall.leads.length) {
+        ccList = AppState.coldCall.leads;
+      } else {
+        try {
+          const res = await fetch('/api/coldcall/data');
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.leads)) {
+            ccList = data.leads;
+          }
+        } catch (_) {}
+      }
+      return {
+        type: 'leads',
+        scopeName: 'Cold Call Leads',
+        fieldsDesc: 'Cold call queue & prospects (33 columns)',
+        leads: ccList
       };
     }
 
@@ -6289,11 +6465,14 @@
       }
       clean(cleanSettings);
 
+      const coldCallCount = deduped.filter(l => l.cold_call && (l.cold_call.queued || (l.cold_call.status && l.cold_call.status !== 'Not Called') || l.cold_call.outcome)).length;
+
       const backupObj = {
         exportVersion: '2.2.0',
         exportedAt: new Date().toISOString(),
         source: 'ClientHunter Desktop',
         leadCount: deduped.length,
+        coldCallCount,
         leads: deduped,
         settings: cleanSettings,
         outreachSettings: AppState.settings?.outreachTarget || { dailyTarget: 50 },
@@ -7207,7 +7386,29 @@
     // Floating Bulk Action Bar Buttons
     const bulkDeleteBtn = document.getElementById('btn-bulk-delete');
     const bulkOutreachBtn = document.getElementById('btn-bulk-outreach');
+    const bulkColdCallBtn = document.getElementById('btn-bulk-cold-call');
     const bulkDismissBtn = document.getElementById('btn-bulk-dismiss');
+    const actionColdCallBtn = document.getElementById('btn-saved-action-cold-call');
+
+    if (actionColdCallBtn) {
+      actionColdCallBtn.addEventListener('click', () => {
+        if (AppState.selectedLeadIds.size === 0) {
+          showToast('Please select at least one lead to add to Cold Call.', 'info', 2000);
+          return;
+        }
+        addLeadsToColdCall(Array.from(AppState.selectedLeadIds), 'Saved Leads');
+      });
+    }
+
+    if (bulkColdCallBtn) {
+      bulkColdCallBtn.addEventListener('click', () => {
+        if (AppState.selectedLeadIds.size === 0) {
+          showToast('Please select at least one lead to add to Cold Call.', 'info', 2000);
+          return;
+        }
+        addLeadsToColdCall(Array.from(AppState.selectedLeadIds), 'Saved Leads');
+      });
+    }
 
     if (actionMoveOutreachBtn) {
       actionMoveOutreachBtn.addEventListener('click', () => {
@@ -7331,7 +7532,10 @@
         return;
       }
 
-      AppState.favoriteLeads = data.leads || [];
+      AppState.favoriteLeads = (data.leads || []).map((l) => ({
+        ...l,
+        phone: formatContactPhone(l.phone || l.phone_number || '')
+      }));
       AppState.hasLoadedFavorites = true;
       AppState.favoritesDirty = false;
 
@@ -7454,7 +7658,7 @@
            </div>`;
 
       // Phone formatting
-      const phoneDisplay = lead.phone || 'Not available';
+      const phoneDisplay = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
       const hasPhone = phoneDisplay !== 'Not available';
 
       // Maps URL
@@ -7737,7 +7941,7 @@
       `"${(l.city || '').replace(/"/g, '""')}"`,
       `"${(l.district || '').replace(/"/g, '""')}"`,
       `"${(l.address || '').replace(/"/g, '""')}"`,
-      `"${(l.phone || '').replace(/"/g, '""')}"`,
+      `"${(formatContactPhone(l.phone || l.phone_number || '') || '').replace(/"/g, '""')}"`,
       `"${(l.email || '').replace(/"/g, '""')}"`,
       `"${(l.website || '').replace(/"/g, '""')}"`,
       `"${l.website_status || 'NO'}"`,
@@ -8108,7 +8312,7 @@
   function updateOutreachMetrics(metrics = {}, todayOutreach = {}) {
     const setVal = (id, val) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = val ?? 0;
+      if (el) el.textContent = cleanNumericDisplay(val ?? 0);
     };
 
     setVal('metric-total-outreach', metrics.totalOutreach);
@@ -8121,11 +8325,11 @@
 
     // Nav pills & badge counts
     const readyCountEl = document.getElementById('outreach-ready-count');
-    if (readyCountEl) readyCountEl.textContent = metrics.notContacted || 0;
+    if (readyCountEl) readyCountEl.textContent = cleanNumericDisplay(metrics.notContacted || 0);
 
     const navOutreachBadge = document.getElementById('nav-outreach-badge');
     if (navOutreachBadge) {
-      navOutreachBadge.textContent = metrics.notContacted || 0;
+      navOutreachBadge.textContent = cleanNumericDisplay(metrics.notContacted || 0);
     }
   }
 
@@ -8136,19 +8340,19 @@
     const pct = todayOutreach.percentage ?? Math.min(100, Math.round((sent / target) * 100));
 
     const scoreEl = document.getElementById('today-target-score');
-    if (scoreEl) scoreEl.textContent = `${sent} / ${target}`;
+    if (scoreEl) scoreEl.textContent = `${cleanNumericDisplay(sent)} / ${cleanNumericDisplay(target)}`;
 
     const pctEl = document.getElementById('today-target-pct');
-    if (pctEl) pctEl.textContent = `(${pct}%)`;
+    if (pctEl) pctEl.textContent = `(${cleanNumericDisplay(pct)}%)`;
 
     const sentText = document.getElementById('today-sent-text');
-    if (sentText) sentText.textContent = `✓ ${sent} SENT`;
+    if (sentText) sentText.textContent = `✓ ${cleanNumericDisplay(sent)} SENT`;
 
     const remText = document.getElementById('today-remaining-text');
-    if (remText) remText.textContent = `→ ${remaining} REMAINING`;
+    if (remText) remText.textContent = `→ ${cleanNumericDisplay(remaining)} REMAINING`;
 
     const maxText = document.getElementById('today-max-text');
-    if (maxText) maxText.textContent = `(TARGET: ${target})`;
+    if (maxText) maxText.textContent = `(TARGET: ${cleanNumericDisplay(target)})`;
 
     const fillEl = document.getElementById('target-progress-fill');
     if (fillEl) fillEl.style.width = `${pct}%`;
@@ -8157,7 +8361,7 @@
     if (dotEl) dotEl.style.left = `${pct}%`;
 
     const inputTarget = document.getElementById('input-daily-target');
-    if (inputTarget) inputTarget.value = target;
+    if (inputTarget) inputTarget.value = cleanNumericDisplay(target);
   }
 
   function populateOutreachCategoryFilter(leads) {
@@ -8303,18 +8507,18 @@
     if (showingIndicator) {
       if (isFiltered) {
         if (totalFiltered <= perPage) {
-          showingIndicator.textContent = `Showing ${totalFiltered} of ${totalAll} leads`;
+          showingIndicator.textContent = `Showing ${cleanNumericDisplay(totalFiltered)} of ${cleanNumericDisplay(totalAll)} leads`;
         } else {
-          showingIndicator.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalFiltered} leads (${totalFiltered} of ${totalAll} filtered)`;
+          showingIndicator.textContent = `Showing ${cleanNumericDisplay(startIndex + 1)} to ${cleanNumericDisplay(endIndex)} of ${cleanNumericDisplay(totalFiltered)} leads (${cleanNumericDisplay(totalFiltered)} of ${cleanNumericDisplay(totalAll)} filtered)`;
         }
       } else {
-        showingIndicator.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalAll} leads`;
+        showingIndicator.textContent = `Showing ${cleanNumericDisplay(startIndex + 1)} to ${cleanNumericDisplay(endIndex)} of ${cleanNumericDisplay(totalAll)} leads`;
       }
     }
 
     const html = visibleLeads.map((lead) => {
-      const leadId = lead.id || lead.place_id;
-      const isActive = leadId === AppState.outreach.activeLeadId;
+      const leadId = String(lead.id || lead.place_id);
+      const isActive = String(leadId) === String(AppState.outreach.activeLeadId);
       const isChecked = AppState.outreach.selectedLeadIds.has(leadId);
 
       let statusBadge = '<span class="outreach-card-status-badge">Not Contacted</span>';
@@ -8324,7 +8528,7 @@
         statusBadge = '<span class="outreach-card-status-badge badge-replied">Replied</span>';
       }
 
-      const scoreNum = lead.opportunity_score || 50;
+      const scoreNum = cleanNumericDisplay(lead.opportunity_score || 50);
       const outcomeVal = lead.contact_outcome || 'No outcome';
       const outcomeTooltip = `Outcome: ${outcomeVal}${lead.contact_outcome_reason ? ' — ' + lead.contact_outcome_reason : ''}`;
 
@@ -8338,7 +8542,7 @@
                 <span class="outreach-card-score-pill">🔥 ${scoreNum}/100</span>
               </div>
               <div class="outreach-card-sub-line">
-                ${escapeHtml(lead.category || 'Business')} • ${escapeHtml(lead.city || '')} • ${escapeHtml(lead.phone || '')}
+                ${escapeHtml(lead.category || 'Business')} • ${escapeHtml(lead.city || '')} • ${escapeHtml(formatContactPhone(lead.phone || lead.phone_number || '') || '')}
               </div>
               ${Array.isArray(lead.tags) && lead.tags.length > 0 ? `
                 <div class="card-tags-list">
@@ -8406,28 +8610,29 @@
 
   function updateOutreachBulkControls() {
     const count = AppState.outreach.selectedLeadIds.size;
-    const delBtn = document.getElementById('btn-outreach-delete-batch');
-    const sendBtn = document.getElementById('btn-outreach-send-batch');
-    if (delBtn) {
-      if (count > 0) {
-        delBtn.classList.remove('disabled');
-        delBtn.removeAttribute('disabled');
-        delBtn.innerHTML = `<i class="fa-regular fa-trash-can"></i> <span>Delete (${count})</span>`;
-      } else {
-        delBtn.classList.add('disabled');
-        delBtn.setAttribute('disabled', 'true');
-        delBtn.innerHTML = `<i class="fa-regular fa-trash-can"></i> <span>Delete</span>`;
-      }
+    const bar = document.getElementById('outreach-bulk-bar');
+    const countText = document.getElementById('outreach-bulk-count-text');
+    const selectAllBtn = document.getElementById('btn-outreach-select-all');
+
+    // Floating Outreach Bulk Bar
+    if (AppState.currentView === 'outreach' && count > 0) {
+      if (bar) bar.classList.remove('hidden');
+      if (countText) countText.textContent = `${count} lead${count > 1 ? 's' : ''} selected`;
+    } else {
+      if (bar) bar.classList.add('hidden');
     }
-    if (sendBtn) {
-      if (count > 0) {
-        sendBtn.classList.remove('disabled');
-        sendBtn.removeAttribute('disabled');
-        sendBtn.innerHTML = `<i class="fa-regular fa-paper-plane"></i> <span>Send Message (${count})</span>`;
+
+    if (selectAllBtn) {
+      const activeList = getActiveOutreachList();
+      const allSelected = activeList.length > 0 && activeList.every((l) => AppState.outreach.selectedLeadIds.has(String(l.id || l.place_id)));
+      const icon = selectAllBtn.querySelector('i');
+      const span = selectAllBtn.querySelector('span');
+      if (allSelected) {
+        if (icon) icon.className = 'fa-solid fa-square-check';
+        if (span) span.textContent = 'Deselect All';
       } else {
-        sendBtn.classList.add('disabled');
-        sendBtn.setAttribute('disabled', 'true');
-        sendBtn.innerHTML = `<i class="fa-regular fa-paper-plane"></i> <span>Send Message</span>`;
+        if (icon) icon.className = 'fa-regular fa-square-check';
+        if (span) span.textContent = 'Select All';
       }
     }
   }
@@ -8466,7 +8671,7 @@
     if (wsScore) wsScore.textContent = `${lead.opportunity_score || 50}/100`;
 
     const wsPhone = document.getElementById('ws-phone');
-    if (wsPhone) wsPhone.textContent = lead.phone || 'Not available';
+    if (wsPhone) wsPhone.textContent = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
 
     const wsEmail = document.getElementById('ws-email');
     if (wsEmail) wsEmail.textContent = (lead.email && lead.email !== 'Not available') ? lead.email : 'N/A';
@@ -8958,7 +9163,7 @@
 
     // Col 2: Phone + Website + Website Status
     const phoneEl = document.getElementById('composer-lead-phone');
-    if (phoneEl) phoneEl.textContent = lead.phone || 'Not available';
+    if (phoneEl) phoneEl.textContent = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
 
     const webEl = document.getElementById('composer-lead-website');
     if (webEl) {
@@ -9975,7 +10180,7 @@
       const prevStates = data.previousStates;
       const toastMsg = count === 1
         ? (bizName ? `Outreach lead removed: ${bizName}` : 'Outreach lead removed')
-        : `${count} outreach leads removed`;
+        : `${cleanNumericDisplay(count)} Outreach leads removed`;
 
       showToast(toastMsg, 'success', 5000, {
         label: 'Undo',
@@ -10212,9 +10417,15 @@
     container.addEventListener('change', (e) => {
       const cb = e.target.closest('.outreach-card-checkbox');
       if (cb) {
-        const id = cb.getAttribute('data-id');
-        if (cb.checked) AppState.outreach.selectedLeadIds.add(id);
-        else AppState.outreach.selectedLeadIds.delete(id);
+        const id = String(cb.getAttribute('data-id') || '');
+        if (id) {
+          if (cb.checked) {
+            AppState.outreach.selectedLeadIds.add(id);
+          } else {
+            AppState.outreach.selectedLeadIds.delete(id);
+            AppState.outreach.selectedLeadIds.delete(Number(id));
+          }
+        }
         updateOutreachBulkControls();
         return;
       }
@@ -10393,11 +10604,11 @@
     if (selectAllBtn) {
       selectAllBtn.addEventListener('click', () => {
         const list = getActiveOutreachList();
-        const allSelected = list.length > 0 && list.every((l) => AppState.outreach.selectedLeadIds.has(l.id || l.place_id));
+        const allSelected = list.length > 0 && list.every((l) => AppState.outreach.selectedLeadIds.has(String(l.id || l.place_id)));
         if (allSelected) {
           AppState.outreach.selectedLeadIds.clear();
         } else {
-          list.forEach((l) => AppState.outreach.selectedLeadIds.add(l.id || l.place_id));
+          list.forEach((l) => AppState.outreach.selectedLeadIds.add(String(l.id || l.place_id)));
         }
         renderOutreachCards();
       });
@@ -10409,13 +10620,65 @@
       batchDelBtn.addEventListener('click', () => {
         const count = AppState.outreach.selectedLeadIds.size;
         if (count === 0) return;
-        AppState.pendingOutreachRemovalIds = Array.from(AppState.outreach.selectedLeadIds);
-        const confirmModal = document.getElementById('modal-remove-outreach-confirm');
-        const confirmTitle = document.getElementById('confirm-remove-outreach-title');
-        const confirmDesc = document.getElementById('confirm-remove-outreach-desc');
-        if (confirmTitle) confirmTitle.textContent = `Remove ${count} Lead${count > 1 ? 's' : ''} from Outreach?`;
-        if (confirmDesc) confirmDesc.textContent = `This will remove the selected ${count} lead${count > 1 ? 's' : ''} from Outreach only. Your Saved Leads will not be affected.`;
-        if (confirmModal) confirmModal.classList.remove('hidden');
+        const ids = Array.from(AppState.outreach.selectedLeadIds).map(String);
+        const title = 'Delete Selected Leads?';
+        const desc = count === 1
+          ? 'This will permanently delete 1 selected lead and its associated outreach/follow-up history.'
+          : `This will permanently delete ${cleanNumericDisplay(count)} selected leads and their associated outreach/follow-up history.`;
+        openDeleteConfirmModal(title, desc, async () => {
+          await removeFromOutreach(ids);
+        }, 'Delete Leads');
+      });
+    }
+
+    // Floating Outreach Bulk Popup Buttons
+    const popOutreachSend = document.getElementById('btn-outreach-pop-send');
+    if (popOutreachSend) {
+      popOutreachSend.addEventListener('click', () => {
+        const allLeads = AppState.outreach.data?.allLeads || [];
+        const selected = allLeads.filter((l) => AppState.outreach.selectedLeadIds.has(l.id || l.place_id));
+        if (selected.length > 0) {
+          startOutreachQueue(selected, 'outreach');
+        } else {
+          showToast('Please select leads to message.', 'info', 2000);
+        }
+      });
+    }
+
+    const popOutreachColdCall = document.getElementById('btn-outreach-pop-coldcall');
+    if (popOutreachColdCall) {
+      popOutreachColdCall.addEventListener('click', () => {
+        const count = AppState.outreach.selectedLeadIds.size;
+        if (count === 0) {
+          showToast('Please select at least one lead to add to Cold Call.', 'info', 2000);
+          return;
+        }
+        addLeadsToColdCall(Array.from(AppState.outreach.selectedLeadIds), 'Outreach');
+      });
+    }
+
+    const popOutreachDelete = document.getElementById('btn-outreach-pop-delete');
+    if (popOutreachDelete) {
+      popOutreachDelete.addEventListener('click', () => {
+        const count = AppState.outreach.selectedLeadIds.size;
+        if (count === 0) return;
+        const ids = Array.from(AppState.outreach.selectedLeadIds).map(String);
+        const title = 'Delete Selected Leads?';
+        const desc = count === 1
+          ? 'This will permanently delete 1 selected lead and its associated outreach/follow-up history.'
+          : `This will permanently delete ${cleanNumericDisplay(count)} selected leads and their associated outreach/follow-up history.`;
+        openDeleteConfirmModal(title, desc, async () => {
+          await removeFromOutreach(ids);
+        }, 'Delete Leads');
+      });
+    }
+
+    const popOutreachDismiss = document.getElementById('btn-outreach-pop-dismiss');
+    if (popOutreachDismiss) {
+      popOutreachDismiss.addEventListener('click', () => {
+        AppState.outreach.selectedLeadIds.clear();
+        document.querySelectorAll('.outreach-card-checkbox').forEach((c) => (c.checked = false));
+        updateOutreachBulkControls();
       });
     }
 
@@ -10577,14 +10840,26 @@
         if (!leadId) return;
         const lead = getOutreachLeadById(leadId);
         if (lead) {
-          AppState.pendingOutreachRemovalIds = [lead.id || lead.place_id];
-          const confirmModal = document.getElementById('modal-remove-outreach-confirm');
-          const confirmTitle = document.getElementById('confirm-remove-outreach-title');
-          const confirmDesc = document.getElementById('confirm-remove-outreach-desc');
-          if (confirmTitle) confirmTitle.textContent = `Remove "${lead.business_name}" from Outreach?`;
-          if (confirmDesc) confirmDesc.textContent = `This will remove "${lead.business_name}" from Outreach only. Your Saved Leads will not be affected.`;
-          if (confirmModal) confirmModal.classList.remove('hidden');
+          const id = String(lead.id || lead.place_id);
+          const title = 'Delete Selected Leads?';
+          const desc = 'This will permanently delete 1 selected lead and its associated outreach/follow-up history.';
+          openDeleteConfirmModal(title, desc, async () => {
+            await removeFromOutreach([id]);
+          }, 'Delete Leads');
         }
+      });
+    }
+
+    // 13b. Workspace Cold Call Button (Add Active Lead to Cold Call)
+    const wsColdCallBtn = document.getElementById('ws-btn-coldcall');
+    if (wsColdCallBtn) {
+      wsColdCallBtn.addEventListener('click', () => {
+        const leadId = AppState.outreach.activeLeadId;
+        if (!leadId) {
+          showToast('No active lead selected.', 'info', 2000);
+          return;
+        }
+        addLeadsToColdCall([leadId], 'Outreach');
       });
     }
 
@@ -10778,6 +11053,19 @@
         } else {
           showToast('Please select leads to message.', 'info', 2000);
         }
+      });
+    }
+
+    // 21e. Outreach Batch Cold Call Button in Toolbar
+    const batchColdCallBtn = document.getElementById('btn-outreach-coldcall-batch');
+    if (batchColdCallBtn) {
+      batchColdCallBtn.addEventListener('click', () => {
+        const count = AppState.outreach.selectedLeadIds.size;
+        if (count === 0) {
+          showToast('Please select at least one lead to add to Cold Call.', 'info', 2000);
+          return;
+        }
+        addLeadsToColdCall(Array.from(AppState.outreach.selectedLeadIds), 'Outreach');
       });
     }
 
@@ -10976,11 +11264,14 @@
         AppState.followup.data = data;
         AppState.followup.leads = (data.allLeads || []).filter((lead) => {
           return Boolean(
-            lead.first_message_sent ||
-            lead.main_message_sent_at ||
             lead.outreach_status === 'Follow-Up' ||
+            lead.next_follow_up_at ||
+            lead.follow_up_paused ||
+            lead.followUpPaused ||
             lead.outreach_status === 'Replied' ||
-            lead.outreach_status === 'Completed'
+            lead.reply_status ||
+            lead.outreach_status === 'Completed' ||
+            lead.follow_up_completed
           );
         });
 
@@ -11030,16 +11321,16 @@
         } else {
           activeCount++;
           const diff = getCalendarDayDiff(lead.next_follow_up_at);
-          if (diff === null) {
-            dueTodayCount++;
-          } else if (diff < 0) {
-            overdueCount++;
-          } else if (diff === 0) {
-            dueTodayCount++;
-          } else if (diff > 0) {
-            upcomingCount++;
-            if (diff >= 1 && diff <= 3) {
-              dueSoonCount++;
+          if (diff !== null) {
+            if (diff < 0) {
+              overdueCount++;
+            } else if (diff === 0) {
+              dueTodayCount++;
+            } else if (diff > 0) {
+              upcomingCount++;
+              if (diff >= 1 && diff <= 3) {
+                dueSoonCount++;
+              }
             }
           }
         }
@@ -11054,13 +11345,13 @@
     const cActive = document.getElementById('fu-counter-active');
     const cDueSoon = document.getElementById('fu-counter-due-soon');
 
-    if (cDue) cDue.textContent = dueTodayCount;
-    if (cOverdue) cOverdue.textContent = overdueCount;
-    if (cUpcoming) cUpcoming.textContent = upcomingCount;
-    if (cPaused) cPaused.textContent = pausedCount;
-    if (cCompleted) cCompleted.textContent = completedCount;
-    if (cActive) cActive.textContent = activeCount;
-    if (cDueSoon) cDueSoon.textContent = dueSoonCount;
+    if (cDue) cDue.textContent = cleanNumericDisplay(dueTodayCount);
+    if (cOverdue) cOverdue.textContent = cleanNumericDisplay(overdueCount);
+    if (cUpcoming) cUpcoming.textContent = cleanNumericDisplay(upcomingCount);
+    if (cPaused) cPaused.textContent = cleanNumericDisplay(pausedCount);
+    if (cCompleted) cCompleted.textContent = cleanNumericDisplay(completedCount);
+    if (cActive) cActive.textContent = cleanNumericDisplay(activeCount);
+    if (cDueSoon) cDueSoon.textContent = cleanNumericDisplay(dueSoonCount);
 
     const tAll = document.getElementById('fu-tab-all-count');
     const tDue = document.getElementById('fu-tab-duetoday-count');
@@ -11071,21 +11362,21 @@
     const tReplies = document.getElementById('fu-tab-replies-count');
     const tDueSoon = document.getElementById('fu-tab-duesoon-count');
 
-    if (tAll) tAll.textContent = activeCount + pausedCount;
-    if (tDue) tDue.textContent = dueTodayCount;
-    if (tOverdue) tOverdue.textContent = overdueCount;
-    if (tUpcoming) tUpcoming.textContent = upcomingCount;
-    if (tPaused) tPaused.textContent = pausedCount;
-    if (tCompleted) tCompleted.textContent = completedCount;
-    if (tReplies) tReplies.textContent = repliesCount;
-    if (tDueSoon) tDueSoon.textContent = dueSoonCount;
+    if (tAll) tAll.textContent = cleanNumericDisplay(activeCount + pausedCount);
+    if (tDue) tDue.textContent = cleanNumericDisplay(dueTodayCount);
+    if (tOverdue) tOverdue.textContent = cleanNumericDisplay(overdueCount);
+    if (tUpcoming) tUpcoming.textContent = cleanNumericDisplay(upcomingCount);
+    if (tPaused) tPaused.textContent = cleanNumericDisplay(pausedCount);
+    if (tCompleted) tCompleted.textContent = cleanNumericDisplay(completedCount);
+    if (tReplies) tReplies.textContent = cleanNumericDisplay(repliesCount);
+    if (tDueSoon) tDueSoon.textContent = cleanNumericDisplay(dueSoonCount);
 
     // Actionable Follow-Ups = Due Today + Overdue ONLY
     const actionableCount = dueTodayCount + overdueCount;
     const navBadge = document.getElementById('nav-followup-badge');
     const mobileBadge = document.getElementById('mobile-nav-followup-badge');
-    if (navBadge) navBadge.textContent = actionableCount;
-    if (mobileBadge) mobileBadge.textContent = actionableCount;
+    if (navBadge) navBadge.textContent = cleanNumericDisplay(actionableCount);
+    if (mobileBadge) mobileBadge.textContent = cleanNumericDisplay(actionableCount);
 
     // "Today" Reminder Banner & Smart Queue Start Button
     const reminderBanner = document.getElementById('fu-today-reminder-banner');
@@ -11099,15 +11390,15 @@
         if (startQueueBtn) startQueueBtn.classList.add('hidden');
       } else if (dueTodayCount > 0 && overdueCount === 0) {
         reminderBanner.classList.add('banner-due');
-        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-bell text-emerald"></i> <span><strong>${dueTodayCount} follow-up${dueTodayCount === 1 ? '' : 's'}</strong> require attention today.</span>`;
+        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-bell text-emerald"></i> <span><strong>${cleanNumericDisplay(dueTodayCount)} follow-up${dueTodayCount === 1 ? '' : 's'}</strong> require attention today.</span>`;
         if (startQueueBtn) startQueueBtn.classList.remove('hidden');
       } else if (dueTodayCount === 0 && overdueCount > 0) {
         reminderBanner.classList.add('banner-overdue');
-        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose"></i> <span>⚠ <strong>${overdueCount} follow-up${overdueCount === 1 ? '' : 's'}</strong> ${overdueCount === 1 ? 'is' : 'are'} overdue.</span>`;
+        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose"></i> <span>⚠ <strong>${cleanNumericDisplay(overdueCount)} follow-up${overdueCount === 1 ? '' : 's'}</strong> ${overdueCount === 1 ? 'is' : 'are'} overdue.</span>`;
         if (startQueueBtn) startQueueBtn.classList.remove('hidden');
       } else {
         reminderBanner.classList.add('banner-overdue');
-        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-bell text-rose"></i> <span><strong>${actionableCount} leads require attention today</strong> (${overdueCount} overdue · ${dueTodayCount} due today).</span>`;
+        if (reminderText) reminderText.innerHTML = `<i class="fa-solid fa-bell text-rose"></i> <span><strong>${cleanNumericDisplay(actionableCount)} leads require attention today</strong> (${cleanNumericDisplay(overdueCount)} overdue · ${cleanNumericDisplay(dueTodayCount)} due today).</span>`;
         if (startQueueBtn) startQueueBtn.classList.remove('hidden');
       }
     }
@@ -11143,7 +11434,7 @@
       if (tab === 'all') {
         if (isReplied || isCompleted) return false;
       } else if (tab === 'due-today') {
-        if (isPaused || isReplied || isCompleted || (diff !== 0 && diff !== null)) return false;
+        if (isPaused || isReplied || isCompleted || diff !== 0) return false;
       } else if (tab === 'overdue') {
         if (isPaused || isReplied || isCompleted || diff === null || diff >= 0) return false;
       } else if (tab === 'upcoming') {
@@ -11474,7 +11765,7 @@
                 <div class="fu-sub-meta">
                   <span class="fu-cat-pill">${escapeHtml(lead.category || 'Local Business')}</span>
                   <span class="fu-meta-loc"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(lead.city ? (lead.city + (lead.state ? ', ' + lead.state : '')) : (lead.state || 'Local'))}</span>
-                  ${lead.phone ? `<span class="fu-meta-phone"><i class="fa-solid fa-phone"></i> ${escapeHtml(lead.phone)}</span>` : ''}
+                  ${lead.phone ? `<span class="fu-meta-phone"><i class="fa-solid fa-phone"></i> ${escapeHtml(formatContactPhone(lead.phone || lead.phone_number || ''))}</span>` : ''}
                   ${hasNotes ? `<button type="button" class="fu-note-badge" data-action="view" data-lead-id="${leadId}" title="${lead.notes.length} note${lead.notes.length === 1 ? '' : 's'} available"><i class="fa-regular fa-note-sticky"></i> <span>📝 Note available</span></button>` : ''}
                   ${Array.isArray(lead.tags) && lead.tags.length > 0 ? `
                     <div class="card-tags-list" style="display:inline-flex;margin-top:0;">
@@ -11647,29 +11938,34 @@
       }
     }
 
-    if (btnBulkSend) {
-      btnBulkSend.disabled = selectedEligibleCount === 0;
-      const btnSpan = btnBulkSend.querySelector('#text-fu-bulk-send');
-      if (btnSpan) {
-        btnSpan.textContent = selectedEligibleCount > 0 ? `Send Follow-Ups (${selectedEligibleCount})` : 'Send Follow-Ups';
+    // Floating Follow-Up Bulk Action Bar
+    const fuBar = document.getElementById('followup-bulk-bar');
+    const fuCountText = document.getElementById('followup-bulk-count-text');
+    const fuPopSend = document.getElementById('btn-fu-pop-send');
+    const fuPopPause = document.getElementById('btn-fu-pop-pause');
+    const fuPopResume = document.getElementById('btn-fu-pop-resume');
+
+    if (AppState.currentView === 'followup' && selectedEligibleCount > 0) {
+      if (fuBar) fuBar.classList.remove('hidden');
+      if (fuCountText) fuCountText.textContent = `${selectedEligibleCount} follow-up${selectedEligibleCount > 1 ? 's' : ''} selected`;
+      if (fuPopSend) {
+        fuPopSend.disabled = selectedEligibleCount === 0;
+        fuPopSend.innerHTML = `<i class="fa-regular fa-paper-plane"></i> <span>Send Follow-Ups (${selectedEligibleCount})</span>`;
       }
-    }
-
-    const btnBulkPause = document.getElementById('btn-fu-bulk-pause');
-    const btnBulkResume = document.getElementById('btn-fu-bulk-resume');
-
-    if (btnBulkPause) {
       const hasUnpaused = eligibleLeads.some((l) => AppState.followup.selectedLeadIds.has(String(l.id || l.place_id)) && !l.follow_up_paused && !l.followUpPaused);
-      btnBulkPause.disabled = !hasUnpaused;
-      if (hasUnpaused) btnBulkPause.classList.remove('disabled');
-      else btnBulkPause.classList.add('disabled');
-    }
-
-    if (btnBulkResume) {
+      if (fuPopPause) {
+        fuPopPause.disabled = !hasUnpaused;
+        if (hasUnpaused) fuPopPause.classList.remove('disabled');
+        else fuPopPause.classList.add('disabled');
+      }
       const hasPaused = eligibleLeads.some((l) => AppState.followup.selectedLeadIds.has(String(l.id || l.place_id)) && (l.follow_up_paused || l.followUpPaused));
-      btnBulkResume.disabled = !hasPaused;
-      if (hasPaused) btnBulkResume.classList.remove('disabled');
-      else btnBulkResume.classList.add('disabled');
+      if (fuPopResume) {
+        fuPopResume.disabled = !hasPaused;
+        if (hasPaused) fuPopResume.classList.remove('disabled');
+        else fuPopResume.classList.add('disabled');
+      }
+    } else {
+      if (fuBar) fuBar.classList.add('hidden');
     }
   }
 
@@ -11889,7 +12185,7 @@
     if (bizEl) bizEl.textContent = lead.business_name || 'Business';
     if (lastDateEl) lastDateEl.textContent = formatDDMMYYYY(lead.last_message_sent_at || lead.main_message_sent_at);
     if (stageDayEl) stageDayEl.textContent = `Day ${stageDef.day}`;
-    if (phoneEl) phoneEl.textContent = lead.phone || 'Not available';
+    if (phoneEl) phoneEl.textContent = formatContactPhone(lead.phone || lead.phone_number || '') || 'Not available';
 
     // Retrieve ONLY the matching template for this stage
     const targetTplId = `tpl-followup-${safeStep}`;
@@ -12572,6 +12868,46 @@
       });
     }
 
+    // Floating Follow-Up Bulk Popup Buttons
+    const popFuSend = document.getElementById('btn-fu-pop-send');
+    if (popFuSend) {
+      popFuSend.addEventListener('click', startBulkFollowUpQueue);
+    }
+
+    const popFuPause = document.getElementById('btn-fu-pop-pause');
+    if (popFuPause) {
+      popFuPause.addEventListener('click', () => {
+        const ids = Array.from(AppState.followup.selectedLeadIds || []);
+        if (ids.length > 0) {
+          bulkPauseFollowUp(ids);
+        }
+      });
+    }
+
+    const popFuResume = document.getElementById('btn-fu-pop-resume');
+    if (popFuResume) {
+      popFuResume.addEventListener('click', () => {
+        const ids = Array.from(AppState.followup.selectedLeadIds || []);
+        if (ids.length > 0) {
+          bulkResumeFollowUp(ids);
+        }
+      });
+    }
+
+    const popFuDismiss = document.getElementById('btn-fu-pop-dismiss');
+    if (popFuDismiss) {
+      popFuDismiss.addEventListener('click', () => {
+        if (AppState.followup.selectedLeadIds) AppState.followup.selectedLeadIds.clear();
+        document.querySelectorAll('.fu-card-checkbox').forEach((c) => (c.checked = false));
+        const chkAll = document.getElementById('chk-fu-select-all');
+        if (chkAll) {
+          chkAll.checked = false;
+          chkAll.indeterminate = false;
+        }
+        updateFollowUpSelectionUI();
+      });
+    }
+
     // 7. Cards container action delegation & checkbox changes
     const container = document.getElementById('followup-cards-container');
     if (container) {
@@ -13219,6 +13555,8 @@
           switchView('outreach');
         } else if (tab === 'followup') {
           switchView('followup');
+        } else if (tab === 'cold-call') {
+          switchView('cold-call');
         } else if (tab === 'history') {
           switchView('history');
         } else if (tab === 'settings') {
@@ -13280,6 +13618,8 @@
       switchView('outreach');
     } else if (hash === '#followup') {
       switchView('followup');
+    } else if (hash === '#cold-call') {
+      switchView('cold-call');
     } else if (hash === '#history') {
       switchView('history');
     } else if (hash === '#settings') {
@@ -13297,6 +13637,7 @@
       else if (h === '#favorites') switchView('favorites');
       else if (h === '#outreach') switchView('outreach');
       else if (h === '#followup') switchView('followup');
+      else if (h === '#cold-call') switchView('cold-call');
       else if (h === '#history') switchView('history');
       else if (h === '#settings') switchView('settings');
       else if (h === '#find-leads') switchView('find-leads');
@@ -14359,6 +14700,10 @@
               if (typeof updateBadgeCounts === 'function') await updateBadgeCounts();
               if (AppState.currentView === 'outreach' && typeof fetchOutreachData === 'function') await fetchOutreachData();
               if (AppState.currentView === 'followup' && typeof fetchFollowUpData === 'function') await fetchFollowUpData();
+              AppState.coldCallDirty = true;
+              if ((AppState.currentView === 'cold-call' || AppState.hasLoadedColdCall) && typeof loadColdCallData === 'function') {
+                await loadColdCallData();
+              }
               await this.loadSettings();
               this.loadRecentBackups();
             } catch (reloadErr) {
@@ -14469,6 +14814,15 @@
               <div class="restore-stat-content">
                 <span class="restore-stat-val">${preview.notesCount} / ${preview.activitiesCount}</span>
                 <span class="restore-stat-lbl">Notes & Activity Logs</span>
+              </div>
+            </div>
+            <div class="restore-stat-card">
+              <div class="restore-stat-icon" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+                <i class="fa-solid fa-phone"></i>
+              </div>
+              <div class="restore-stat-content">
+                <span class="restore-stat-val">${preview.coldCallCount || 0}</span>
+                <span class="restore-stat-lbl">Cold Call Records</span>
               </div>
             </div>
             <div class="restore-stat-card">
@@ -15365,182 +15719,437 @@
   window.serializeDailyPerformanceToCsv = serializeDailyPerformanceToCsv;
   window.generateSafeExportFilename = generateSafeExportFilename;
 
-  function initResetLeadDataListeners() {
-    const openBtn = document.getElementById('btn-open-reset-leads-modal');
+  function initDataResetListeners() {
     const modal = document.getElementById('modal-reset-leads-confirm');
+    const titleEl = document.getElementById('confirm-reset-title');
+    const descEl = document.getElementById('confirm-reset-desc');
+    const preserveBox = document.getElementById('confirm-reset-preserve-box');
+    const preserveText = document.getElementById('confirm-reset-preserve-text');
+    const inputWrap = document.getElementById('confirm-reset-input-wrap');
     const input = document.getElementById('input-confirm-reset');
     const cancelBtn = document.getElementById('btn-cancel-reset-leads');
     const performBtn = document.getElementById('btn-perform-reset-leads');
 
-    if (!openBtn || !modal || !input || !cancelBtn || !performBtn) return;
-    if (openBtn.dataset.resetBound === 'true') return;
-    openBtn.dataset.resetBound = 'true';
+    if (!modal || !titleEl || !descEl || !performBtn || !cancelBtn) return;
 
+    let activeCategory = null;
     let isResetting = false;
+
+    const RESET_CONFIGS = {
+      'saved-leads': {
+        title: 'Remove Saved Leads?',
+        desc: 'This will permanently remove all Saved Leads from Client Hunter. This action cannot be undone.',
+        preserve: 'Favorites, Outreach, Cold Call, and Follow-Up tied to these lead records will also be removed. Search History, Settings, and API configuration will NOT be deleted.',
+        btnText: 'Remove Saved Leads',
+        requireTypeReset: false,
+        toastSuccess: 'Saved Leads removed successfully.'
+      },
+      'cold-call': {
+        title: 'Clear Cold Call Data?',
+        desc: 'This will remove all leads from the Cold Call queue and clear call records. This action cannot be undone.',
+        preserve: 'Saved Leads, Outreach tracking, Favorites, Settings, and Search History will NOT be deleted.',
+        btnText: 'Clear Cold Call Data',
+        requireTypeReset: false,
+        toastSuccess: 'Cold Call queue and records cleared successfully.'
+      },
+      'outreach': {
+        title: 'Reset Outreach Data?',
+        desc: 'This will reset Outreach tracking, message records, and progress back to Pending. This action cannot be undone.',
+        preserve: 'Saved Leads, Cold Call queue, Favorites, Settings, and Search History will NOT be deleted.',
+        btnText: 'Reset Outreach Data',
+        requireTypeReset: false,
+        toastSuccess: 'Outreach records and tracking reset successfully.'
+      },
+      'favorites': {
+        title: 'Remove All Favorites?',
+        desc: 'This will remove favorite markings from all leads in Client Hunter. This action cannot be undone.',
+        preserve: 'Saved Leads, Outreach tracking, Follow-Ups, Settings, and Search History will NOT be deleted.',
+        btnText: 'Remove Favorites',
+        requireTypeReset: false,
+        toastSuccess: 'All favorite markings removed successfully.'
+      },
+      'followup': {
+        title: 'Reset Follow-Up State?',
+        desc: 'This will clear all scheduled follow-ups, timeline progress, and pause states. Active follow-up leads will be set to Contacted.',
+        preserve: 'Saved Leads, Outreach message records, Favorites, Settings, and Search History will NOT be deleted.',
+        btnText: 'Reset Follow-Up State',
+        requireTypeReset: false,
+        toastSuccess: 'Follow-Up state and schedules reset successfully.'
+      },
+      'history': {
+        title: 'Clear Search History?',
+        desc: 'This will permanently delete all past search sessions and discovery query history. This action cannot be undone.',
+        preserve: 'Saved Leads, Outreach, Follow-Ups, Favorites, and Settings will NOT be deleted.',
+        btnText: 'Clear Search History',
+        requireTypeReset: false,
+        toastSuccess: 'Search history cleared successfully.'
+      },
+      'settings': {
+        title: 'Reset Settings to Defaults?',
+        desc: 'This will restore all Client Hunter preferences, outreach templates, service selections, and profile configurations to default values.',
+        preserve: 'Saved Leads, Favorites, Outreach, Cold Call, Follow-Up, and History will NOT be deleted.',
+        btnText: 'Reset Settings',
+        requireTypeReset: false,
+        toastSuccess: 'Application settings reset to defaults successfully.'
+      },
+      'everything': {
+        title: 'Reset Everything?',
+        desc: 'This will PERMANENTLY REMOVE ALL Client Hunter data: all saved leads, cold call records, outreach tracking, follow-ups, and search history, and reset all settings to defaults. This action CANNOT be undone.',
+        preserve: 'All data and custom settings will be wiped.',
+        btnText: 'Yes, Reset Everything',
+        requireTypeReset: true,
+        toastSuccess: 'All Client Hunter data and settings have been completely reset.'
+      }
+    };
 
     function closeModal() {
       if (isResetting) return;
       modal.classList.add('hidden');
-      input.value = '';
-      performBtn.disabled = true;
-      performBtn.classList.add('btn-reset-disabled');
-      performBtn.innerHTML = 'Yes, Reset Everything';
+      if (input) input.value = '';
+      performBtn.disabled = false;
+      performBtn.classList.remove('btn-reset-disabled');
+      activeCategory = null;
     }
 
-    openBtn.addEventListener('click', () => {
-      input.value = '';
-      performBtn.disabled = true;
-      performBtn.classList.add('btn-reset-disabled');
-      performBtn.innerHTML = 'Yes, Reset Everything';
+    function openModalForCategory(category) {
+      const config = RESET_CONFIGS[category];
+      if (!config) return;
+
+      activeCategory = category;
+      titleEl.textContent = config.title;
+      descEl.textContent = config.desc;
+
+      if (preserveText) {
+        preserveText.innerHTML = config.preserve.replace('NOT', '<strong>NOT</strong>');
+      }
+
+      if (config.requireTypeReset) {
+        if (inputWrap) inputWrap.style.display = 'block';
+        if (input) {
+          input.value = '';
+          setTimeout(() => input.focus(), 60);
+        }
+        performBtn.disabled = true;
+        performBtn.classList.add('btn-reset-disabled');
+      } else {
+        if (inputWrap) inputWrap.style.display = 'none';
+        performBtn.disabled = false;
+        performBtn.classList.remove('btn-reset-disabled');
+      }
+
+      performBtn.textContent = config.btnText;
       modal.classList.remove('hidden');
-      setTimeout(() => input.focus(), 60);
+    }
+
+    // Bind all category buttons
+    const categoryButtons = document.querySelectorAll('[data-category]');
+    categoryButtons.forEach((btn) => {
+      if (btn.dataset.boundReset === 'true') return;
+      btn.dataset.boundReset = 'true';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = btn.getAttribute('data-category');
+        if (cat) openModalForCategory(cat);
+      });
     });
+
+    // Fallback binding for open reset leads modal button
+    const openBtn = document.getElementById('btn-open-reset-leads-modal');
+    if (openBtn && openBtn.dataset.boundReset !== 'true') {
+      openBtn.dataset.boundReset = 'true';
+      openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModalForCategory('everything');
+      });
+    }
 
     cancelBtn.addEventListener('click', closeModal);
 
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
+      if (e.target === modal) closeModal();
     });
 
-    input.addEventListener('input', () => {
-      if (isResetting) return;
-      const val = input.value.trim();
-      if (val === 'RESET') {
-        performBtn.disabled = false;
-        performBtn.classList.remove('btn-reset-disabled');
-      } else {
-        performBtn.disabled = true;
-        performBtn.classList.add('btn-reset-disabled');
-      }
-    });
+    if (input) {
+      input.addEventListener('input', () => {
+        if (isResetting || !activeCategory) return;
+        const config = RESET_CONFIGS[activeCategory];
+        if (!config || !config.requireTypeReset) return;
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !performBtn.disabled && !isResetting) {
-        performBtn.click();
-      }
-    });
+        if (input.value.trim() === 'RESET') {
+          performBtn.disabled = false;
+          performBtn.classList.remove('btn-reset-disabled');
+        } else {
+          performBtn.disabled = true;
+          performBtn.classList.add('btn-reset-disabled');
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !performBtn.disabled && !isResetting) {
+          performBtn.click();
+        }
+      });
+    }
 
     performBtn.addEventListener('click', async () => {
-      if (isResetting || input.value.trim() !== 'RESET') return;
+      if (isResetting || !activeCategory) return;
+      const config = RESET_CONFIGS[activeCategory];
+      if (!config) return;
+
+      if (config.requireTypeReset && input && input.value.trim() !== 'RESET') {
+        return;
+      }
 
       isResetting = true;
       performBtn.disabled = true;
       performBtn.classList.add('btn-reset-disabled');
-      performBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Resetting...';
-      openBtn.disabled = true;
+      const originalText = performBtn.textContent;
+      performBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Processing...';
 
       try {
-        const res = await fetch('/api/leads/reset', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+        const res = await fetch(`/api/reset/${activeCategory}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
         });
 
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok || !data.success) {
-          const errMsg = data.error || `Server responded with error status ${res.status}`;
-          console.error('[RESET LEAD DATA ERROR]', errMsg);
+          const errMsg = data.error || `Server responded with status ${res.status}`;
+          console.error(`[RESET ${activeCategory.toUpperCase()} ERROR]`, errMsg);
           showToast(`Reset failed: ${errMsg}`, 'error', 5000);
           isResetting = false;
           performBtn.disabled = false;
           performBtn.classList.remove('btn-reset-disabled');
-          performBtn.innerHTML = 'Yes, Reset Everything';
-          openBtn.disabled = false;
+          performBtn.textContent = originalText;
           return;
         }
 
-        // Deletion confirmed on backend & Supabase
+        const cat = activeCategory;
         isResetting = false;
-        openBtn.disabled = false;
         closeModal();
 
-        // 1. Clear In-Memory AppState lead datasets
-        AppState.allSavedLeads = [];
-        AppState.savedLeads = [];
-        AppState.selectedLeadIds.clear();
-        AppState.favoriteLeads = [];
-        AppState.selectedFavLeadIds.clear();
-        AppState.activeOutreachLead = null;
-        AppState.leadToDelete = null;
-        if (AppState.outreach) {
-          AppState.outreach.data = null;
-          AppState.outreach.activeLeadId = null;
-          if (AppState.outreach.selectedLeadIds) {
-            AppState.outreach.selectedLeadIds.clear();
+        // Selective category-level in-memory state updates
+        if (cat === 'saved-leads' || cat === 'everything') {
+          AppState.allSavedLeads = [];
+          AppState.savedLeads = [];
+          AppState.selectedLeadIds.clear();
+          AppState.favoriteLeads = [];
+          AppState.selectedFavLeadIds.clear();
+          AppState.activeOutreachLead = null;
+          AppState.leadToDelete = null;
+          if (AppState.outreach) {
+            AppState.outreach.data = null;
+            AppState.outreach.activeLeadId = null;
+            if (AppState.outreach.selectedLeadIds) AppState.outreach.selectedLeadIds.clear();
+            AppState.outreach.currentComposerLead = null;
           }
-          AppState.outreach.currentComposerLead = null;
+          if (AppState.outreachQueue) {
+            AppState.outreachQueue.isActive = false;
+            AppState.outreachQueue.leads = [];
+            AppState.outreachQueue.currentIndex = 0;
+            AppState.outreachQueue.processedCount = 0;
+            AppState.outreachQueue.skippedCount = 0;
+          }
+          if (AppState.followup) {
+            AppState.followup.data = null;
+            AppState.followup.leads = [];
+            AppState.followup.currentReplyLead = null;
+          }
+          if (AppState.coldCall) {
+            AppState.coldCall.leads = [];
+            AppState.coldCall.selectedIds.clear();
+            AppState.coldCall.activeLeadId = null;
+          }
+          AppState.hasLoadedSavedLeads = false;
+          AppState.savedLeadsDirty = true;
+          AppState.hasLoadedFavorites = false;
+          AppState.favoritesDirty = true;
+          AppState.outreachDirty = true;
+          AppState.followupDirty = true;
+
+          const savedTbody = document.getElementById('saved-leads-tbody');
+          const savedEmpty = document.getElementById('saved-table-empty');
+          if (savedTbody) savedTbody.innerHTML = '';
+          if (savedEmpty) savedEmpty.classList.remove('hidden');
+
+          const favTbody = document.getElementById('fav-leads-tbody');
+          const favEmpty = document.getElementById('fav-table-empty');
+          if (favTbody) favTbody.innerHTML = '';
+          if (favEmpty) favEmpty.classList.remove('hidden');
+
+          if (cat === 'everything') {
+            AppState.hasLoadedHistory = false;
+            AppState.historyDirty = true;
+            if (typeof SettingsModule !== 'undefined' && SettingsModule.loadSettings) {
+              await SettingsModule.loadSettings();
+            }
+          }
+        } else if (cat === 'cold-call') {
+          if (AppState.coldCall) {
+            AppState.coldCall.leads = [];
+            AppState.coldCall.selectedIds.clear();
+            AppState.coldCall.activeLeadId = null;
+          }
+          if (Array.isArray(AppState.allSavedLeads)) {
+            AppState.allSavedLeads.forEach((l) => {
+              if (l.cold_call) l.cold_call.queued = false;
+            });
+          }
+        } else if (cat === 'outreach') {
+          if (AppState.outreach) {
+            AppState.outreach.data = null;
+            AppState.outreach.activeLeadId = null;
+            if (AppState.outreach.selectedLeadIds) AppState.outreach.selectedLeadIds.clear();
+          }
+          if (AppState.outreachQueue) {
+            AppState.outreachQueue.isActive = false;
+            AppState.outreachQueue.leads = [];
+            AppState.outreachQueue.currentIndex = 0;
+          }
+          AppState.outreachDirty = true;
+          if (Array.isArray(AppState.allSavedLeads)) {
+            AppState.allSavedLeads.forEach((l) => {
+              l.outreach_status = 'Pending';
+              l.message_history = [];
+            });
+          }
+        } else if (cat === 'favorites') {
+          AppState.favoriteLeads = [];
+          AppState.selectedFavLeadIds.clear();
+          AppState.hasLoadedFavorites = false;
+          AppState.favoritesDirty = true;
+          if (Array.isArray(AppState.allSavedLeads)) {
+            AppState.allSavedLeads.forEach((l) => {
+              l.favorite = false;
+              l.is_favorite = false;
+            });
+          }
+          if (Array.isArray(AppState.savedLeads)) {
+            AppState.savedLeads.forEach((l) => {
+              l.favorite = false;
+              l.is_favorite = false;
+            });
+          }
+          const favTbody = document.getElementById('fav-leads-tbody');
+          const favEmpty = document.getElementById('fav-table-empty');
+          if (favTbody) favTbody.innerHTML = '';
+          if (favEmpty) favEmpty.classList.remove('hidden');
+        } else if (cat === 'followup') {
+          if (AppState.followup) {
+            AppState.followup.data = null;
+            AppState.followup.leads = [];
+            AppState.followup.currentReplyLead = null;
+            AppState.followup.currentComposerLead = null;
+            AppState.followup.currentSnoozeLead = null;
+            if (AppState.followup.selectedLeadIds) AppState.followup.selectedLeadIds.clear();
+            if (AppState.followup.queue) {
+              AppState.followup.queue.isActive = false;
+              AppState.followup.queue.leads = [];
+              AppState.followup.queue.currentIndex = 0;
+            }
+          }
+          AppState.followupDirty = true;
+          const cleanLeadFuState = (l) => {
+            l.next_follow_up_at = null;
+            l.next_follow_up_number = null;
+            l.next_follow_up_name = null;
+            l.follow_up_day = null;
+            l.current_follow_up_number = 0;
+            l.follow_up_completed = false;
+            l.follow_up_paused = false;
+            l.followUpPaused = false;
+            l.followUpDate = null;
+            l.followup_timeline = null;
+            l.reply_status = null;
+            l.replied_at = null;
+            l.outreach_completed_at = null;
+            if (l.outreach_status === 'Follow-Up' || l.outreach_status === 'Completed' || l.outreach_status === 'Replied') {
+              l.outreach_status = l.first_message_sent ? 'Contacted' : 'Pending';
+            }
+            if (Array.isArray(l.message_history)) {
+              l.message_history = l.message_history.filter(m => m.type !== 'follow_up' && m.type !== 'followup');
+            }
+            if (Array.isArray(l.activities)) {
+              l.activities = l.activities.filter(a =>
+                a.event_type !== 'followup_sent' &&
+                a.event_type !== 'followup_due' &&
+                a.event_type !== 'followup_paused' &&
+                a.event_type !== 'followup_resumed' &&
+                a.event_type !== 'outreach_completed'
+              );
+            }
+            if (l.last_message_type && l.last_message_type.startsWith('Follow-Up')) {
+              l.last_message_type = l.first_message_sent ? 'Main Message' : null;
+              l.last_message_sent_at = l.main_message_sent_at || l.first_message_sent_at || null;
+            }
+          };
+
+          if (Array.isArray(AppState.allSavedLeads)) {
+            AppState.allSavedLeads.forEach(cleanLeadFuState);
+          }
+          if (Array.isArray(AppState.savedLeads)) {
+            AppState.savedLeads.forEach(cleanLeadFuState);
+          }
+
+          // Immediately clear Follow-Up DOM container and show empty state
+          const fuCardsContainer = document.getElementById('followup-cards-container');
+          const fuEmptyState = document.getElementById('followup-empty-state');
+          if (fuCardsContainer) fuCardsContainer.innerHTML = '';
+          if (fuEmptyState) fuEmptyState.classList.remove('hidden');
+
+          // Reset all Follow-Up metric counters and badges in the DOM
+          updateFollowUpCounters();
+          if (typeof updateFollowUpSelectionUI === 'function') updateFollowUpSelectionUI([]);
+        } else if (cat === 'history') {
+          AppState.hasLoadedHistory = false;
+          AppState.historyDirty = true;
+          const historyTbody = document.getElementById('history-tbody');
+          const historyEmpty = document.getElementById('history-empty');
+          if (historyTbody) historyTbody.innerHTML = '';
+          if (historyEmpty) historyEmpty.classList.remove('hidden');
+        } else if (cat === 'settings') {
+          if (typeof SettingsModule !== 'undefined' && SettingsModule.loadSettings) {
+            await SettingsModule.loadSettings();
+          }
         }
-        if (AppState.outreachQueue) {
-          AppState.outreachQueue.isActive = false;
-          AppState.outreachQueue.leads = [];
-          AppState.outreachQueue.currentIndex = 0;
-          AppState.outreachQueue.processedCount = 0;
-          AppState.outreachQueue.skippedCount = 0;
-        }
-        if (AppState.followup) {
-          AppState.followup.data = null;
-          AppState.followup.leads = [];
-          AppState.followup.currentReplyLead = null;
-        }
-        AppState.hasLoadedSavedLeads = false;
-        AppState.savedLeadsDirty = true;
-        AppState.hasLoadedFavorites = false;
-        AppState.favoritesDirty = true;
-        AppState.outreachDirty = true;
-        AppState.followupDirty = true;
 
-        // 2. Clear Lead-related sessionStorage
-        try {
-          sessionStorage.removeItem('clienthunter_outreach_lead');
-        } catch (e) {}
+        // Success notification
+        showToast(config.toastSuccess, 'success', 3500);
 
-        // 3. Proactively clear DOM tables and show empty states
-        const savedTbody = document.getElementById('saved-leads-tbody');
-        const savedEmpty = document.getElementById('saved-table-empty');
-        if (savedTbody) savedTbody.innerHTML = '';
-        if (savedEmpty) savedEmpty.classList.remove('hidden');
-
-        const favTbody = document.getElementById('fav-leads-tbody');
-        const favEmpty = document.getElementById('fav-table-empty');
-        if (favTbody) favTbody.innerHTML = '';
-        if (favEmpty) favEmpty.classList.remove('hidden');
-
-        // 4. Success notification
-        showToast('Lead data reset successfully.', 'success', 3500);
-
-        // 5. Update UI Badges, Counters, and Empty States across all modules
+        // Update badges and active views
         await updateBadgeCounts();
         updateBulkActionBar();
         updateFavBulkActionBar();
 
-        // 6. Update Current View immediately if lead-dependent
         const view = AppState.currentView;
-        if (view === 'saved-leads') {
+        if (view === 'saved-leads' && (cat === 'saved-leads' || cat === 'everything' || cat === 'favorites')) {
           await loadSavedLeads();
-        } else if (view === 'favorites') {
+        } else if (view === 'favorites' && (cat === 'favorites' || cat === 'saved-leads' || cat === 'everything')) {
           await loadFavoriteLeads();
-        } else if (view === 'outreach') {
+        } else if (view === 'outreach' && (cat === 'outreach' || cat === 'saved-leads' || cat === 'everything')) {
           await loadOutreachData();
-        } else if (view === 'followup') {
+        } else if (view === 'followup' && (cat === 'followup' || cat === 'saved-leads' || cat === 'everything')) {
           await loadFollowUpData();
+        } else if (view === 'cold-call' && (cat === 'cold-call' || cat === 'saved-leads' || cat === 'everything')) {
+          if (typeof loadColdCallData === 'function') await loadColdCallData();
+        } else if (view === 'history' && (cat === 'history' || cat === 'everything')) {
+          if (typeof loadHistoryData === 'function') await loadHistoryData();
         } else if (view === 'dashboard') {
           updateDashboardCounts();
         }
       } catch (err) {
-        console.error('[RESET LEAD DATA UNEXPECTED ERROR]', err);
+        console.error(`[RESET ${activeCategory.toUpperCase()} UNEXPECTED ERROR]`, err);
         showToast(`Reset failed: ${err.message || 'Network error'}`, 'error', 5000);
         isResetting = false;
         performBtn.disabled = false;
         performBtn.classList.remove('btn-reset-disabled');
-        performBtn.innerHTML = 'Yes, Reset Everything';
-        openBtn.disabled = false;
+        performBtn.textContent = originalText;
       }
     });
   }
+
+  const initResetLeadDataListeners = initDataResetListeners;
 
   function initUpdateSection() {
     const btn = document.getElementById('btn-check-updates');
@@ -15560,9 +16169,1359 @@
   }
 
   // ----------------------------------------------------
+  // COLD CALL WORKSPACE MODULE
+  // ----------------------------------------------------
+  const DEFAULT_CALL_SCRIPT = {
+    opening: `"Hi, is this {businessName}? I'm reaching out because I help businesses with AI and digital solutions."`,
+    reason: `"I wanted to quickly ask if you're currently looking at ways to get more enquiries or automate customer communication."`,
+    interested: `"I can show you a quick example and explain how it could work for your business."`,
+    notInterested: `"Sure, no problem. Thanks for your time."`,
+    busy: `"No problem. What would be a better time for me to call?"`
+  };
+
+  async function addLeadsToColdCall(leadIds, source = 'Direct') {
+    if (!Array.isArray(leadIds) || leadIds.length === 0) return;
+    try {
+      const res = await fetch('/api/coldcall/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadIds, source })
+      });
+      const data = await res.json();
+      if (data.success) {
+        AppState.coldCallDirty = true;
+        await updateBadgeCounts();
+        const addedCount = data.addedCount !== undefined ? data.addedCount : leadIds.length;
+        const msg = addedCount === 1 
+          ? `Added 1 lead to Cold Call queue.`
+          : `Added ${addedCount} leads to Cold Call queue.`;
+        showToast(msg, 'success', 3500, {
+          label: 'Open Cold Call',
+          onClick: () => switchView('cold-call')
+        });
+        if (AppState.currentView === 'cold-call') {
+          await loadColdCallData();
+        }
+      } else {
+        showToast(data.error || 'Failed to add leads to Cold Call.', 'error', 3000);
+      }
+    } catch (err) {
+      console.error('[COLD CALL ADD ERROR]', err);
+      showToast('Network error adding leads to Cold Call.', 'error', 3000);
+    }
+  }
+
+  async function loadColdCallData(targetLeadId = null) {
+    AppState.coldCall.isLoading = true;
+    try {
+      const res = await fetch('/api/coldcall/data');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      AppState.coldCall.data = data;
+      AppState.coldCall.leads = data.leads || [];
+      AppState.coldCallDirty = false;
+      AppState.hasLoadedColdCall = true;
+
+      updateColdCallCounters(data.metrics);
+      populateColdCallCategories(data.leads || []);
+      renderColdCallHistory(data.recentHistory || []);
+      renderColdCallCards(targetLeadId);
+    } catch (err) {
+      console.error('[LOAD COLD CALL DATA ERROR]', err);
+      showToast('Failed to load Cold Call data.', 'error', 3000);
+    } finally {
+      AppState.coldCall.isLoading = false;
+    }
+  }
+
+  function updateColdCallCounters(metrics) {
+    if (!metrics) return;
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = cleanNumericDisplay(val !== undefined ? val : 0);
+    };
+    setVal('coldcall-metric-total', metrics.totalQueue);
+    setVal('coldcall-metric-remaining', metrics.remaining);
+    setVal('coldcall-metric-called', metrics.called);
+    setVal('coldcall-metric-interested', metrics.interested);
+    setVal('coldcall-metric-callback', metrics.callback);
+    setVal('coldcall-metric-not-interested', metrics.notInterested);
+    setVal('coldcall-metric-no-answer', metrics.noAnswer);
+  }
+
+  function populateColdCallCategories(leads) {
+    const select = document.getElementById('coldcall-category-filter');
+    if (!select) return;
+    const currentVal = select.value || 'ALL';
+    const categories = new Set();
+    leads.forEach((l) => {
+      if (l.category && typeof l.category === 'string' && l.category.trim()) {
+        categories.add(l.category.trim());
+      }
+    });
+    const sorted = Array.from(categories).sort((a, b) => a.localeCompare(b));
+    let html = '<option value="ALL">All Categories</option>';
+    sorted.forEach((cat) => {
+      html += `<option value="${escapeHtml(cat)}"${cat === currentVal ? ' selected' : ''}>${escapeHtml(cat)}</option>`;
+    });
+    select.innerHTML = html;
+  }
+
+  function getColdCallFilteredLeads() {
+    const leads = AppState.coldCall.leads || [];
+    const filters = AppState.coldCall.filters || {};
+    const status = (filters.status || 'ALL').trim();
+    const priority = (filters.priority || 'ALL').trim();
+    const category = (filters.category || 'ALL').trim();
+    const searchLower = (filters.search || '').trim().toLowerCase();
+
+    return leads.filter((lead) => {
+      const cc = lead.cold_call || {};
+      const leadStatus = (cc.status || 'Not Called').toLowerCase();
+      const leadOutcome = (cc.outcome || '').toLowerCase();
+
+      // Status filter
+      if (status.toUpperCase() !== 'ALL') {
+        const sNorm = status.toLowerCase();
+        if (sNorm === 'not called' && leadStatus !== 'not called') return false;
+        if (sNorm === 'called' && leadStatus !== 'called') return false;
+        if (sNorm === 'follow-up required' && leadStatus !== 'follow-up required') return false;
+        if (sNorm === 'completed' && leadStatus !== 'completed') return false;
+        if (sNorm === 'interested' && leadOutcome !== 'interested') return false;
+        if ((sNorm === 'call back later' || sNorm === 'callback') && leadOutcome !== 'call back later') return false;
+        if (sNorm === 'not interested' && leadOutcome !== 'not interested') return false;
+        if (sNorm === 'no answer' && leadOutcome !== 'no answer') return false;
+      }
+
+      // Priority filter
+      if (priority.toUpperCase() !== 'ALL') {
+        const leadPri = (lead.lead_priority || lead.priority || 'Medium').toLowerCase();
+        if (leadPri !== priority.toLowerCase()) return false;
+      }
+
+      // Category filter
+      if (category.toUpperCase() !== 'ALL') {
+        if ((lead.category || '').toLowerCase() !== category.toLowerCase()) return false;
+      }
+
+      // Search query
+      if (searchLower) {
+        const bName = (lead.business_name || lead.name || '').toLowerCase();
+        const phone = String(lead.phone_number || lead.phone || '').toLowerCase();
+        const city = (lead.city || lead.state || '').toLowerCase();
+        const cat = (lead.category || '').toLowerCase();
+        if (!bName.includes(searchLower) && !phone.includes(searchLower) && !city.includes(searchLower) && !cat.includes(searchLower)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  function renderColdCallCards(targetLeadId = null) {
+    const container = document.getElementById('coldcall-cards-container');
+    const emptyState = document.getElementById('coldcall-empty-state');
+    const showingIndicator = document.getElementById('coldcall-showing-indicator');
+    if (!container) return;
+
+    const filtered = getColdCallFilteredLeads();
+    const totalCount = filtered.length;
+
+    if (showingIndicator) {
+      showingIndicator.textContent = `Showing ${cleanNumericDisplay(totalCount)} lead${totalCount === 1 ? '' : 's'}`;
+    }
+
+    if (totalCount === 0) {
+      container.innerHTML = '';
+      container.classList.add('hidden');
+      if (emptyState) {
+        emptyState.classList.remove('hidden');
+        const emptyTitle = document.getElementById('coldcall-empty-title');
+        const emptyDesc = document.getElementById('coldcall-empty-desc');
+        const hasAnyLeads = (AppState.coldCall.leads || []).length > 0;
+        if (emptyTitle) {
+          emptyTitle.textContent = hasAnyLeads ? 'No leads match filter criteria' : 'Cold Call queue is empty';
+        }
+        if (emptyDesc) {
+          emptyDesc.textContent = hasAnyLeads
+            ? 'Try resetting your search or status/priority filters.'
+            : 'Select leads from Saved Leads or Outreach and click "Add to Cold Call" to build your calling queue.';
+        }
+      }
+      renderColdCallPagination(0, 1, 15);
+      updateColdCallBulkControls();
+      selectColdCallLead(null);
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+    container.classList.remove('hidden');
+
+    const { page, pageSize } = AppState.coldCall.pagination;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const currentPage = Math.min(page, totalPages);
+    AppState.coldCall.pagination.page = currentPage;
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const pageLeads = filtered.slice(startIndex, startIndex + pageSize);
+
+    // If activeLeadId not set or not in current leads, pick target or first
+    let activeId = AppState.coldCall.activeLeadId;
+    if (targetLeadId) {
+      activeId = targetLeadId;
+    } else if (!activeId || !filtered.some((l) => String(l.id || l.place_id) === String(activeId))) {
+      activeId = pageLeads[0] ? (pageLeads[0].id || pageLeads[0].place_id) : null;
+    }
+
+    const cardsHtml = pageLeads.map((lead) => {
+      const id = lead.id || lead.place_id;
+      const isActive = String(id) === String(activeId);
+      const isChecked = AppState.coldCall.selectedIds.has(String(id));
+      const bName = escapeHtml(lead.business_name || lead.name || 'Unnamed Business');
+      const phone = escapeHtml(formatContactPhone(lead.phone_number || lead.phone) || 'No phone number');
+      const category = escapeHtml(lead.category || 'General');
+      const city = escapeHtml(lead.city || lead.state || '');
+      const priority = (lead.lead_priority || lead.priority || 'Medium');
+      const cc = lead.cold_call || {};
+      const ccStatus = cc.status || 'Not Called';
+      const ccOutcome = cc.outcome || '';
+      const callbackAt = cc.callback_at;
+
+      let statusBadgeClass = 'status-not-called';
+      if (ccStatus === 'Called') statusBadgeClass = 'status-called';
+      else if (ccStatus === 'Follow-Up Required') statusBadgeClass = 'status-followup';
+      else if (ccStatus === 'Completed') statusBadgeClass = 'status-completed';
+
+      let priorityClass = 'pri-medium';
+      if (priority.toLowerCase() === 'high') priorityClass = 'pri-high';
+      else if (priority.toLowerCase() === 'low') priorityClass = 'pri-low';
+
+      let callbackHtml = '';
+      if (callbackAt) {
+        callbackHtml = `<span class="coldcall-card-callback" title="Scheduled Callback"><i class="fa-regular fa-clock"></i> ${formatColdCallDate(callbackAt)}</span>`;
+      }
+
+      let outcomeHtml = '';
+      if (ccOutcome) {
+        outcomeHtml = `<span class="coldcall-card-outcome" title="Call Outcome">${escapeHtml(ccOutcome)}</span>`;
+      }
+
+      let webHtml = '';
+      if (lead.website) {
+        webHtml = `<span class="coldcall-card-web" title="${escapeHtml(lead.website)}"><i class="fa-solid fa-globe"></i> Web</span>`;
+      }
+
+      return `
+        <div class="coldcall-card ${isActive ? 'active' : ''}" data-lead-id="${id}">
+          <div class="coldcall-card-left">
+            <label class="coldcall-check-label">
+              <input type="checkbox" class="coldcall-lead-check" data-id="${id}" ${isChecked ? 'checked' : ''} />
+              <span class="coldcall-check-custom"></span>
+            </label>
+          </div>
+          <div class="coldcall-card-main">
+            <div class="coldcall-card-title-row">
+              <span class="coldcall-card-title">${bName}</span>
+              <span class="coldcall-priority-pill ${priorityClass}">${escapeHtml(priority)}</span>
+            </div>
+            <div class="coldcall-card-phone-row">
+              <i class="fa-solid fa-phone"></i>
+              <span>${phone}</span>
+            </div>
+            <div class="coldcall-card-badges">
+              <span class="coldcall-card-cat">${category}</span>
+              ${city ? `<span class="coldcall-card-loc"><i class="fa-solid fa-location-dot"></i> ${city}</span>` : ''}
+              ${webHtml}
+              <span class="coldcall-status-pill ${statusBadgeClass}">${escapeHtml(ccStatus)}</span>
+              ${outcomeHtml}
+              ${callbackHtml}
+            </div>
+          </div>
+          <div class="coldcall-card-actions">
+            <button type="button" class="btn-card-select-call" data-id="${id}" title="Select lead to track">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = cardsHtml;
+    renderColdCallPagination(totalCount, currentPage, pageSize);
+    updateColdCallBulkControls();
+    selectColdCallLead(activeId);
+  }
+
+  function renderColdCallPagination(total, currentPage, perPage) {
+    const container = document.getElementById('coldcall-page-nums-list');
+    const prevBtn = document.getElementById('btn-coldcall-page-prev');
+    const nextBtn = document.getElementById('btn-coldcall-page-next');
+    if (!container) return;
+
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+    container.innerHTML = '';
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `btn-page-num ${p === currentPage ? 'active' : ''}`;
+      btn.textContent = p;
+      btn.addEventListener('click', () => {
+        AppState.coldCall.pagination.page = p;
+        renderColdCallCards();
+      });
+      container.appendChild(btn);
+    }
+  }
+
+  function updateColdCallBulkControls() {
+    const count = AppState.coldCall.selectedIds.size;
+    const bar = document.getElementById('coldcall-bulk-bar');
+    const countText = document.getElementById('coldcall-bulk-count-text');
+
+    if (AppState.currentView === 'cold-call' && count > 0) {
+      if (bar) bar.classList.remove('hidden');
+      if (countText) countText.textContent = `${count} lead${count > 1 ? 's' : ''} selected`;
+    } else {
+      if (bar) bar.classList.add('hidden');
+    }
+  }
+
+  function selectColdCallLead(leadId) {
+    AppState.coldCall.activeLeadId = leadId;
+
+    // Highlight card in queue list
+    document.querySelectorAll('.coldcall-card').forEach((card) => {
+      const cardId = card.getAttribute('data-lead-id');
+      if (String(cardId) === String(leadId)) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+    });
+
+    const nameEl = document.getElementById('cc-ws-business-name');
+    const catEl = document.getElementById('cc-ws-category');
+    const locEl = document.getElementById('cc-ws-location');
+    const priEl = document.getElementById('cc-ws-priority');
+    const webEl = document.getElementById('cc-ws-webstatus');
+    const phoneEl = document.getElementById('cc-ws-phone-number');
+    const copyBtn = document.getElementById('btn-cc-copy-phone') || document.getElementById('btn-cc-dial');
+    const idBadge = document.getElementById('cc-ws-lead-source-id');
+    const statusBadge = document.getElementById('cc-ws-call-status');
+
+    if (!leadId) {
+      if (nameEl) nameEl.textContent = 'Select a Lead';
+      if (catEl) catEl.textContent = 'Category';
+      if (locEl) locEl.textContent = 'Location';
+      if (priEl) priEl.textContent = 'Priority';
+      if (webEl) webEl.textContent = 'Website';
+      if (phoneEl) phoneEl.textContent = 'No lead selected';
+      if (statusBadge) {
+        statusBadge.textContent = 'NOT CALLED';
+        statusBadge.className = 'cc-status-badge status-not-called';
+      }
+      if (copyBtn) {
+        copyBtn.classList.add('disabled');
+        copyBtn.setAttribute('disabled', 'true');
+      }
+      if (idBadge) idBadge.textContent = 'ID: --';
+      resetColdCallOutcomeForm();
+      populateColdCallScript('');
+      return;
+    }
+
+    const lead = (AppState.coldCall.leads || []).find((l) => String(l.id || l.place_id) === String(leadId));
+    if (!lead) return;
+
+    const bName = lead.business_name || lead.name || 'Unnamed Business';
+    const phone = formatContactPhone(lead.phone_number || lead.phone || '');
+    const cleanPhone = String(phone).replace(/\s+/g, '');
+    const priority = lead.lead_priority || lead.priority || 'Medium';
+
+    if (nameEl) nameEl.textContent = bName;
+    if (catEl) catEl.textContent = lead.category || 'General';
+    if (locEl) locEl.textContent = lead.city || lead.state || 'Local';
+    if (priEl) {
+      priEl.textContent = priority;
+      priEl.className = `cc-priority-badge pri-${priority.toLowerCase()}`;
+    }
+    if (webEl) {
+      webEl.textContent = lead.website ? 'Has Website' : 'No Website';
+      webEl.style.opacity = lead.website ? '1' : '0.6';
+    }
+    if (phoneEl) phoneEl.textContent = phone || 'No phone number';
+    if (idBadge) idBadge.textContent = `ID: ${lead.id || lead.place_id}`;
+
+    // Update prominent call status badge
+    const cc = lead.cold_call || {};
+    const ccStatus = cc.status || 'Not Called';
+    if (statusBadge) {
+      statusBadge.textContent = ccStatus.toUpperCase();
+      let statusClass = 'status-not-called';
+      const sLower = ccStatus.toLowerCase();
+      if (sLower === 'called') statusClass = 'status-called';
+      else if (sLower === 'follow-up required') statusClass = 'status-followup';
+      else if (sLower === 'completed') statusClass = 'status-completed';
+      statusBadge.className = `cc-status-badge ${statusClass}`;
+    }
+
+    if (copyBtn) {
+      if (cleanPhone) {
+        copyBtn.classList.remove('disabled');
+        copyBtn.removeAttribute('disabled');
+      } else {
+        copyBtn.classList.add('disabled');
+        copyBtn.setAttribute('disabled', 'true');
+      }
+    }
+
+    // Populate script
+    populateColdCallScript(bName);
+
+    // Restore existing outcome / status / notes if lead was called previously
+    const statusSelect = document.getElementById('cc-status-select');
+    if (statusSelect) {
+      statusSelect.value = cc.status || 'Called';
+    }
+
+    const reasonInput = document.getElementById('cc-outcome-reason');
+    if (reasonInput) {
+      reasonInput.value = cc.reason || '';
+    }
+
+    const notesTextarea = document.getElementById('cc-call-notes');
+    if (notesTextarea) {
+      notesTextarea.value = cc.notes || '';
+    }
+
+    // Outcome chips
+    const activeOutcome = cc.outcome || null;
+    AppState.coldCall.activeOutcome = activeOutcome;
+    document.querySelectorAll('.cc-outcome-chip').forEach((chip) => {
+      const outcome = chip.getAttribute('data-outcome');
+      if (outcome === activeOutcome) {
+        chip.classList.add('active');
+      } else {
+        chip.classList.remove('active');
+      }
+    });
+
+    // Callback wrap
+    const callbackWrap = document.getElementById('cc-callback-wrap');
+    if (callbackWrap) {
+      if (activeOutcome === 'Call Back Later' || cc.callback_at) {
+        callbackWrap.classList.remove('hidden');
+        initCallbackFields(cc.callback_at);
+      } else {
+        callbackWrap.classList.add('hidden');
+      }
+    }
+
+    // Update queue tracker UI if queue is currently active
+    updateQueueTrackerUI();
+  }
+
+  function populateColdCallScript(businessName) {
+    const name = businessName || 'your business';
+    const customScript = localStorage.getItem('clienthunter_custom_call_script');
+    const customArea = document.getElementById('cc-script-custom-textarea');
+
+    if (customScript && customScript.trim()) {
+      if (customArea) customArea.value = customScript;
+      // If user saved custom script, interpolate
+      const populated = customScript.replace(/\{businessName\}/gi, name);
+      const openingEl = document.getElementById('cc-script-opening');
+      if (openingEl) openingEl.textContent = populated;
+      return;
+    }
+
+    const op = document.getElementById('cc-script-opening');
+    const re = document.getElementById('cc-script-reason');
+    const inf = document.getElementById('cc-script-interested');
+    const ni = document.getElementById('cc-script-not-interested');
+    const bu = document.getElementById('cc-script-busy');
+
+    if (op) op.textContent = DEFAULT_CALL_SCRIPT.opening.replace(/\{businessName\}/gi, name);
+    if (re) re.textContent = DEFAULT_CALL_SCRIPT.reason;
+    if (inf) inf.textContent = DEFAULT_CALL_SCRIPT.interested;
+    if (ni) ni.textContent = DEFAULT_CALL_SCRIPT.notInterested;
+    if (bu) bu.textContent = DEFAULT_CALL_SCRIPT.busy;
+
+    if (customArea) {
+      customArea.value = `${DEFAULT_CALL_SCRIPT.opening}\n\n${DEFAULT_CALL_SCRIPT.reason}\n\n${DEFAULT_CALL_SCRIPT.interested}\n\n${DEFAULT_CALL_SCRIPT.notInterested}\n\n${DEFAULT_CALL_SCRIPT.busy}`;
+    }
+  }
+
+  function resetColdCallOutcomeForm() {
+    AppState.coldCall.activeOutcome = null;
+    document.querySelectorAll('.cc-outcome-chip').forEach((c) => c.classList.remove('active'));
+    const statusSelect = document.getElementById('cc-status-select');
+    if (statusSelect) statusSelect.value = 'Called';
+    const reasonInput = document.getElementById('cc-outcome-reason');
+    if (reasonInput) reasonInput.value = '';
+    const notesTextarea = document.getElementById('cc-call-notes');
+    if (notesTextarea) notesTextarea.value = '';
+    const callbackWrap = document.getElementById('cc-callback-wrap');
+    if (callbackWrap) callbackWrap.classList.add('hidden');
+  }
+
+  function initCallbackFields(existingIso) {
+    const dateInput = document.getElementById('cc-callback-date');
+    const timeInput = document.getElementById('cc-callback-time');
+    const preview = document.getElementById('cc-callback-preview');
+
+    let dt = new Date();
+    if (existingIso) {
+      try { dt = new Date(existingIso); } catch (e) {}
+    } else {
+      // Default to tomorrow 10:30 AM
+      dt.setDate(dt.getDate() + 1);
+      dt.setHours(10, 30, 0, 0);
+    }
+
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    const hh = String(dt.getHours()).padStart(2, '0');
+    const min = String(dt.getMinutes()).padStart(2, '0');
+
+    if (dateInput) dateInput.value = `${yyyy}-${mm}-${dd}`;
+    if (timeInput) timeInput.value = `${hh}:${min}`;
+
+    if (preview) {
+      preview.textContent = `Callback: ${formatColdCallDate(dt.toISOString())}`;
+    }
+  }
+
+  function updateQueueTrackerUI() {
+    const tracker = document.getElementById('cc-queue-tracker');
+    const curIdxEl = document.getElementById('cc-queue-current-idx');
+    const totIdxEl = document.getElementById('cc-queue-total-idx');
+    if (!tracker) return;
+
+    const qr = AppState.coldCall.queueRunner;
+    if (qr && qr.active && qr.leadIds.length > 0) {
+      tracker.classList.remove('hidden');
+      if (curIdxEl) curIdxEl.textContent = qr.currentIndex + 1;
+      if (totIdxEl) totIdxEl.textContent = qr.leadIds.length;
+    } else {
+      tracker.classList.add('hidden');
+    }
+  }
+
+  function formatColdCallDate(isoString) {
+    if (!isoString) return '--';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return String(isoString);
+      return d.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return String(isoString);
+    }
+  }
+
+  const RECENT_COLDCALL_ACTIVITY_LIMIT = 5;
+
+  function renderColdCallHistory(history) {
+    const tbody = document.getElementById('coldcall-history-tbody');
+    const tableEl = document.getElementById('cc-recent-table');
+    const emptyStateEl = document.getElementById('cc-recent-empty-state');
+    const countBadge = document.getElementById('coldcall-history-count');
+    if (!tbody) return;
+
+    const list = Array.isArray(history) ? history : [];
+    // Sort Newest -> Oldest by actual recorded activity timestamp
+    const sorted = [...list].sort((a, b) => {
+      const timeA = new Date(a.created_at || a.date || 0).getTime();
+      const timeB = new Date(b.created_at || b.date || 0).getTime();
+      return timeB - timeA;
+    });
+
+    const totalCalls = sorted.length;
+    if (countBadge) {
+      countBadge.textContent = `${totalCalls} call${totalCalls === 1 ? '' : 's'}`;
+    }
+
+    if (totalCalls === 0) {
+      tbody.innerHTML = '';
+      if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+      if (tableEl) tableEl.classList.add('hidden');
+      return;
+    }
+
+    if (emptyStateEl) emptyStateEl.classList.add('hidden');
+    if (tableEl) tableEl.classList.remove('hidden');
+
+    const displayed = sorted.slice(0, RECENT_COLDCALL_ACTIVITY_LIMIT);
+
+    const rowsHtml = displayed.map((item) => {
+      const bName = escapeHtml(item.businessName || item.business_name || 'Unknown Business');
+      const leadId = escapeHtml(String(item.lead_id || item.leadId || ''));
+      const dateStr = formatColdCallDate(item.created_at || item.date);
+      const outcome = escapeHtml(item.outcome || 'Called');
+
+      let noteText = '';
+      if (item.notes && item.notes.trim() && item.reason && item.reason.trim()) {
+        noteText = `${item.reason.trim()} • ${item.notes.trim()}`;
+      } else if (item.notes && item.notes.trim()) {
+        noteText = item.notes.trim();
+      } else if (item.reason && item.reason.trim()) {
+        noteText = item.reason.trim();
+      } else {
+        noteText = '—';
+      }
+      const safeNote = escapeHtml(noteText);
+
+      let badgeClass = 'badge-called';
+      const outLower = (item.outcome || '').toLowerCase();
+      if (outLower.includes('not interested')) badgeClass = 'badge-not-interested';
+      else if (outLower.includes('interested')) badgeClass = 'badge-interested';
+      else if (outLower.includes('converted')) badgeClass = 'badge-converted';
+      else if (outLower.includes('call back') || outLower.includes('callback')) badgeClass = 'badge-callback';
+      else if (outLower.includes('no answer')) badgeClass = 'badge-no-answer';
+      else if (outLower.includes('wrong number') || outLower.includes('wrong')) badgeClass = 'badge-wrong-number';
+      else if (outLower.includes('called')) badgeClass = 'badge-called';
+      else badgeClass = 'badge-other';
+
+      const bizCell = leadId
+        ? `<button type="button" class="cc-recent-biz-btn" data-lead-id="${leadId}" title="View details for ${bName}">${bName}</button>`
+        : `<span class="cc-recent-biz-static">${bName}</span>`;
+
+      return `
+        <tr>
+          <td>${bizCell}</td>
+          <td class="cc-recent-date-cell">${dateStr}</td>
+          <td><span class="cc-outcome-badge ${badgeClass}">${outcome}</span></td>
+          <td class="cc-recent-notes-cell" title="${safeNote}">${safeNote}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  async function handleSaveColdCallOutcome(advanceToNext = true) {
+    const activeLeadId = AppState.coldCall.activeLeadId;
+    if (!activeLeadId) {
+      showToast('Please select a lead first.', 'info', 2000);
+      return;
+    }
+
+    const lead = (AppState.coldCall.leads || []).find((l) => String(l.id || l.place_id) === String(activeLeadId));
+    if (!lead) return;
+
+    const outcome = AppState.coldCall.activeOutcome || 'Called';
+    const statusSelect = document.getElementById('cc-status-select');
+    const status = statusSelect ? statusSelect.value : 'Called';
+    const reasonInput = document.getElementById('cc-outcome-reason');
+    const reason = reasonInput ? reasonInput.value.trim() : '';
+    const notesTextarea = document.getElementById('cc-call-notes');
+    const notes = notesTextarea ? notesTextarea.value.trim() : '';
+
+    let callbackAt = null;
+    if (outcome === 'Call Back Later') {
+      const dateInput = document.getElementById('cc-callback-date');
+      const timeInput = document.getElementById('cc-callback-time');
+      if (dateInput && dateInput.value) {
+        const timeVal = (timeInput && timeInput.value) ? timeInput.value : '10:00';
+        try {
+          callbackAt = new Date(`${dateInput.value}T${timeVal}:00`).toISOString();
+        } catch (e) {
+          callbackAt = `${dateInput.value} ${timeVal}`;
+        }
+      }
+    }
+
+    try {
+      const res = await fetch('/api/coldcall/outcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadId: activeLeadId,
+          outcome,
+          status,
+          reason,
+          notes,
+          callbackAt
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Cold call recorded for ${lead.business_name || 'lead'}.`, 'success', 2500);
+
+        // Update local lead record
+        if (!lead.cold_call) lead.cold_call = {};
+        lead.cold_call.queued = true;
+        lead.cold_call.status = status;
+        lead.cold_call.outcome = outcome;
+        lead.cold_call.reason = reason;
+        lead.cold_call.notes = notes;
+        lead.cold_call.callback_at = callbackAt;
+        lead.cold_call.last_call_at = new Date().toISOString();
+
+        // Update metrics & history locally
+        if (data.metrics) {
+          updateColdCallCounters(data.metrics);
+        }
+        if (data.history || data.recentHistory) {
+          renderColdCallHistory(data.history || data.recentHistory);
+        }
+
+        // Update status badge in workspace immediately
+        const statusBadge = document.getElementById('cc-ws-call-status');
+        if (statusBadge) {
+          statusBadge.textContent = status.toUpperCase();
+          let statusClass = 'status-not-called';
+          const sLower = status.toLowerCase();
+          if (sLower === 'called') statusClass = 'status-called';
+          else if (sLower === 'follow-up required') statusClass = 'status-followup';
+          else if (sLower === 'completed') statusClass = 'status-completed';
+          statusBadge.className = `cc-status-badge ${statusClass}`;
+        }
+
+        AppState.savedLeadsDirty = true;
+        AppState.historyDirty = true;
+        await updateBadgeCounts();
+
+        // Re-render queue cards
+        renderColdCallCards(activeLeadId);
+
+        if (advanceToNext) {
+          advanceColdCallQueue();
+        }
+      } else {
+        showToast(data.error || 'Failed to save outcome.', 'error', 3000);
+      }
+    } catch (err) {
+      console.error('[SAVE COLD CALL OUTCOME ERROR]', err);
+      showToast('Network error saving cold call outcome.', 'error', 3000);
+    }
+  }
+
+  function advanceColdCallQueue() {
+    const qr = AppState.coldCall.queueRunner;
+    if (qr && qr.active && qr.leadIds.length > 0) {
+      qr.currentIndex++;
+      if (qr.currentIndex < qr.leadIds.length) {
+        const nextId = qr.leadIds[qr.currentIndex];
+        selectColdCallLead(nextId);
+        updateQueueTrackerUI();
+      } else {
+        // Queue finished!
+        stopColdCallQueue();
+        showToast(`Queue completed! Processed ${qr.leadIds.length} lead${qr.leadIds.length > 1 ? 's' : ''}.`, 'success', 4000);
+      }
+      return;
+    }
+
+    // If multiple leads are selected via checkboxes, advance to the next checked lead
+    if (AppState.coldCall.selectedIds && AppState.coldCall.selectedIds.size > 1) {
+      const selectedArr = Array.from(AppState.coldCall.selectedIds);
+      const currentId = String(AppState.coldCall.activeLeadId);
+      const currIdx = selectedArr.indexOf(currentId);
+      if (currIdx !== -1 && currIdx + 1 < selectedArr.length) {
+        selectColdCallLead(selectedArr[currIdx + 1]);
+        return;
+      }
+    }
+
+    // Otherwise find next lead in current filtered list
+    const filtered = getColdCallFilteredLeads();
+    const currentId = AppState.coldCall.activeLeadId;
+    const currentIdx = filtered.findIndex((l) => String(l.id || l.place_id) === String(currentId));
+
+    if (currentIdx !== -1 && currentIdx + 1 < filtered.length) {
+      const nextLead = filtered[currentIdx + 1];
+      selectColdCallLead(nextLead.id || nextLead.place_id);
+    } else {
+      showToast('Outcome saved. Reached the end of the queue.', 'info', 2500);
+    }
+  }
+
+  function stopColdCallQueue() {
+    AppState.coldCall.queueRunner.active = false;
+    AppState.coldCall.queueRunner.currentIndex = -1;
+    AppState.coldCall.queueRunner.leadIds = [];
+    updateQueueTrackerUI();
+  }
+
+  async function removeColdCallLeads(leadIds) {
+    if (!Array.isArray(leadIds) || leadIds.length === 0) return;
+    try {
+      const res = await fetch('/api/coldcall/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadIds })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const idSet = new Set(leadIds.map(String));
+        AppState.coldCall.leads = (AppState.coldCall.leads || []).filter((l) => !idSet.has(String(l.id || l.place_id)));
+        leadIds.forEach((id) => AppState.coldCall.selectedIds.delete(String(id)));
+
+        updateColdCallBulkControls();
+        await updateBadgeCounts();
+
+        // If active lead was removed, advance to first available
+        if (idSet.has(String(AppState.coldCall.activeLeadId))) {
+          AppState.coldCall.activeLeadId = null;
+        }
+
+        if (data.metrics) {
+          updateColdCallCounters(data.metrics);
+        }
+
+        renderColdCallCards();
+
+        const count = leadIds.length;
+        const toastMsg = count === 1 ? '1 lead deleted' : `${cleanNumericDisplay(count)} leads deleted`;
+        const undoToken = data.undoToken;
+        const prevStates = data.previousStates;
+
+        showToast(toastMsg, 'info', 5000, {
+          label: 'Undo',
+          onClick: async () => {
+            await undoColdCallRemove(undoToken, prevStates);
+          }
+        });
+      } else {
+        showToast(data.error || 'Failed to remove from Cold Call.', 'error', 3000);
+      }
+    } catch (err) {
+      console.error('[REMOVE COLD CALL ERROR]', err);
+      showToast('Network error removing from Cold Call.', 'error', 3000);
+    }
+  }
+
+  async function undoColdCallRemove(undoToken, fallbackStates = []) {
+    try {
+      const res = await fetch('/api/coldcall/undo-remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ undoToken, fallbackStates })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data?.error || 'Unable to restore lead. Please try again.', 'error', 3500);
+        return;
+      }
+
+      AppState.coldCallDirty = true;
+      await updateBadgeCounts();
+      await loadColdCallData();
+      renderColdCallCards();
+      updateColdCallBulkControls();
+
+      const count = data.restoredCount || 1;
+      const msg = count === 1 ? '1 lead restored.' : `${cleanNumericDisplay(count)} leads restored.`;
+      showToast(msg, 'success', 3000);
+    } catch (err) {
+      console.error('[UNDO COLD CALL ERROR]:', err);
+      showToast('Unable to restore lead. Please try again.', 'error', 3500);
+    }
+  }
+
+  function initColdCallModule() {
+    // 1. Metric card click-to-filter
+    document.querySelectorAll('.coldcall-metric-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.coldcall-metric-card').forEach((c) => c.classList.remove('active-metric'));
+        card.classList.add('active-metric');
+        const filterVal = card.getAttribute('data-filter') || 'ALL';
+        const statusFilter = document.getElementById('coldcall-status-filter');
+        if (statusFilter) {
+          statusFilter.value = filterVal;
+          AppState.coldCall.filters.status = filterVal;
+          AppState.coldCall.pagination.page = 1;
+          renderColdCallCards();
+        }
+      });
+    });
+
+    // 2. Header Refresh & Export Buttons
+    const refreshBtn = document.getElementById('btn-coldcall-refresh');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async () => {
+        refreshBtn.classList.add('spin-anim');
+        await loadColdCallData();
+        setTimeout(() => refreshBtn.classList.remove('spin-anim'), 600);
+        showToast('Cold Call queue refreshed.', 'info', 1500);
+      });
+    }
+
+    const exportColdCallBtn = document.getElementById('btn-export-coldcall');
+    if (exportColdCallBtn) {
+      exportColdCallBtn.addEventListener('click', () => {
+        if (typeof openExportModal === 'function') {
+          openExportModal('cold_call');
+        }
+      });
+    }
+
+    // 3. Search Bar
+    const searchInput = document.getElementById('coldcall-search-input');
+    const searchClearBtn = document.getElementById('btn-coldcall-search-clear');
+    if (searchInput) {
+      let searchTimeout = null;
+      searchInput.addEventListener('input', () => {
+        const val = searchInput.value;
+        if (searchClearBtn) {
+          if (val) searchClearBtn.classList.remove('hidden');
+          else searchClearBtn.classList.add('hidden');
+        }
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          AppState.coldCall.filters.search = val;
+          AppState.coldCall.pagination.page = 1;
+          renderColdCallCards();
+        }, 200);
+      });
+    }
+    if (searchClearBtn) {
+      searchClearBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        searchClearBtn.classList.add('hidden');
+        AppState.coldCall.filters.search = '';
+        AppState.coldCall.pagination.page = 1;
+        renderColdCallCards();
+      });
+    }
+
+    // 4. Status Filter Dropdown
+    const statusFilter = document.getElementById('coldcall-status-filter');
+    if (statusFilter) {
+      statusFilter.addEventListener('change', () => {
+        AppState.coldCall.filters.status = statusFilter.value;
+        AppState.coldCall.pagination.page = 1;
+        document.querySelectorAll('.coldcall-metric-card').forEach((c) => {
+          if ((c.getAttribute('data-filter') || '').toLowerCase() === (statusFilter.value || '').toLowerCase()) {
+            c.classList.add('active-metric');
+          } else {
+            c.classList.remove('active-metric');
+          }
+        });
+        renderColdCallCards();
+      });
+    }
+
+    // 5. Priority Filter Dropdown
+    const priorityFilter = document.getElementById('coldcall-priority-filter');
+    if (priorityFilter) {
+      priorityFilter.addEventListener('change', () => {
+        AppState.coldCall.filters.priority = priorityFilter.value;
+        AppState.coldCall.pagination.page = 1;
+        renderColdCallCards();
+      });
+    }
+
+    // 6. Category Filter Dropdown
+    const categoryFilter = document.getElementById('coldcall-category-filter');
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', () => {
+        AppState.coldCall.filters.category = categoryFilter.value;
+        AppState.coldCall.pagination.page = 1;
+        renderColdCallCards();
+      });
+    }
+
+    // 7. Rows Per Page
+    const rowsChoice = document.getElementById('coldcall-rows-choice');
+    if (rowsChoice) {
+      rowsChoice.addEventListener('change', () => {
+        AppState.coldCall.pagination.pageSize = parseInt(rowsChoice.value, 10) || 25;
+        AppState.coldCall.pagination.page = 1;
+        renderColdCallCards();
+      });
+    }
+
+    // 8. Select All Button
+    const selectAllBtn = document.getElementById('btn-coldcall-select-all');
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', () => {
+        const filtered = getColdCallFilteredLeads();
+        const allSelected = filtered.length > 0 && filtered.every((l) => AppState.coldCall.selectedIds.has(String(l.id || l.place_id)));
+        if (allSelected) {
+          AppState.coldCall.selectedIds.clear();
+        } else {
+          filtered.forEach((l) => AppState.coldCall.selectedIds.add(String(l.id || l.place_id)));
+        }
+        renderColdCallCards();
+      });
+    }
+
+    // 9. Cancel Queue Button (if queue tracking session active)
+    const cancelQueueBtn = document.getElementById('btn-cc-cancel-queue');
+    if (cancelQueueBtn) {
+      cancelQueueBtn.addEventListener('click', () => {
+        stopColdCallQueue();
+        showToast('Tracking queue stopped.', 'info', 2000);
+      });
+    }
+
+    // 10. Remove / Delete Batch Button
+    const removeBatchBtn = document.getElementById('btn-coldcall-remove-batch');
+    if (removeBatchBtn) {
+      removeBatchBtn.addEventListener('click', () => {
+        const count = AppState.coldCall.selectedIds.size;
+        if (count === 0) return;
+        const ids = Array.from(AppState.coldCall.selectedIds).map(String);
+        const title = 'Delete Selected Leads?';
+        const desc = count === 1
+          ? 'This will permanently remove 1 selected lead from the Cold Call queue and their Cold Call tracking state.'
+          : `This will permanently remove ${cleanNumericDisplay(count)} selected leads from the Cold Call queue and their Cold Call tracking state.`;
+        openDeleteConfirmModal(title, desc, async () => {
+          await removeColdCallLeads(ids);
+        }, 'Delete Leads');
+      });
+    }
+
+    // Floating Cold Call Bulk Popup Buttons
+    const popCcDelete = document.getElementById('btn-coldcall-pop-delete');
+    if (popCcDelete) {
+      popCcDelete.addEventListener('click', () => {
+        const count = AppState.coldCall.selectedIds.size;
+        if (count === 0) return;
+        const ids = Array.from(AppState.coldCall.selectedIds).map(String);
+        const title = 'Delete Selected Leads?';
+        const desc = count === 1
+          ? 'This will permanently remove 1 selected lead from the Cold Call queue and their Cold Call tracking state.'
+          : `This will permanently remove ${cleanNumericDisplay(count)} selected leads from the Cold Call queue and their Cold Call tracking state.`;
+        openDeleteConfirmModal(title, desc, async () => {
+          await removeColdCallLeads(ids);
+        }, 'Delete Leads');
+      });
+    }
+
+    const popCcDismiss = document.getElementById('btn-coldcall-pop-dismiss');
+    if (popCcDismiss) {
+      popCcDismiss.addEventListener('click', () => {
+        AppState.coldCall.selectedIds.clear();
+        document.querySelectorAll('.coldcall-lead-check').forEach((c) => (c.checked = false));
+        const chkAll = document.getElementById('btn-coldcall-select-all');
+        if (chkAll) {
+          const icon = chkAll.querySelector('i');
+          const span = chkAll.querySelector('span');
+          if (icon) icon.className = 'fa-regular fa-square-check';
+          if (span) span.textContent = 'Select All';
+        }
+        updateColdCallBulkControls();
+      });
+    }
+
+    // 11. Cards Container Event Delegation (Change & Click)
+    const cardsContainer = document.getElementById('coldcall-cards-container');
+    if (cardsContainer) {
+      cardsContainer.addEventListener('change', (e) => {
+        const chk = e.target.closest('.coldcall-lead-check');
+        if (chk) {
+          const id = String(chk.getAttribute('data-id') || '');
+          if (id) {
+            if (chk.checked) {
+              AppState.coldCall.selectedIds.add(id);
+            } else {
+              AppState.coldCall.selectedIds.delete(id);
+            }
+            updateColdCallBulkControls();
+          }
+        }
+      });
+
+      cardsContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.coldcall-card-left') || e.target.closest('.coldcall-check-label') || e.target.closest('.coldcall-lead-check')) {
+          return;
+        }
+
+        const card = e.target.closest('.coldcall-card');
+        if (card) {
+          const id = card.getAttribute('data-lead-id');
+          if (id) selectColdCallLead(id);
+        }
+      });
+    }
+
+    // 12. Empty State Navigation Buttons
+    const emptySavedBtn = document.getElementById('btn-coldcall-goto-saved');
+    if (emptySavedBtn) {
+      emptySavedBtn.addEventListener('click', () => switchView('saved-leads'));
+    }
+    const emptyOutreachBtn = document.getElementById('btn-coldcall-goto-outreach');
+    if (emptyOutreachBtn) {
+      emptyOutreachBtn.addEventListener('click', () => switchView('outreach'));
+    }
+
+    // 13. Copy Phone Button Click Handling (Does NOT initiate call, does NOT mutate data)
+    const copyPhoneBtn = document.getElementById('btn-cc-copy-phone') || document.getElementById('btn-cc-dial');
+    if (copyPhoneBtn) {
+      copyPhoneBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const phoneEl = document.getElementById('cc-ws-phone-number');
+        const rawPhone = phoneEl ? phoneEl.textContent.trim() : '';
+        const clean = rawPhone.replace(/\s+/g, '');
+        if (!clean || clean.includes('Select') || clean.includes('No lead') || clean.includes('No phone')) {
+          showToast('No valid phone number to copy.', 'error', 2000);
+          return;
+        }
+
+        const onCopySuccess = () => {
+          showToast('Phone number copied', 'success', 2000);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(rawPhone).then(onCopySuccess).catch(() => {
+            try {
+              const ta = document.createElement('textarea');
+              ta.value = rawPhone;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              onCopySuccess();
+            } catch (err) {
+              showToast('Failed to copy phone number.', 'error', 2000);
+            }
+          });
+        } else {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = rawPhone;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            onCopySuccess();
+          } catch (err) {
+            showToast('Failed to copy phone number.', 'error', 2000);
+          }
+        }
+      });
+    }
+
+    // 14. Collapsible Call Script Header Toggle
+    const toggleScriptHead = document.getElementById('btn-cc-toggle-script-head');
+    const scriptContainer = document.querySelector('.cc-script-collapsible');
+    if (toggleScriptHead && scriptContainer) {
+      toggleScriptHead.addEventListener('click', () => {
+        scriptContainer.classList.toggle('collapsed');
+      });
+    }
+
+    // 15. Call Script Tools (Copy & Edit)
+    const copyScriptBtn = document.getElementById('btn-cc-copy-script');
+    if (copyScriptBtn) {
+      copyScriptBtn.addEventListener('click', () => {
+        const bodyEl = document.getElementById('cc-script-body');
+        const text = bodyEl ? bodyEl.innerText : '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Call script copied to clipboard.', 'success', 2000);
+          }).catch(() => {
+            showToast('Failed to copy script.', 'error', 2000);
+          });
+        }
+      });
+    }
+
+    const toggleScriptEditBtn = document.getElementById('btn-cc-toggle-script-edit');
+    const scriptBody = document.getElementById('cc-script-body');
+    const scriptEditWrap = document.getElementById('cc-script-edit-wrap');
+    if (toggleScriptEditBtn && scriptBody && scriptEditWrap) {
+      toggleScriptEditBtn.addEventListener('click', () => {
+        const isEditing = !scriptEditWrap.classList.contains('hidden');
+        if (isEditing) {
+          scriptEditWrap.classList.add('hidden');
+          scriptBody.classList.remove('hidden');
+        } else {
+          scriptEditWrap.classList.remove('hidden');
+          scriptBody.classList.add('hidden');
+        }
+      });
+    }
+
+    const saveScriptBtn = document.getElementById('btn-cc-save-script');
+    const cancelScriptBtn = document.getElementById('btn-cc-cancel-script-edit');
+    const resetScriptBtn = document.getElementById('btn-cc-reset-script');
+    const customScriptArea = document.getElementById('cc-script-custom-textarea');
+
+    if (saveScriptBtn && customScriptArea) {
+      saveScriptBtn.addEventListener('click', () => {
+        const customText = customScriptArea.value.trim();
+        localStorage.setItem('clienthunter_custom_call_script', customText);
+        showToast('Custom script saved.', 'success', 2000);
+        if (scriptEditWrap && scriptBody) {
+          scriptEditWrap.classList.add('hidden');
+          scriptBody.classList.remove('hidden');
+        }
+        const activeId = AppState.coldCall.activeLeadId;
+        const lead = (AppState.coldCall.leads || []).find((l) => String(l.id || l.place_id) === String(activeId));
+        populateColdCallScript(lead ? lead.business_name : '');
+      });
+    }
+
+    if (cancelScriptBtn && scriptEditWrap && scriptBody) {
+      cancelScriptBtn.addEventListener('click', () => {
+        scriptEditWrap.classList.add('hidden');
+        scriptBody.classList.remove('hidden');
+      });
+    }
+
+    if (resetScriptBtn) {
+      resetScriptBtn.addEventListener('click', () => {
+        localStorage.removeItem('clienthunter_custom_call_script');
+        showToast('Reset script to default.', 'info', 2000);
+        const activeId = AppState.coldCall.activeLeadId;
+        const lead = (AppState.coldCall.leads || []).find((l) => String(l.id || l.place_id) === String(activeId));
+        populateColdCallScript(lead ? lead.business_name : '');
+        if (scriptEditWrap && scriptBody) {
+          scriptEditWrap.classList.add('hidden');
+          scriptBody.classList.remove('hidden');
+        }
+      });
+    }
+
+    // 16. Outcome Chips Selection
+    const outcomeChips = document.querySelectorAll('.cc-outcome-chip');
+    const callbackWrap = document.getElementById('cc-callback-wrap');
+    const statusSelect = document.getElementById('cc-status-select');
+
+    outcomeChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        outcomeChips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        const outcome = chip.getAttribute('data-outcome');
+        AppState.coldCall.activeOutcome = outcome;
+
+        if (outcome === 'Call Back Later') {
+          if (callbackWrap) callbackWrap.classList.remove('hidden');
+          initCallbackFields();
+          if (statusSelect) statusSelect.value = 'Follow-Up Required';
+        } else {
+          if (callbackWrap) callbackWrap.classList.add('hidden');
+          if (statusSelect) {
+            if (outcome === 'Interested') statusSelect.value = 'Follow-Up Required';
+            else if (outcome === 'Converted' || outcome === 'Not Interested' || outcome === 'Wrong Number') statusSelect.value = 'Completed';
+            else statusSelect.value = 'Called';
+          }
+        }
+      });
+    });
+
+    // 17. Callback Date/Time change live preview
+    const cbDate = document.getElementById('cc-callback-date');
+    const cbTime = document.getElementById('cc-callback-time');
+    const cbPreview = document.getElementById('cc-callback-preview');
+    const updateCbPreview = () => {
+      if (cbPreview && cbDate && cbDate.value) {
+        const timeVal = cbTime ? cbTime.value : '10:00';
+        try {
+          const dt = new Date(`${cbDate.value}T${timeVal}:00`);
+          cbPreview.textContent = `Callback: ${formatColdCallDate(dt.toISOString())}`;
+        } catch (e) {
+          cbPreview.textContent = `Callback: ${cbDate.value} ${timeVal}`;
+        }
+      }
+    };
+    if (cbDate) cbDate.addEventListener('change', updateCbPreview);
+    if (cbTime) cbTime.addEventListener('change', updateCbPreview);
+
+    // 18. Save Outcome & Next Button
+    const saveAndNextBtn = document.getElementById('btn-cc-save-and-next');
+    if (saveAndNextBtn) {
+      saveAndNextBtn.addEventListener('click', () => {
+        handleSaveColdCallOutcome(true);
+      });
+    }
+
+    // 19. Save Outcome Only Button
+    const saveOutcomeBtn = document.getElementById('btn-cc-save-outcome');
+    if (saveOutcomeBtn) {
+      saveOutcomeBtn.addEventListener('click', () => {
+        handleSaveColdCallOutcome(false);
+      });
+    }
+
+    // 20. Skip Button
+    const skipBtn = document.getElementById('btn-cc-skip-lead');
+    if (skipBtn) {
+      skipBtn.addEventListener('click', () => {
+        advanceColdCallQueue();
+      });
+    }
+
+    // 21. Remove Lead Button
+    const removeLeadBtn = document.getElementById('btn-cc-remove-lead');
+    if (removeLeadBtn) {
+      removeLeadBtn.addEventListener('click', () => {
+        const activeId = AppState.coldCall.activeLeadId;
+        if (!activeId) return;
+        const title = 'Delete Selected Leads?';
+        const desc = 'This will permanently remove 1 selected lead from the Cold Call queue and their Cold Call tracking state.';
+        openDeleteConfirmModal(title, desc, async () => {
+          await removeColdCallLeads([activeId]);
+        }, 'Delete Leads');
+      });
+    }
+
+    // 22. Recent Cold Call Activity Table Business Click Delegation
+    const recentActivityTable = document.getElementById('cc-recent-table') || document.getElementById('coldcall-history-tbody');
+    if (recentActivityTable) {
+      recentActivityTable.addEventListener('click', (e) => {
+        const btn = e.target.closest('.cc-recent-biz-btn');
+        if (!btn) return;
+        const leadId = btn.getAttribute('data-lead-id');
+        if (!leadId) return;
+
+        let lead = (AppState.coldCall?.leads || []).find((l) => String(l.id || l.place_id) === String(leadId));
+        if (!lead && AppState.leads) {
+          lead = AppState.leads.find((l) => String(l.id || l.place_id) === String(leadId));
+        }
+
+        if (lead && typeof openLeadDetailModal === 'function') {
+          openLeadDetailModal(lead);
+        } else if (typeof selectColdCallLead === 'function') {
+          selectColdCallLead(leadId);
+        }
+      });
+    }
+
+    // Expose helpers for cold call workspace verification
+    if (typeof window !== 'undefined') {
+      window.loadColdCallData = loadColdCallData;
+      window.removeColdCallLeads = removeColdCallLeads;
+      window.renderColdCallCards = renderColdCallCards;
+      window.selectColdCallLead = selectColdCallLead;
+      window.advanceColdCallQueue = advanceColdCallQueue;
+      window.renderColdCallHistory = renderColdCallHistory;
+      window.renderRecentColdCallActivity = renderColdCallHistory;
+      window.undoColdCallRemove = undoColdCallRemove;
+      window.updateColdCallBulkControls = updateColdCallBulkControls;
+    }
+  }
+
+  // ----------------------------------------------------
   // GO TO TOP FLOATING BUTTON CONTROLLER
   // ----------------------------------------------------
-  const GO_TO_TOP_ALLOWED_VIEWS = ['dashboard', 'saved-leads', 'favorites', 'outreach', 'followup', 'history'];
+  const GO_TO_TOP_ALLOWED_VIEWS = ['dashboard', 'saved-leads', 'favorites', 'outreach', 'followup', 'cold-call', 'history'];
 
   function updateGoToTopVisibility() {
     const btn = document.getElementById('btn-go-to-top');
@@ -15621,11 +17580,33 @@
   }
 
   // ----------------------------------------------------
+  // INITIAL STATIC NUMERIC SANITIZER
+  // ----------------------------------------------------
+  function sanitizeInitialNumericDisplays() {
+    try {
+      const targets = document.querySelectorAll(
+        '.nav-badge, .badge, .metric-value, .stat-value, .counter, [id^="fu-counter-"], [id^="fu-tab-"], [id^="coldcall-metric-"], [id$="-badge"], [id$="-counter"], .outreach-metric-num'
+      );
+      targets.forEach((el) => {
+        if (el && el.childNodes.length === 1 && el.firstChild.nodeType === Node.TEXT_NODE) {
+          const text = el.textContent.trim();
+          if (/^0+[0-9]+$/.test(text) && text.length <= 4) {
+            el.textContent = cleanNumericDisplay(text);
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('sanitizeInitialNumericDisplays error:', e);
+    }
+  }
+
+  // ----------------------------------------------------
   // INITIALIZATION ENTRY POINT
   // ----------------------------------------------------
   async function init() {
     try {
       document.body.setAttribute('data-view', AppState.currentView);
+      try { sanitizeInitialNumericDisplays(); } catch(e) { console.error('sanitizeInitialNumericDisplays error:', e); }
       try { initGlobalNavigation(); } catch(e) { console.error('initGlobalNavigation error:', e); }
       try { initMobileMenu(); } catch(e) { console.error('initMobileMenu error:', e); }
       try { initHeroPageInteractions(); } catch(e) { console.error('initHeroPageInteractions error:', e); }
@@ -15644,6 +17625,7 @@
       try { initSettingsModule(); } catch(e) { console.error('initSettingsModule error:', e); }
       try { initUpdateSection(); } catch(e) { console.error('initUpdateSection error:', e); }
       try { initGoToTop(); } catch(e) { console.error('initGoToTop error:', e); }
+      try { initColdCallModule(); } catch(e) { console.error('initColdCallModule error:', e); }
       try { await loadSavedViews(); } catch(e) { console.error('loadSavedViews error:', e); }
       try { setupDashboardAnalyticsListeners(); } catch(e) { console.error('setupDashboardAnalyticsListeners error:', e); }
 
@@ -15658,6 +17640,7 @@
             AppState.favoritesDirty = true;
             AppState.outreachDirty = true;
             AppState.followupDirty = true;
+            AppState.coldCallDirty = true;
             AppState.historyDirty = true;
 
             if (AppState.currentView === 'saved-leads' && typeof loadSavedLeads === 'function') {
@@ -15668,6 +17651,8 @@
               await loadOutreachData(null, true);
             } else if (AppState.currentView === 'followup' && typeof loadFollowUpData === 'function') {
               await loadFollowUpData();
+            } else if (AppState.currentView === 'cold-call' && typeof loadColdCallData === 'function') {
+              await loadColdCallData();
             } else if (AppState.currentView === 'history' && typeof loadHistoryData === 'function') {
               await loadHistoryData();
             }
@@ -15687,7 +17672,7 @@
       await updateBadgeCounts();
 
       const initialHash = window.location.hash.replace('#', '');
-      if (['dashboard', 'find-leads', 'saved-leads', 'favorites', 'outreach', 'followup', 'history', 'settings'].includes(initialHash)) {
+      if (['dashboard', 'find-leads', 'saved-leads', 'favorites', 'outreach', 'followup', 'cold-call', 'history', 'settings'].includes(initialHash)) {
         switchView(initialHash);
       } else {
         switchView('hero');
