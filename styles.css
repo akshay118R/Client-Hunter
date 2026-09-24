@@ -4676,6 +4676,19 @@ body.menu-open {
   font-weight: bold;
 }
 
+.cell-chk-label input:indeterminate + .cell-chk-custom {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.cell-chk-label input:indeterminate + .cell-chk-custom::after {
+  content: "";
+  width: 8px;
+  height: 2px;
+  background: #000000;
+  border-radius: 1px;
+}
+
 /* Website Pill */
 .website-cell-block {
   display: flex;
@@ -13108,6 +13121,8 @@ body.density-compact .table-btn {
 
 .card-outcome-pill[data-outcome="Not Interested"],
 .card-outcome-pill[data-outcome="Wrong Number"],
+.card-outcome-select[data-outcome="Not Interested"],
+.card-outcome-select[data-outcome="Wrong Number"],
 .ws-outcome-badge[data-outcome="Not Interested"],
 .ws-outcome-badge[data-outcome="Wrong Number"],
 .detail-outcome-badge[data-outcome="Not Interested"],
@@ -13119,10 +13134,16 @@ body.density-compact .table-btn {
 
 .card-outcome-pill[data-outcome="Call Back Later"],
 .card-outcome-pill[data-outcome="No Response"],
+.card-outcome-pill[data-outcome="No Answer"],
+.card-outcome-select[data-outcome="Call Back Later"],
+.card-outcome-select[data-outcome="No Response"],
+.card-outcome-select[data-outcome="No Answer"],
 .ws-outcome-badge[data-outcome="Call Back Later"],
 .ws-outcome-badge[data-outcome="No Response"],
+.ws-outcome-badge[data-outcome="No Answer"],
 .detail-outcome-badge[data-outcome="Call Back Later"],
-.detail-outcome-badge[data-outcome="No Response"] {
+.detail-outcome-badge[data-outcome="No Response"],
+.detail-outcome-badge[data-outcome="No Answer"] {
   background: rgba(245, 158, 11, 0.12);
   border-color: rgba(245, 158, 11, 0.35);
   color: #fbbf24;
@@ -13277,7 +13298,7 @@ body.density-compact .table-btn {
   box-shadow: 0 0 12px rgba(0, 223, 129, 0.35);
 }
 
-/* Outreach Cards Outcome Pill */
+/* Outreach Cards Outcome Pill & Select */
 .card-outcome-pill {
   font-size: 11px;
   font-weight: 600;
@@ -13289,9 +13310,34 @@ body.density-compact .table-btn {
   color: #94a3b8;
 }
 
+.card-outcome-select {
+  background: rgba(18, 22, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  max-width: 125px;
+  height: 24px;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.card-outcome-select option {
+  background: #111413;
+  color: #e2e8f0;
+}
+
 /* Outcome Color Tokens (Shared Across Badges & Pills) */
 .card-outcome-pill[data-outcome="Interested"],
 .card-outcome-pill[data-outcome="Converted"],
+.card-outcome-select[data-outcome="Interested"],
+.card-outcome-select[data-outcome="Converted"],
 .ws-outcome-badge[data-outcome="Interested"],
 .ws-outcome-badge[data-outcome="Converted"],
 .detail-outcome-badge[data-outcome="Interested"],
@@ -13303,6 +13349,8 @@ body.density-compact .table-btn {
 
 .card-outcome-pill[data-outcome="Not Interested"],
 .card-outcome-pill[data-outcome="Wrong Number"],
+.card-outcome-select[data-outcome="Not Interested"],
+.card-outcome-select[data-outcome="Wrong Number"],
 .ws-outcome-badge[data-outcome="Not Interested"],
 .ws-outcome-badge[data-outcome="Wrong Number"],
 .detail-outcome-badge[data-outcome="Not Interested"],
@@ -13314,10 +13362,16 @@ body.density-compact .table-btn {
 
 .card-outcome-pill[data-outcome="Call Back Later"],
 .card-outcome-pill[data-outcome="No Response"],
+.card-outcome-pill[data-outcome="No Answer"],
+.card-outcome-select[data-outcome="Call Back Later"],
+.card-outcome-select[data-outcome="No Response"],
+.card-outcome-select[data-outcome="No Answer"],
 .ws-outcome-badge[data-outcome="Call Back Later"],
 .ws-outcome-badge[data-outcome="No Response"],
+.ws-outcome-badge[data-outcome="No Answer"],
 .detail-outcome-badge[data-outcome="Call Back Later"],
-.detail-outcome-badge[data-outcome="No Response"] {
+.detail-outcome-badge[data-outcome="No Response"],
+.detail-outcome-badge[data-outcome="No Answer"] {
   background: rgba(245, 158, 11, 0.12);
   border-color: rgba(245, 158, 11, 0.35);
   color: #fbbf24;

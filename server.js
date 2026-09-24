@@ -3613,6 +3613,7 @@ const handleUpdateLeadOutcome = async (req, res) => {
   const validOutcomes = [
     '',
     'No Response',
+    'No Answer',
     'Interested',
     'Not Interested',
     'Call Back Later',
@@ -3627,7 +3628,7 @@ const handleUpdateLeadOutcome = async (req, res) => {
   if (rawOutcome && matchedOutcome === undefined) {
     return res.status(400).json({
       success: false,
-      error: 'Invalid outcome. Supported: No Response, Interested, Not Interested, Call Back Later, Wrong Number, Converted, Other'
+      error: 'Invalid outcome. Supported: No Response, No Answer, Interested, Not Interested, Call Back Later, Wrong Number, Converted, Other'
     });
   }
 
@@ -4901,8 +4902,8 @@ app.get('/api/outreach/data', async (req, res) => {
       sentTodayCount++;
     }
 
-    // notContacted
-    if (!l.first_message_sent && (os === 'Not Contacted' || os === 'Ready')) {
+    // notContacted / ready leads for Outreach
+    if (!l.first_message_sent && os !== 'Pending') {
       notContacted.push(l);
     }
 

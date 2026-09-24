@@ -2334,7 +2334,10 @@
       }
     }
     const masterCheck = document.getElementById('saved-select-all');
-    if (masterCheck) masterCheck.checked = false;
+    if (masterCheck) {
+      masterCheck.checked = false;
+      masterCheck.indeterminate = false;
+    }
 
     // Sorting
     const sort = AppState.savedFilters.sort || 'newest';
@@ -3567,8 +3570,22 @@
     // 3. Master Checkbox
     if (masterCheck) {
       const visibleCheckboxes = document.querySelectorAll('#saved-leads-tbody .row-checkbox');
-      const allChecked = visibleCheckboxes.length > 0 && Array.from(visibleCheckboxes).every((c) => c.checked);
-      masterCheck.checked = allChecked;
+      const totalVisible = visibleCheckboxes.length;
+      const checkedCount = Array.from(visibleCheckboxes).filter((c) => c.checked).length;
+
+      if (totalVisible === 0) {
+        masterCheck.checked = false;
+        masterCheck.indeterminate = false;
+      } else if (checkedCount === totalVisible) {
+        masterCheck.checked = true;
+        masterCheck.indeterminate = false;
+      } else if (checkedCount > 0) {
+        masterCheck.checked = false;
+        masterCheck.indeterminate = true;
+      } else {
+        masterCheck.checked = false;
+        masterCheck.indeterminate = false;
+      }
     }
   }
 
@@ -3657,6 +3674,7 @@
     const validOutcomes = [
       '',
       'No Response',
+      'No Answer',
       'Interested',
       'Not Interested',
       'Call Back Later',
@@ -3752,10 +3770,18 @@
       if (modalSel) modalSel.value = normalizedOutcome;
       if (modalReason) modalReason.value = cleanReason;
 
-      // 4. DOM Updates: Outreach Cards Pill
+      // 4. DOM Updates: Outreach Cards Pill & Select
+      document.querySelectorAll(`select.card-outcome-select[data-id="${leadId}"]`).forEach((sel) => {
+        sel.value = normalizedOutcome;
+        sel.setAttribute('data-outcome', normalizedOutcome || '');
+      });
       document.querySelectorAll(`.card-outcome-pill[data-id="${leadId}"]`).forEach((pill) => {
-        pill.textContent = displayOutcome;
-        pill.setAttribute('data-outcome', displayOutcome);
+        if (pill.tagName === 'SELECT') {
+          pill.value = normalizedOutcome;
+        } else {
+          pill.textContent = displayOutcome;
+        }
+        pill.setAttribute('data-outcome', normalizedOutcome || '');
         pill.title = `Outcome: ${displayOutcome}${cleanReason ? ' — ' + cleanReason : ''}`;
       });
 
@@ -5487,7 +5513,10 @@
         AppState.selectedLeadIds.clear();
         document.querySelectorAll('#saved-leads-tbody .row-checkbox').forEach((c) => (c.checked = false));
         const masterCheck = document.getElementById('saved-select-all');
-        if (masterCheck) masterCheck.checked = false;
+        if (masterCheck) {
+          masterCheck.checked = false;
+          masterCheck.indeterminate = false;
+        }
 
         // Invalidate outreach and saved leads caches so UI reloads fresh data
         AppState.outreachDirty = true;
@@ -6145,6 +6174,34 @@
     ];
   }
 
+  const COLD_CALL_EXPORT_CSV_HEADERS = [
+    'Lead ID',
+    'Business Name',
+    'Phone',
+    'Google Maps Link',
+    'Outreach Status'
+  ];
+
+  function mapColdCallLeadToExportCsvRow(l) {
+    const phoneVal = formatContactPhone(l.phone || l.phone_number || '').trim();
+    const mapsUrl = (l.google_maps_url || l.maps_url || '').trim();
+    const statusVal = l.outreach_status || 'Pending';
+
+    return [
+      escapeCsvCell(l.id || l.place_id || ''),
+      escapeCsvCell(l.business_name || l.name || ''),
+      escapeCsvCell(phoneVal),
+      escapeCsvCell(mapsUrl),
+      escapeCsvCell(statusVal)
+    ];
+  }
+
+  function serializeColdCallLeadsToCsv(leads) {
+    const headerRow = COLD_CALL_EXPORT_CSV_HEADERS.map(escapeCsvCell).join(',');
+    const dataRows = leads.map((l) => mapColdCallLeadToExportCsvRow(l).join(','));
+    return '\uFEFF' + [headerRow, ...dataRows].join('\r\n');
+  }
+
   function serializeLeadsToCsv(leads) {
     const headerRow = LEAD_EXPORT_CSV_HEADERS.map(escapeCsvCell).join(',');
     const dataRows = leads.map((l) => mapLeadToExportCsvRow(l).join(','));
@@ -6339,7 +6396,7 @@
       return {
         type: 'leads',
         scopeName: 'Cold Call Leads',
-        fieldsDesc: 'Cold call queue & prospects (33 columns)',
+        fieldsDesc: 'Lead ID, Business Name, Phone, Google Maps Link, Outreach Status (5 columns)',
         leads: ccList
       };
     }
@@ -6655,7 +6712,15 @@
     if (badgeEl) badgeEl.textContent = `${count} record${count === 1 ? '' : 's'}`;
     if (formatEl) formatEl.textContent = currentExportFormat.toUpperCase();
     if (selectionEl) selectionEl.textContent = data.scopeName;
-    if (fieldsEl) fieldsEl.textContent = data.fieldsDesc;
+    if (fieldsEl) {
+      if (scope === 'cold_call') {
+        fieldsEl.textContent = currentExportFormat === 'csv'
+          ? 'Lead ID, Business Name, Phone, Google Maps Link, Outreach Status (5 columns)'
+          : 'Cold call queue & prospects (Full Record)';
+      } else {
+        fieldsEl.textContent = data.fieldsDesc;
+      }
+    }
 
     // Validation handling
     if (scope === 'selected' && count === 0) {
@@ -6719,7 +6784,9 @@
 
       if (format === 'csv') {
         mimeType = 'text/csv';
-        if (data.type === 'leads' || data.type === 'backup') {
+        if (scope === 'cold_call') {
+          content = serializeColdCallLeadsToCsv(data.leads || []);
+        } else if (data.type === 'leads' || data.type === 'backup') {
           content = serializeLeadsToCsv(data.leads || []);
         } else if (data.type === 'activity') {
           content = serializeActivitiesToCsv(data.activities || []);
@@ -7364,14 +7431,22 @@
     // Master Select All Checkbox
     if (masterCheck) {
       masterCheck.addEventListener('change', function () {
-        const visibleCheckboxes = document.querySelectorAll('.row-checkbox');
+        const visibleCheckboxes = document.querySelectorAll('#saved-leads-tbody .row-checkbox');
+        if (visibleCheckboxes.length === 0) {
+          masterCheck.checked = false;
+          masterCheck.indeterminate = false;
+          return;
+        }
+        const shouldCheck = masterCheck.checked;
         visibleCheckboxes.forEach((chk) => {
-          chk.checked = masterCheck.checked;
+          chk.checked = shouldCheck;
           const id = chk.getAttribute('data-id');
-          if (masterCheck.checked) {
-            AppState.selectedLeadIds.add(id);
-          } else {
-            AppState.selectedLeadIds.delete(id);
+          if (id) {
+            if (shouldCheck) {
+              AppState.selectedLeadIds.add(id);
+            } else {
+              AppState.selectedLeadIds.delete(id);
+            }
           }
         });
         updateBulkActionBar();
@@ -7446,7 +7521,10 @@
       actionDeselectBtn.addEventListener('click', () => {
         AppState.selectedLeadIds.clear();
         document.querySelectorAll('#saved-leads-tbody .row-checkbox').forEach((c) => (c.checked = false));
-        if (masterCheck) masterCheck.checked = false;
+        if (masterCheck) {
+          masterCheck.checked = false;
+          masterCheck.indeterminate = false;
+        }
         updateBulkActionBar();
       });
     }
@@ -7455,7 +7533,10 @@
       bulkDismissBtn.addEventListener('click', () => {
         AppState.selectedLeadIds.clear();
         document.querySelectorAll('#saved-leads-tbody .row-checkbox').forEach((c) => (c.checked = false));
-        if (masterCheck) masterCheck.checked = false;
+        if (masterCheck) {
+          masterCheck.checked = false;
+          masterCheck.indeterminate = false;
+        }
         updateBulkActionBar();
       });
     }
@@ -8529,8 +8610,8 @@
       }
 
       const scoreNum = cleanNumericDisplay(lead.opportunity_score || 50);
-      const outcomeVal = lead.contact_outcome || 'No outcome';
-      const outcomeTooltip = `Outcome: ${outcomeVal}${lead.contact_outcome_reason ? ' — ' + lead.contact_outcome_reason : ''}`;
+      const curOutcome = lead.contact_outcome || '';
+      const outcomeTooltip = `Outcome: ${curOutcome || 'No outcome'}${lead.contact_outcome_reason ? ' — ' + lead.contact_outcome_reason : ''}`;
 
       return `
         <div class="outreach-card ${isActive ? 'active' : ''}" data-id="${leadId}">
@@ -8558,7 +8639,15 @@
               <option value="Medium" ${(lead.priority || 'Medium') === 'Medium' ? 'selected' : ''}>Medium</option>
               <option value="Low" ${(lead.priority || 'Medium') === 'Low' ? 'selected' : ''}>Low</option>
             </select>
-            <span class="card-outcome-pill" data-id="${leadId}" data-outcome="${escapeHtml(outcomeVal)}" title="${escapeHtml(outcomeTooltip)}">${escapeHtml(outcomeVal)}</span>
+            <select class="card-outcome-select card-outcome-pill" data-id="${leadId}" data-outcome="${escapeHtml(curOutcome)}" title="Lead Outcome">
+              <option value="" ${!curOutcome ? 'selected' : ''}>Outcome</option>
+              <option value="Interested" ${curOutcome === 'Interested' ? 'selected' : ''}>Interested</option>
+              <option value="Not Interested" ${curOutcome === 'Not Interested' ? 'selected' : ''}>Not Interested</option>
+              <option value="No Answer" ${(curOutcome === 'No Answer' || curOutcome === 'No Response') ? 'selected' : ''}>No Answer</option>
+              <option value="Call Back Later" ${curOutcome === 'Call Back Later' ? 'selected' : ''}>Call Back Later</option>
+              <option value="Wrong Number" ${curOutcome === 'Wrong Number' ? 'selected' : ''}>Wrong Number</option>
+              ${(curOutcome && !['Interested', 'Not Interested', 'No Answer', 'No Response', 'Call Back Later', 'Wrong Number'].includes(curOutcome)) ? `<option value="${escapeHtml(curOutcome)}" selected>${escapeHtml(curOutcome)}</option>` : ''}
+            </select>
             ${lead.converted ? `<span class="card-conversion-pill" data-id="${leadId}" title="Converted: ${escapeHtml(lead.conversion_service || 'Yes')}"><i class="fa-solid fa-trophy"></i> Converted</span>` : ''}
             ${statusBadge}
             <button type="button" class="btn-card-message" data-id="${leadId}">
@@ -10439,10 +10528,20 @@
         updateLeadPriority(id, newPri);
         return;
       }
+
+      const outcomeSelect = e.target.closest('.card-outcome-select');
+      if (outcomeSelect) {
+        e.stopPropagation();
+        const id = outcomeSelect.getAttribute('data-id');
+        const newOutcome = outcomeSelect.value;
+        outcomeSelect.setAttribute('data-outcome', newOutcome);
+        updateLeadOutcome(id, newOutcome);
+        return;
+      }
     });
 
     container.addEventListener('click', (e) => {
-      if (e.target.closest('.card-priority-pill')) {
+      if (e.target.closest('.card-priority-pill') || e.target.closest('.card-outcome-select')) {
         e.stopPropagation();
         return;
       }
