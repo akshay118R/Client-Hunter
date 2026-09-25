@@ -6736,6 +6736,202 @@ app.get('/api/coldcall/export', async (req, res) => {
   }
 });
 
+// 10.11g Google Sheets-Compatible Cold Call Lead Export System (.xlsx)
+const COLD_CALL_EXPORT_COLUMNS = [
+  { header: 'Lead ID', key: 'id', width: 16 },
+  { header: 'Business Name', key: 'name', width: 38 },
+  { header: 'Phone', key: 'phone', width: 22 },
+  { header: 'Google Maps Link', key: 'maps', width: 42 },
+  { header: 'Outreach Status', key: 'status', width: 22 }
+];
+
+const COLD_CALL_HEADER_COLORS = [
+  'FF1565C0', // Col A: Royal Blue (#1565c0)
+  'FF00838F', // Col B: Teal / Cyan (#00838f)
+  'FF6A1B9A', // Col C: Purple / Violet (#6a1b9a)
+  'FF1976D2', // Col D: Electric Blue (#1976d2)
+  'FF2E7D32'  // Col E: Green (#2e7d32)
+];
+
+const COLD_CALL_OUTREACH_STATUS_OPTIONS = [
+  'Select',
+  'Interested',
+  'Not Interested',
+  'No Answer',
+  'Call Back Later',
+  'Wrong Number'
+];
+
+function resolveColdCallExportStatus(l) {
+  const normalize = (val) => {
+    if (!val || typeof val !== 'string') return null;
+    const v = val.trim().toLowerCase();
+    if (v === 'select') return 'Select';
+    if (v === 'interested') return 'Interested';
+    if (v === 'not interested' || v === 'not_interested') return 'Not Interested';
+    if (v === 'no answer' || v === 'no_answer') return 'No Answer';
+    if (v === 'call back later' || v === 'callback' || v === 'call_back_later' || v === 'callback later') return 'Call Back Later';
+    if (v === 'wrong number' || v === 'wrong_number') return 'Wrong Number';
+    return null;
+  };
+
+  if (l && l.outreach_status) {
+    const norm = normalize(l.outreach_status);
+    if (norm) return norm;
+  }
+  if (l && l.cold_call && l.cold_call.outcome) {
+    const norm = normalize(l.cold_call.outcome);
+    if (norm) return norm;
+  }
+  if (l && l.cold_call_outcome) {
+    const norm = normalize(l.cold_call_outcome);
+    if (norm) return norm;
+  }
+  return 'Select';
+}
+
+async function buildColdCallExcelWorkbook(ExcelJSModule, leads = []) {
+  const workbook = new ExcelJSModule.Workbook();
+  workbook.creator = 'ClientHunter';
+  workbook.lastModifiedBy = 'ClientHunter';
+  workbook.created = new Date();
+  workbook.modified = new Date();
+
+  const worksheet = workbook.addWorksheet('Cold Call Leads', {
+    views: [{ state: 'frozen', ySplit: 1, topLeftCell: 'A2' }]
+  });
+
+  worksheet.columns = COLD_CALL_EXPORT_COLUMNS;
+
+  // Header styling (Row 1)
+  const headerRow = worksheet.getRow(1);
+  headerRow.height = 28;
+  headerRow.eachCell((cell, colNumber) => {
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: COLD_CALL_HEADER_COLORS[colNumber - 1] || 'FF1565C0' }
+    };
+    cell.font = {
+      name: 'Arial',
+      size: 11,
+      bold: true,
+      color: { argb: 'FFFFFFFF' }
+    };
+    cell.alignment = {
+      vertical: 'middle',
+      horizontal: 'left',
+      indent: 1
+    };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+    };
+  });
+
+  const validationFormula = `"${COLD_CALL_OUTREACH_STATUS_OPTIONS.join(',')}"`;
+
+  leads.forEach((l, idx) => {
+    const rowNum = idx + 2;
+    const phoneVal = (typeof formatContactPhone === 'function'
+      ? formatContactPhone(l.phone || l.phone_number || '')
+      : String(l.phone || l.phone_number || '')
+    ).trim();
+    const mapsUrl = (l.google_maps_url || l.maps_url || (l.place_id ? `https://maps.google.com/?cid=${l.place_id}` : '')).trim();
+    const statusVal = resolveColdCallExportStatus(l);
+
+    const row = worksheet.addRow({
+      id: String(l.id || l.place_id || ''),
+      name: String(l.business_name || l.name || ''),
+      phone: phoneVal,
+      maps: mapsUrl ? { text: mapsUrl, hyperlink: mapsUrl } : '',
+      status: statusVal
+    });
+
+    row.height = 24;
+
+    const isEven = rowNum % 2 === 0;
+    const bgArgb = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
+
+    for (let c = 1; c <= 5; c++) {
+      const cell = row.getCell(c);
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: bgArgb }
+      };
+      cell.font = { name: 'Arial', size: 10, color: { argb: 'FF1E293B' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+      };
+    }
+
+    // Lead ID formatted as Text
+    row.getCell(1).numFmt = '@';
+
+    // Phone formatted as Text to preserve +91
+    row.getCell(3).numFmt = '@';
+
+    // Google Maps Link as clickable hyperlink
+    if (mapsUrl) {
+      row.getCell(4).font = {
+        name: 'Arial',
+        size: 10,
+        color: { argb: 'FF1155CC' },
+        underline: true
+      };
+    }
+
+    // Outreach Status Dropdown Data Validation
+    row.getCell(5).dataValidation = {
+      type: 'list',
+      allowBlank: false,
+      formulae: [validationFormula],
+      showErrorMessage: true,
+      errorTitle: 'Invalid Status',
+      error: 'Please choose an Outreach Status from the dropdown list.'
+    };
+  });
+
+  // Autofilter across the 5 columns
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: 5 }
+  };
+
+  return workbook;
+}
+
+app.post('/api/coldcall/export-spreadsheet', async (req, res) => {
+  try {
+    let leads = req.body && Array.isArray(req.body.leads) ? req.body.leads : null;
+    if (!leads) {
+      let store = getStoredData();
+      if (storeStatus === 'failed' || !store) {
+        return res.status(500).json({ success: false, error: 'Store not available.' });
+      }
+      const summary = getColdCallSummary(store);
+      leads = summary.queuedLeads || [];
+    }
+    const ExcelJS = require('exceljs');
+    const workbook = await buildColdCallExcelWorkbook(ExcelJS, leads);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const dateStr = getTodayDateString();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="ClientHunter_ColdCall_${dateStr}.xlsx"`);
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    console.error('[ColdCall Export Spreadsheet Error]:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // ==========================================
 // 11. SETTINGS & SYSTEM API ROUTES

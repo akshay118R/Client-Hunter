@@ -497,7 +497,9 @@ ipcMain.handle('save-export-file', async (event, payload = {}) => {
 
   const defaultFilters = ext.toLowerCase() === '.json'
     ? [{ name: 'JSON Files (*.json)', extensions: ['json'] }, { name: 'All Files (*.*)', extensions: ['*'] }]
-    : [{ name: 'CSV Files (*.csv)', extensions: ['csv'] }, { name: 'All Files (*.*)', extensions: ['*'] }];
+    : ext.toLowerCase() === '.xlsx'
+      ? [{ name: 'Excel Spreadsheet (*.xlsx)', extensions: ['xlsx'] }, { name: 'All Files (*.*)', extensions: ['*'] }]
+      : [{ name: 'CSV Files (*.csv)', extensions: ['csv'] }, { name: 'All Files (*.*)', extensions: ['*'] }];
 
   const saveResult = await dialog.showSaveDialog(mainWindow, {
     title: 'Export ClientHunter Lead Data',
@@ -511,7 +513,11 @@ ipcMain.handle('save-export-file', async (event, payload = {}) => {
   }
 
   try {
-    fs.writeFileSync(saveResult.filePath, content, 'utf8');
+    if (payload.isBase64 && typeof content === 'string') {
+      fs.writeFileSync(saveResult.filePath, Buffer.from(content, 'base64'));
+    } else {
+      fs.writeFileSync(saveResult.filePath, content);
+    }
     console.log(`[ClientHunter] Export saved successfully to: ${saveResult.filePath}`);
     return {
       success: true,
